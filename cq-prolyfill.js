@@ -192,6 +192,7 @@ function getContainer(element, prop) {
 	return cache.parents[prop];
 }
 
+// TODO: Return the size of the content-box instead of the border-box
 function getSize(element, prop) {
 	if (prop === 'width') {
 		return element.offsetWidth;
