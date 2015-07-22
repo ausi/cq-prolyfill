@@ -2,25 +2,41 @@
 'use strict';
 
 window.containerQueries = {
+	reprocess: reprocess,
+	reparse: reparse,
 	reevaluate: reevaluate,
 };
 
 window.addEventListener('resize', reevaluate);
-window.addEventListener('load', reevaluate);
+window.addEventListener('load', reprocess);
 
 var SELECTOR_REGEXP = /:container\(\s*(?:min|max)-(?:width|height)\s*:\s*[^)]+\s*\)/gi;
 var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(\s*((?:min|max)-(?:width|height))\s*\\:\s*([^)]+?)\s*\\\)/gi;
 var ESCAPE_REGEXP = /[:()]/g;
 var SPACE_REGEXP = / /g;
+var LENGTH_REGEXP = /^-?(?:\d*\.)?\d+(?:em|ex|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)$/i;
+var ATTR_REGEXP = /\[.+?\]/g;
+var PSEUDO_NOT_REGEXP = /:not\(/g;
+var ID_REGEXP = /#[^\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
+var CLASS_REGEXP = /\.[^\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
+var PSEUDO_ELEMENT_REGEXP = /::[^\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
+var PSEUDO_CLASS_REGEXP = /:[^\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
+var ELEMENT_REGEXP = /[a-z-]+/gi;
 
 var queries = {};
 var elementsCache = new Map();
 
-function reevaluate() {
+function reprocess() {
 	preprocess(function() {
-		parseRules();
-		updateClasses();
+		reparse();
 	});
+}
+function reparse() {
+	parseRules();
+	reevaluate();
+}
+function reevaluate() {
+	updateClasses();
 }
 
 function preprocess(callback) {
@@ -150,7 +166,7 @@ function updateClasses() {
 }
 
 function updateClass(element, query) {
-	var container = getContainer(element, query.prop);
+	var container = getContainer(element.parentNode, query.prop);
 	var size = getSize(container, query.prop);
 	var value = parseFloat(query.value);
 	if (
@@ -168,28 +184,64 @@ function getContainer(element, prop) {
 	var cache;
 	if (elementsCache.has(element)) {
 		cache = elementsCache.get(element);
-		if (cache.parents[prop]) {
-			return cache.parents[prop];
+		if (cache.container[prop]) {
+			return cache.container[prop];
 		}
 	}
 	else {
 		cache = {
-			parents: {},
+			container: {},
 		};
 		elementsCache.set(element, cache);
 	}
 
-	if (element.parentNode === document.documentElement) {
-		cache.parents[prop] = element.parentNode;
+	if (element === document.documentElement) {
+		cache.container[prop] = element;
 	}
-	// TODO: Add the right check
-	else if (window.getComputedStyle(element.parentNode).display === 'block') {
-		cache.parents[prop] = element.parentNode;
+	else if (isFixedSize(element, prop)) {
+		cache.container[prop] = element;
 	}
 	else {
-		cache.parents[prop] = getContainer(element.parentNode, prop);
+		var parentContainer = getContainer(element.parentNode, prop);
+		var chain = [];
+		for (var node = element; node !== parentContainer; node = node.parentNode) {
+			chain.unshift(node);
+		}
+		for (var i = 0; i < chain.length; i++) {
+			if (isIntrinsicSize(chain[i], prop)) {
+				break;
+			}
+		}
+		if (i) {
+			cache.container[prop] = chain[i - 1];
+		}
+		else {
+			cache.container[prop] = parentContainer;
+		}
 	}
-	return cache.parents[prop];
+	return cache.container[prop];
+}
+
+function isFixedSize(element, prop) {
+	var originalStyle = getOriginalStyle(element, [prop]);
+	if (originalStyle[prop] && originalStyle[prop].search(LENGTH_REGEXP) !== -1) {
+		return true;
+	}
+}
+
+function isIntrinsicSize(element, prop) {
+	var computedStyle = window.getComputedStyle(element);
+	var originalStyle = getOriginalStyle(element, [prop]);
+	if (originalStyle[prop] && originalStyle[prop].substr(-1) === '%') {
+		return false;
+	}
+	if (computedStyle.float !== 'none') {
+		return true;
+	}
+	if (computedStyle.display === 'inline-block') {
+		return true;
+	}
+	return false;
 }
 
 // TODO: Return the size of the content-box instead of the border-box
@@ -201,6 +253,127 @@ function getSize(element, prop) {
 		return element.offsetHeight;
 	}
 	return 0;
+}
+
+// TODO: Check the style attribute also
+// TODO: Respect !important styles
+function getOriginalStyle(element, props) {
+	var matchedRules = [];
+	var sheets = document.styleSheets;
+	var rules;
+	var result = {};
+	var i, j;
+	for (i = 0; i < sheets.length; i++) {
+		if (sheets[i].disabled) {
+			continue;
+		}
+		try {
+			rules = sheets[i].cssRules;
+		}
+		catch(e) {
+			continue;
+		}
+		matchedRules = matchedRules.concat(filterRulesByElementAndProps(rules, element, props));
+	}
+	matchedRules = sortRulesBySpecificity(matchedRules);
+	for (i = 0; i < matchedRules.length; i++) {
+		for (j = 0; j < props.length; j++) {
+			if (matchedRules[i].rule.style.getPropertyValue(props[j])) {
+				result[props[j]] = matchedRules[i].rule.style.getPropertyValue(props[j]);
+				break;
+			}
+		}
+	}
+	return result;
+}
+
+function filterRulesByElementAndProps(rules, element, props) {
+	var matchedRules = [];
+	for (var i = 0; i < rules.length; i++) {
+		if (rules[i].cssRules) {
+			matchedRules = matchedRules.concat(filterRulesByElementAndProps(rules[i].cssRules, element, props));
+		}
+		else if (rules[i].type === 1) { // Style rule
+			if (
+				styleHasProperty(rules[i].style, props)
+				&& (
+					!rules[i].parentRule
+					|| rules[i].parentRule.type !== 4 // @media rule
+					|| window.matchMedia(rules[i].parentRule.media).matches
+				)
+				&& element.matches(rules[i].selectorText)
+			) {
+				splitSelectors(rules[i].selectorText).forEach(function(selector) {
+					if (element.matches(selector)) {
+						matchedRules.push({
+							selector: selector,
+							rule: rules[i],
+						});
+					}
+				});
+			}
+		}
+	}
+	return matchedRules;
+}
+
+function styleHasProperty(style, props) {
+	for (var i = 0; i < style.length; i++) {
+		if (props.indexOf(style.item(i)) !== -1) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function sortRulesBySpecificity(rules) {
+	return rules.map(function(rule, i) {
+		return [rule, i];
+	}).sort(function(a, b) {
+		return (getSpecificity(b[0].selector) - getSpecificity(a[0].selector)) || b[1] - a[1];
+	}).map(function(rule) {
+		return rule[0];
+	});
+}
+
+function getSpecificity(selector) {
+	// [style, id, class, type]
+	var scores = [0, 0, 0, 0];
+	selector.replace(SELECTOR_ESCAPED_REGEXP, function() {
+		scores[2]++;
+		return '';
+	});
+	selector.replace(ATTR_REGEXP, function() {
+		scores[2]++;
+		return '';
+	});
+	selector.replace(PSEUDO_NOT_REGEXP, '');
+	selector.replace(ID_REGEXP, function() {
+		scores[1]++;
+		return '';
+	});
+	selector.replace(CLASS_REGEXP, function() {
+		scores[2]++;
+		return '';
+	});
+	selector.replace(PSEUDO_ELEMENT_REGEXP, function() {
+		scores[3]++;
+		return '';
+	});
+	selector.replace(PSEUDO_CLASS_REGEXP, function() {
+		scores[2]++;
+		return '';
+	});
+	selector.replace(ELEMENT_REGEXP, function() {
+		scores[3]++;
+		return '';
+	});
+	return (
+		(scores[0] * 1000 * 1000 * 1000)
+		+ (scores[1] * 1000 * 1000)
+		+ (scores[2] * 1000)
+		+ scores[3]
+	);
 }
 
 function eachQuery(callback) {
