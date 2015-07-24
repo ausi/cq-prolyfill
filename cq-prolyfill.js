@@ -181,6 +181,7 @@ function updateClass(element, query) {
 }
 
 function getContainer(element, prop) {
+
 	var cache;
 	if (elementsCache.has(element)) {
 		cache = elementsCache.get(element);
@@ -198,14 +199,24 @@ function getContainer(element, prop) {
 	if (element === document.documentElement) {
 		cache.container[prop] = element;
 	}
+
+	// Skip inline elements
+	else if (window.getComputedStyle(element).display === 'inline') {
+		cache.container[prop] = getContainer(element.parentNode, prop);
+	}
+
 	else if (isFixedSize(element, prop)) {
 		cache.container[prop] = element;
 	}
+
 	else {
 		var parentContainer = getContainer(element.parentNode, prop);
 		var chain = [];
 		for (var node = element; node !== parentContainer; node = node.parentNode) {
-			chain.unshift(node);
+			// Skip inline elements
+			if (window.getComputedStyle(node).display !== 'inline') {
+				chain.unshift(node);
+			}
 		}
 		for (var i = 0; i < chain.length; i++) {
 			if (isIntrinsicSize(chain[i], prop)) {
@@ -219,7 +230,9 @@ function getContainer(element, prop) {
 			cache.container[prop] = parentContainer;
 		}
 	}
+
 	return cache.container[prop];
+
 }
 
 function isFixedSize(element, prop) {
@@ -230,18 +243,43 @@ function isFixedSize(element, prop) {
 }
 
 function isIntrinsicSize(element, prop) {
+
 	var computedStyle = window.getComputedStyle(element);
+
+	if (computedStyle.display === 'none') {
+		return false;
+	}
+
+	if (computedStyle.display === 'inline') {
+		return true;
+	}
+
+	// Non-floating non-absolute block elements (only width)
+	if (
+		prop === 'width'
+		&& ['block', 'list-item', 'flex', 'grid'].indexOf(computedStyle.display) !== -1
+		&& computedStyle.float === 'none'
+		&& computedStyle.position !== 'absolute'
+		&& computedStyle.position !== 'fixed'
+	) {
+		return false;
+	}
+
 	var originalStyle = getOriginalStyle(element, [prop]);
+
+	// Fixed size
+	if (originalStyle[prop] && originalStyle[prop].search(LENGTH_REGEXP) !== -1) {
+		return false;
+	}
+
+	// Percentage size
 	if (originalStyle[prop] && originalStyle[prop].substr(-1) === '%') {
 		return false;
 	}
-	if (computedStyle.float !== 'none') {
-		return true;
-	}
-	if (computedStyle.display === 'inline-block') {
-		return true;
-	}
-	return false;
+
+	// Elements without a defined size
+	return true;
+
 }
 
 // TODO: Return the size of the content-box instead of the border-box
