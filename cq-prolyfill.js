@@ -1,14 +1,19 @@
 (function(window, document) {
 'use strict';
 
+// Public API
 window.containerQueries = {
 	reprocess: reprocess,
 	reparse: reparse,
 	reevaluate: reevaluate,
 };
 
-window.addEventListener('resize', reevaluate);
+// Reprocess now
+setTimeout(reprocess);
+
+window.addEventListener('DOMContentLoaded', reprocess);
 window.addEventListener('load', reprocess);
+window.addEventListener('resize', reevaluate);
 
 var SELECTOR_REGEXP = /:container\(\s*(?:min|max)-(?:width|height)\s*:\s*[^)]+\s*\)/gi;
 var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(\s*((?:min|max)-(?:width|height))\s*\\:\s*([^)]+?)\s*\\\)/gi;
@@ -25,22 +30,36 @@ var ELEMENT_REGEXP = /[a-z-]+/gi;
 
 var queries;
 var containerCache;
+var processed = false;
+var parsed = false;
 
 function reprocess() {
 	preprocess(function() {
+		processed = true;
 		reparse();
 	});
 }
 function reparse() {
+	if (!processed) {
+		return reprocess();
+	}
 	parseRules();
+	parsed = true;
 	reevaluate();
 }
 function reevaluate() {
+	if (!parsed) {
+		return reparse();
+	}
 	updateClasses();
 }
 
 function preprocess(callback) {
 	var sheets = document.styleSheets;
+	if (!sheets.length) {
+		callback();
+		return;
+	}
 	var done = 0;
 	for (var i = 0, length = sheets.length; i < length; i++) {
 		preprocessSheet(sheets[i], function() {
