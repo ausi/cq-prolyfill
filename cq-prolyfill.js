@@ -81,11 +81,13 @@ function preprocessSheet(sheet, callback) {
 	if (tag === 'LINK') {
 		loadExternal(sheet.ownerNode.href, function(cssText) {
 			cssText = fixRelativeUrls(cssText, sheet.ownerNode.href);
-			preprocessStyle(sheet.ownerNode, cssText, callback);
+			preprocessStyle(sheet.ownerNode, cssText);
+			callback();
 		});
 	}
 	else if (tag === 'STYLE') {
-		preprocessStyle(sheet.ownerNode, sheet.ownerNode.innerHTML, callback);
+		preprocessStyle(sheet.ownerNode, sheet.ownerNode.innerHTML);
+		callback();
 	}
 	else {
 		callback();
@@ -115,14 +117,13 @@ function fixRelativeUrls(cssText, href) {
 	});
 }
 
-function preprocessStyle(node, cssText, callback) {
+function preprocessStyle(node, cssText) {
 	var found = false;
 	cssText = cssText.replace(SELECTOR_REGEXP, function(selector) {
 		found = true;
 		return '.' + selector.replace(SPACE_REGEXP, '').replace(ESCAPE_REGEXP, '\\$&');
 	});
 	if (!found) {
-		callback();
 		return;
 	}
 	var style = document.createElement('style');
@@ -130,7 +131,6 @@ function preprocessStyle(node, cssText, callback) {
 	style.media = node.media;
 	node.parentNode.insertBefore(style, node);
 	node.disabled = true;
-	callback();
 }
 
 function parseRules() {
