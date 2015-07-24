@@ -20,6 +20,7 @@ var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(\s*((?:min|max)-(?:width|height
 var ESCAPE_REGEXP = /[:()]/g;
 var SPACE_REGEXP = / /g;
 var LENGTH_REGEXP = /^-?(?:\d*\.)?\d+(?:em|ex|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)$/i;
+var URL_VALUE_REGEXP = /url\(\s*(?:(["'])(.*?)\1|([^)\s]*))\s*\)/gi;
 var ATTR_REGEXP = /\[.+?\]/g;
 var PSEUDO_NOT_REGEXP = /:not\(/g;
 var ID_REGEXP = /#[^\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
@@ -79,7 +80,7 @@ function preprocessSheet(sheet, callback) {
 	var tag = sheet.ownerNode && sheet.ownerNode.tagName;
 	if (tag === 'LINK') {
 		loadExternal(sheet.ownerNode.href, function(cssText) {
-			// TODO: fix relative URLs, see https://github.com/LeaVerou/prefixfree/blob/765c6a1/prefixfree.js#L46
+			cssText = fixRelativeUrls(cssText, sheet.ownerNode.href);
 			preprocessStyle(sheet.ownerNode, cssText, callback);
 		});
 	}
@@ -101,6 +102,17 @@ function loadExternal(href, callback) {
 		callback(xhr.status === 200 ? xhr.responseText : '');
 	};
 	xhr.send();
+}
+
+function fixRelativeUrls(cssText, href) {
+	var base = new URL(href, document.baseURI);
+	return cssText.replace(URL_VALUE_REGEXP, function(match, quote, url1, url2) {
+		var url = url1 || url2;
+		if (!url) {
+			return match;
+		}
+		return 'url(' + (quote || '"') + new URL(url, base).href + (quote || '"') + ')';
+	});
 }
 
 function preprocessStyle(node, cssText, callback) {
