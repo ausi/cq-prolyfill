@@ -293,14 +293,15 @@ function getSize(element, prop) {
 	return 0;
 }
 
-// TODO: Check the style attribute also
 // TODO: Respect !important styles
 function getOriginalStyle(element, props) {
+
 	var matchedRules = [];
 	var sheets = document.styleSheets;
 	var rules;
 	var result = {};
 	var i, j;
+
 	for (i = 0; i < sheets.length; i++) {
 		if (sheets[i].disabled) {
 			continue;
@@ -313,16 +314,27 @@ function getOriginalStyle(element, props) {
 		}
 		matchedRules = matchedRules.concat(filterRulesByElementAndProps(rules, element, props));
 	}
+
 	matchedRules = sortRulesBySpecificity(matchedRules);
-	for (i = 0; i < matchedRules.length; i++) {
-		for (j = 0; j < props.length; j++) {
-			if (matchedRules[i].rule.style.getPropertyValue(props[j])) {
-				result[props[j]] = matchedRules[i].rule.style.getPropertyValue(props[j]);
+
+	// Add style attribute
+	matchedRules.unshift({
+		rule: {
+			style: element.style,
+		},
+	});
+
+	for (i = 0; i < props.length; i++) {
+		for (j = 0; j < matchedRules.length; j++) {
+			if (matchedRules[j].rule.style.getPropertyValue(props[i])) {
+				result[props[i]] = matchedRules[j].rule.style.getPropertyValue(props[i]);
 				break;
 			}
 		}
 	}
+
 	return result;
+
 }
 
 function filterRulesByElementAndProps(rules, element, props) {
