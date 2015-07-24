@@ -80,6 +80,11 @@ function preprocessSheet(sheet, callback) {
 	var tag = sheet.ownerNode && sheet.ownerNode.tagName;
 	if (tag === 'LINK') {
 		loadExternal(sheet.ownerNode.href, function(cssText) {
+			// Check again because loadExternal is async
+			if (sheet.disabled) {
+				callback();
+				return;
+			}
 			cssText = fixRelativeUrls(cssText, sheet.ownerNode.href);
 			preprocessStyle(sheet.ownerNode, cssText);
 			callback();
