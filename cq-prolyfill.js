@@ -302,13 +302,21 @@ function isIntrinsicSize(element, prop) {
 
 }
 
-// TODO: Return the size of the content-box instead of the border-box
 function getSize(element, prop) {
+	var style = window.getComputedStyle(element);
 	if (prop === 'width') {
-		return element.offsetWidth;
+		return element.offsetWidth
+			- parseFloat(style.borderLeftWidth)
+			- parseFloat(style.paddingLeft)
+			- parseFloat(style.borderRightWidth)
+			- parseFloat(style.paddingRight);
 	}
 	else if (prop === 'height') {
-		return element.offsetHeight;
+		return element.offsetHeight
+			- parseFloat(style.borderTopWidth)
+			- parseFloat(style.paddingTop)
+			- parseFloat(style.borderBottomWidth)
+			- parseFloat(style.paddingBottom);
 	}
 	return 0;
 }
