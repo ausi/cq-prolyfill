@@ -450,44 +450,42 @@ function sortRulesBySpecificity(rules) {
 }
 
 function getSpecificity(selector) {
-	var scores = {
-		id: 0,
-		class: 0,
-		type: 0,
-	};
+	var idScore = 0;
+	var classScore = 0;
+	var typeScore = 0;
 	selector.replace(SELECTOR_ESCAPED_REGEXP, function() {
-		scores.class++;
+		classScore++;
 		return '';
 	});
 	selector.replace(ATTR_REGEXP, function() {
-		scores.class++;
+		classScore++;
 		return '';
 	});
 	selector.replace(PSEUDO_NOT_REGEXP, '');
 	selector.replace(ID_REGEXP, function() {
-		scores.id++;
+		idScore++;
 		return '';
 	});
 	selector.replace(CLASS_REGEXP, function() {
-		scores.class++;
+		classScore++;
 		return '';
 	});
 	selector.replace(PSEUDO_ELEMENT_REGEXP, function() {
-		scores.type++;
+		typeScore++;
 		return '';
 	});
 	selector.replace(PSEUDO_CLASS_REGEXP, function() {
-		scores.class++;
+		classScore++;
 		return '';
 	});
 	selector.replace(ELEMENT_REGEXP, function() {
-		scores.type++;
+		typeScore++;
 		return '';
 	});
 	return (
-		(scores.id * 256 * 256)
-		+ (scores.class * 256)
-		+ scores.type
+		(idScore * 256 * 256)
+		+ (classScore * 256)
+		+ typeScore
 	);
 }
 
