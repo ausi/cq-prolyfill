@@ -293,7 +293,6 @@ function getSize(element, prop) {
 	return 0;
 }
 
-// TODO: Respect !important styles
 function getOriginalStyle(element, props) {
 
 	var matchedRules = [];
@@ -326,7 +325,26 @@ function getOriginalStyle(element, props) {
 
 	for (i = 0; i < props.length; i++) {
 		for (j = 0; j < matchedRules.length; j++) {
-			if (matchedRules[j].rule.style.getPropertyValue(props[i])) {
+			if (
+				matchedRules[j].rule.style.getPropertyValue(props[i])
+				&& matchedRules[j].rule.style.getPropertyPriority(props[i]) === 'important'
+			) {
+				result[props[i]] = matchedRules[j].rule.style.getPropertyValue(props[i]);
+				break;
+			}
+		}
+	}
+
+	for (i = 0; i < props.length; i++) {
+		// Skip if an !important rule already matched
+		if (result[props[i]]) {
+			continue;
+		}
+		for (j = 0; j < matchedRules.length; j++) {
+			if (
+				matchedRules[j].rule.style.getPropertyValue(props[i])
+				&& matchedRules[j].rule.style.getPropertyPriority(props[i]) !== 'important'
+			) {
 				result[props[i]] = matchedRules[j].rule.style.getPropertyValue(props[i]);
 				break;
 			}
