@@ -24,7 +24,7 @@ var PSEUDO_CLASS_REGEXP = /:[^\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
 var ELEMENT_REGEXP = /[a-z-]+/gi;
 
 var queries = {};
-var elementsCache = new Map();
+var containerCache;
 
 function reprocess() {
 	preprocess(function() {
@@ -156,7 +156,7 @@ function splitSelectors(selectors) {
 }
 
 function updateClasses() {
-	elementsCache = new Map();
+	containerCache = new Map();
 	eachQuery(function(query) {
 		var elements = document.querySelectorAll(query.selector);
 		for (var i = 0; i < elements.length; i++) {
@@ -183,8 +183,8 @@ function updateClass(element, query) {
 function getContainer(element, prop) {
 
 	var cache;
-	if (elementsCache.has(element)) {
-		cache = elementsCache.get(element);
+	if (containerCache.has(element)) {
+		cache = containerCache.get(element);
 		if (cache.container[prop]) {
 			return cache.container[prop];
 		}
@@ -193,7 +193,7 @@ function getContainer(element, prop) {
 		cache = {
 			container: {},
 		};
-		elementsCache.set(element, cache);
+		containerCache.set(element, cache);
 	}
 
 	if (element === document.documentElement) {
