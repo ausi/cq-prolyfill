@@ -425,42 +425,44 @@ function sortRulesBySpecificity(rules) {
 }
 
 function getSpecificity(selector) {
-	// [style, id, class, type]
-	var scores = [0, 0, 0, 0];
+	var scores = {
+		id: 0,
+		class: 0,
+		type: 0,
+	};
 	selector.replace(SELECTOR_ESCAPED_REGEXP, function() {
-		scores[2]++;
+		scores.class++;
 		return '';
 	});
 	selector.replace(ATTR_REGEXP, function() {
-		scores[2]++;
+		scores.class++;
 		return '';
 	});
 	selector.replace(PSEUDO_NOT_REGEXP, '');
 	selector.replace(ID_REGEXP, function() {
-		scores[1]++;
+		scores.id++;
 		return '';
 	});
 	selector.replace(CLASS_REGEXP, function() {
-		scores[2]++;
+		scores.class++;
 		return '';
 	});
 	selector.replace(PSEUDO_ELEMENT_REGEXP, function() {
-		scores[3]++;
+		scores.type++;
 		return '';
 	});
 	selector.replace(PSEUDO_CLASS_REGEXP, function() {
-		scores[2]++;
+		scores.class++;
 		return '';
 	});
 	selector.replace(ELEMENT_REGEXP, function() {
-		scores[3]++;
+		scores.type++;
 		return '';
 	});
 	return (
-		(scores[0] * 1000 * 1000 * 1000)
-		+ (scores[1] * 1000 * 1000)
-		+ (scores[2] * 1000)
-		+ scores[3]
+		(scores.id * 256 * 256)
+		+ (scores.class * 256)
+		+ scores.type
 	);
 }
 
