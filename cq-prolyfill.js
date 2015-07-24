@@ -23,7 +23,7 @@ var PSEUDO_ELEMENT_REGEXP = /::[^\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
 var PSEUDO_CLASS_REGEXP = /:[^\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
 var ELEMENT_REGEXP = /[a-z-]+/gi;
 
-var queries = {};
+var queries;
 var containerCache;
 
 function reprocess() {
@@ -103,6 +103,7 @@ function preprocessStyle(node, cssText, callback) {
 }
 
 function parseRules() {
+	queries = {};
 	var sheets = document.styleSheets;
 	var rules;
 	for (var i = 0; i < sheets.length; i++) {
