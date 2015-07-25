@@ -55,6 +55,15 @@ function reevaluate() {
 	updateClasses();
 }
 
+/**
+ * Step 1: Preprocess all active stylesheets in the document
+ *
+ * Look for stylesheets that contain container queries and escape them to be
+ * readable by the browser, e.g. convert `:container(min-width: 10px)` to
+ * `\:container\(min-width\:10px\)`
+ *
+ * @param {function()} callback
+ */
 function preprocess(callback) {
 	var sheets = document.styleSheets;
 	if (!sheets.length) {
@@ -72,6 +81,10 @@ function preprocess(callback) {
 	}
 }
 
+/**
+ * @param {CSSStyleSheet} sheet
+ * @param {function()}    callback
+ */
 function preprocessSheet(sheet, callback) {
 	if (sheet.disabled) {
 		callback();
@@ -99,6 +112,13 @@ function preprocessSheet(sheet, callback) {
 	}
 }
 
+/**
+ * Load external file via AJAX
+ *
+ * @param {string}           href
+ * @param {function(string)} callback Gets called with the response text on
+ *                                    success or empty string on failure
+ */
 function loadExternal(href, callback) {
 	var xhr = new window.XMLHttpRequest();
 	xhr.open('GET', href);
@@ -111,6 +131,13 @@ function loadExternal(href, callback) {
 	xhr.send();
 }
 
+/**
+ * Replace relative CSS URLs with their absolute counterpart
+ *
+ * @param  {string} cssText
+ * @param  {string} href    URL of the stylesheet
+ * @return {string}
+ */
 function fixRelativeUrls(cssText, href) {
 	var base = new URL(href, document.baseURI);
 	return cssText.replace(URL_VALUE_REGEXP, function(match, quote, url1, url2) {
@@ -122,6 +149,10 @@ function fixRelativeUrls(cssText, href) {
 	});
 }
 
+/**
+ * @param {Node}   node    Stylesheet ownerNode
+ * @param {string} cssText
+ */
 function preprocessStyle(node, cssText) {
 	var found = false;
 	cssText = cssText.replace(SELECTOR_REGEXP, function(selector) {
@@ -138,6 +169,10 @@ function preprocessStyle(node, cssText) {
 	node.disabled = true;
 }
 
+/**
+ * Step 2: Parse all processed container query rules and store them in `queries`
+ * indexed by the preceding selector
+ */
 function parseRules() {
 	queries = {};
 	var sheets = document.styleSheets;
@@ -158,6 +193,9 @@ function parseRules() {
 	}
 }
 
+/**
+ * @param {CSSRule} rule
+ */
 function parseRule(rule) {
 	if (rule.cssRules) {
 		for (var i = 0; i < rule.cssRules.length; i++) {
@@ -187,11 +225,21 @@ function parseRule(rule) {
 	});
 }
 
+/**
+ * Split multiple selectors by `,`
+ *
+ * @param  {string} selectors
+ * @return {Array.<string>}
+ */
 function splitSelectors(selectors) {
 	// TODO: Fix complex selectors like fo\,o[attr="val,u\"e"]
 	return selectors.split(/\s*,\s*/);
 }
 
+/**
+ * Step 3: Loop through the `queries` and add or remove the CSS classes of all
+ * matching elements
+ */
 function updateClasses() {
 	containerCache = new Map();
 	Object.keys(queries).forEach(function(key) {
@@ -202,6 +250,12 @@ function updateClasses() {
 	});
 }
 
+/**
+ * Add or remove CSS class on the element depending on the specified query
+ *
+ * @param {Element} element
+ * @param {object}  query
+ */
 function updateClass(element, query) {
 	var container = getContainer(element.parentNode, query.prop);
 	var size = getSize(container, query.prop);
@@ -217,6 +271,13 @@ function updateClass(element, query) {
 	}
 }
 
+/**
+ * Get the nearest qualified container element starting by the element itself
+ *
+ * @param  {Element} element
+ * @param  {string}  prop    `width` or `height`
+ * @return {Element}
+ */
 function getContainer(element, prop) {
 
 	var cache;
@@ -272,13 +333,28 @@ function getContainer(element, prop) {
 
 }
 
+/**
+ * Is the size of the element a fixed length e.g. `1px`?
+ *
+ * @param  {Element} element
+ * @param  {string}  prop    `width` or `height`
+ * @return {boolean}
+ */
 function isFixedSize(element, prop) {
 	var originalStyle = getOriginalStyle(element, [prop]);
 	if (originalStyle[prop] && originalStyle[prop].search(LENGTH_REGEXP) !== -1) {
 		return true;
 	}
+	return false;
 }
 
+/**
+ * Is the size of the element depending on its descendants?
+ *
+ * @param  {Element} element
+ * @param  {string}  prop    `width` or `height`
+ * @return {boolean}
+ */
 function isIntrinsicSize(element, prop) {
 
 	var computedStyle = getComputedStyle(element);
@@ -319,6 +395,13 @@ function isIntrinsicSize(element, prop) {
 
 }
 
+/**
+ * Get the computed content-box size
+ *
+ * @param  {Element} element
+ * @param  {string}  prop    `width` or `height`
+ * @return {number}
+ */
 function getSize(element, prop) {
 	var style = getComputedStyle(element);
 	if (prop === 'width') {
@@ -338,10 +421,21 @@ function getSize(element, prop) {
 	return 0;
 }
 
+/**
+ * @param  {Element} element
+ * @return {CSSStyleDeclaration}
+ */
 function getComputedStyle(element) {
 	return window.getComputedStyle(element);
 }
 
+/**
+ * Get the original style of an element as it was specified in CSS
+ *
+ * @param  {Element}        element
+ * @param  {Array.<string>} props   Properties to return, e.g. `['width', 'height']`
+ * @return {Object.<string, string>}
+ */
 function getOriginalStyle(element, props) {
 
 	var matchedRules = [];
@@ -372,6 +466,7 @@ function getOriginalStyle(element, props) {
 		},
 	});
 
+	// Loop through all important styles
 	for (i = 0; i < props.length; i++) {
 		for (j = 0; j < matchedRules.length; j++) {
 			if (
@@ -384,6 +479,7 @@ function getOriginalStyle(element, props) {
 		}
 	}
 
+	// Loop through all non-important styles
 	for (i = 0; i < props.length; i++) {
 		// Skip if an !important rule already matched
 		if (result[props[i]]) {
@@ -404,6 +500,14 @@ function getOriginalStyle(element, props) {
 
 }
 
+/**
+ * Filter rules by matching the element and at least one property
+ *
+ * @param  {CSSRuleList}    rules
+ * @param  {Element}        element
+ * @param  {Array.<string>} props
+ * @return {Array.<{selector: string, rule: CSSRule}>}
+ */
 function filterRulesByElementAndProps(rules, element, props) {
 	var matchedRules = [];
 	for (var i = 0; i < rules.length; i++) {
@@ -434,6 +538,13 @@ function filterRulesByElementAndProps(rules, element, props) {
 	return matchedRules;
 }
 
+/**
+ * Check if the style object has one of the specified properties
+ *
+ * @param  {CSSStyleDeclaration} style
+ * @param  {Array.<string>}      props
+ * @return {boolean}
+ */
 function styleHasProperty(style, props) {
 	for (var i = 0; i < style.length; i++) {
 		if (props.indexOf(style.item(i)) !== -1) {
@@ -443,6 +554,10 @@ function styleHasProperty(style, props) {
 	return false;
 }
 
+/**
+ * @param  {Array.<{selector: string}>} rules
+ * @return {Array.<{selector: string}>}
+ */
 function sortRulesBySpecificity(rules) {
 	return rules.map(function(rule, i) {
 		return [rule, i];
@@ -453,6 +568,10 @@ function sortRulesBySpecificity(rules) {
 	});
 }
 
+/**
+ * @param  {string} selector
+ * @return {number}
+ */
 function getSpecificity(selector) {
 	var idScore = 0;
 	var classScore = 0;
