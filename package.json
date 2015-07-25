@@ -1,5 +1,6 @@
 {
   "devDependencies": {
+    "eslint": "^0.24.1",
     "uglify-js": "^2.4.24"
   }
 }

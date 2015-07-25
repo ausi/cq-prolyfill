@@ -182,7 +182,7 @@ function parseRule(rule) {
 					value: value,
 					className: match.toLowerCase().substr(1).replace(/\\(.)/g, '$1'),
 				};
-			})
+			});
 		}
 	});
 }
