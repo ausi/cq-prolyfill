@@ -194,10 +194,10 @@ function splitSelectors(selectors) {
 
 function updateClasses() {
 	containerCache = new Map();
-	eachQuery(function(query) {
-		var elements = document.querySelectorAll(query.selector);
+	Object.keys(queries).forEach(function(key) {
+		var elements = document.querySelectorAll(queries[key].selector);
 		for (var i = 0; i < elements.length; i++) {
-			updateClass(elements[i], query);
+			updateClass(elements[i], queries[key]);
 		}
 	});
 }
@@ -491,12 +491,6 @@ function getSpecificity(selector) {
 		+ (classScore * 256)
 		+ typeScore
 	);
-}
-
-function eachQuery(callback) {
-	Object.keys(queries).forEach(function(key) {
-		callback(queries[key], key);
-	});
 }
 
 })(window, document);
