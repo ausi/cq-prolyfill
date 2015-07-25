@@ -238,7 +238,7 @@ function getContainer(element, prop) {
 	}
 
 	// Skip inline elements
-	else if (window.getComputedStyle(element).display === 'inline') {
+	else if (getComputedStyle(element).display === 'inline') {
 		cache.container[prop] = getContainer(element.parentNode, prop);
 	}
 
@@ -251,7 +251,7 @@ function getContainer(element, prop) {
 		var chain = [];
 		for (var node = element; node !== parentContainer; node = node.parentNode) {
 			// Skip inline elements
-			if (window.getComputedStyle(node).display !== 'inline') {
+			if (getComputedStyle(node).display !== 'inline') {
 				chain.unshift(node);
 			}
 		}
@@ -281,7 +281,7 @@ function isFixedSize(element, prop) {
 
 function isIntrinsicSize(element, prop) {
 
-	var computedStyle = window.getComputedStyle(element);
+	var computedStyle = getComputedStyle(element);
 
 	if (computedStyle.display === 'none') {
 		return false;
@@ -320,7 +320,7 @@ function isIntrinsicSize(element, prop) {
 }
 
 function getSize(element, prop) {
-	var style = window.getComputedStyle(element);
+	var style = getComputedStyle(element);
 	if (prop === 'width') {
 		return element.offsetWidth
 			- parseFloat(style.borderLeftWidth)
@@ -336,6 +336,10 @@ function getSize(element, prop) {
 			- parseFloat(style.paddingBottom);
 	}
 	return 0;
+}
+
+function getComputedStyle(element) {
+	return window.getComputedStyle(element);
 }
 
 function getOriginalStyle(element, props) {
