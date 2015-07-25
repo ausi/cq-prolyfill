@@ -20,3 +20,7 @@ $(ESLINT): package.json
 .PHONY: test
 test: $(ESLINT)
 	$(ESLINT) $(SOURCE)
+
+.PHONY: watch
+watch:
+	while true; do (make || make -t) | grep -v "Nothing to be done"; sleep 1; done
