@@ -45,8 +45,7 @@ QUnit.test('getSpecificity', function(assert) {
 	];
 
 	data.forEach(function(item) {
-		assert.equal(
-			getSpecificity(item[0]), item[1], item[2][0].toUpperCase() + item[2].substr(1) + ' ("' + item[0] + '")' + ': ' + item[1]);
+		assert.equal(getSpecificity(item[0]), item[1], item[2][0].toUpperCase() + item[2].substr(1) + ' ("' + item[0] + '")' + ': ' + item[1]);
 	});
 
 	var allSelectors = data.reduce(function(all, item) { return all + ' ' + item[0]; }, '').trim();
