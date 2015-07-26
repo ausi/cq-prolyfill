@@ -128,7 +128,12 @@ function loadExternal(href, callback) {
 		}
 		callback(xhr.status === 200 ? xhr.responseText : '');
 	};
-	xhr.send();
+	try {
+		xhr.send();
+	}
+	catch(e) {
+		callback('');
+	}
 }
 
 /**
