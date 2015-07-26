@@ -24,17 +24,18 @@ QUnit.test('getSpecificity', function(assert) {
 	];
 
 	data.forEach(function(item) {
-		assert.equal(getSpecificity(item[0]), item[1], item[2] + ' ("' + item[0] + '")' + ': ' + item[1]);
+		assert.equal(
+			getSpecificity(item[0]), item[1], item[2][0].toUpperCase() + item[2].substr(1) + ' ("' + item[0] + '")' + ': ' + item[1]);
 	});
 
 	var allSelectors = data.reduce(function(all, item) { return all + ' ' + item[0]; }, '').trim();
 	var allSpecifity = data.reduce(function(all, item) { return all + item[1]; }, 0);
-	assert.equal(getSpecificity(allSelectors), allSpecifity, 'all combined ("' + allSelectors.trim() + '")' + ': ' + allSpecifity);
+	assert.equal(getSpecificity(allSelectors), allSpecifity, 'All combined ("' + allSelectors.trim() + '")' + ': ' + allSpecifity);
 
 	data.reverse();
 	allSelectors = data.reduce(function(all, item) { return all + ' ' + item[0]; }, '').trim();
 	allSpecifity = data.reduce(function(all, item) { return all + item[1]; }, 0);
-	assert.equal(getSpecificity(allSelectors), allSpecifity, 'all combined reverse ("' + allSelectors.trim() + '")' + ': ' + allSpecifity);
+	assert.equal(getSpecificity(allSelectors), allSpecifity, 'All combined reverse ("' + allSelectors.trim() + '")' + ': ' + allSpecifity);
 
 });
 
