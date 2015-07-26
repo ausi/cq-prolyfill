@@ -23,10 +23,10 @@ var LENGTH_REGEXP = /^-?(?:\d*\.)?\d+(?:em|ex|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in
 var URL_VALUE_REGEXP = /url\(\s*(?:(["'])(.*?)\1|([^)\s]*))\s*\)/gi;
 var ATTR_REGEXP = /\[.+?\]/g;
 var PSEUDO_NOT_REGEXP = /:not\(/g;
-var ID_REGEXP = /#[^\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
-var CLASS_REGEXP = /\.[^\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
-var PSEUDO_ELEMENT_REGEXP = /::[^\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
-var PSEUDO_CLASS_REGEXP = /:[^\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
+var ID_REGEXP = /#[^\s\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
+var CLASS_REGEXP = /\.[^\s\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
+var PSEUDO_ELEMENT_REGEXP = /::[^\s\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
+var PSEUDO_CLASS_REGEXP = /:[^\s\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
 var ELEMENT_REGEXP = /[a-z-]+/gi;
 
 var queries;
@@ -573,43 +573,48 @@ function sortRulesBySpecificity(rules) {
  * @return {number}
  */
 function getSpecificity(selector) {
+
 	var idScore = 0;
 	var classScore = 0;
 	var typeScore = 0;
-	selector.replace(SELECTOR_ESCAPED_REGEXP, function() {
-		classScore++;
-		return '';
-	});
-	selector.replace(ATTR_REGEXP, function() {
-		classScore++;
-		return '';
-	});
-	selector.replace(PSEUDO_NOT_REGEXP, '');
-	selector.replace(ID_REGEXP, function() {
-		idScore++;
-		return '';
-	});
-	selector.replace(CLASS_REGEXP, function() {
-		classScore++;
-		return '';
-	});
-	selector.replace(PSEUDO_ELEMENT_REGEXP, function() {
-		typeScore++;
-		return '';
-	});
-	selector.replace(PSEUDO_CLASS_REGEXP, function() {
-		classScore++;
-		return '';
-	});
-	selector.replace(ELEMENT_REGEXP, function() {
-		typeScore++;
-		return '';
-	});
+
+	selector
+		.replace(SELECTOR_ESCAPED_REGEXP, function() {
+			classScore++;
+			return '';
+		})
+		.replace(ATTR_REGEXP, function() {
+			classScore++;
+			return '';
+		})
+		.replace(PSEUDO_NOT_REGEXP, '')
+		.replace(ID_REGEXP, function() {
+			idScore++;
+			return '';
+		})
+		.replace(CLASS_REGEXP, function() {
+			classScore++;
+			return '';
+		})
+		.replace(PSEUDO_ELEMENT_REGEXP, function() {
+			typeScore++;
+			return '';
+		})
+		.replace(PSEUDO_CLASS_REGEXP, function() {
+			classScore++;
+			return '';
+		})
+		.replace(ELEMENT_REGEXP, function() {
+			typeScore++;
+			return '';
+		});
+
 	return (
 		(idScore * 256 * 256)
 		+ (classScore * 256)
 		+ typeScore
 	);
+
 }
 
 })(window, document);
