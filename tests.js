@@ -8,6 +8,27 @@ QUnit.test('splitSelectors', function(assert) {
 	assert.deepEqual(splitSelectors('foo,foo\t\n ,\t\n foo'), ['foo', 'foo', 'foo'], 'Simple selectors do get split');
 });
 
+/*global sortRulesBySpecificity*/
+QUnit.test('sortRulesBySpecificity', function(assert) {
+	var unsorted = [
+		{selector: 'tag'},
+		{selector: '.class'},
+		{selector: '#id'},
+		{selector: 'tag tag'},
+		{selector: '.class.class'},
+		{selector: '#id#id'},
+	];
+	var sorted = [
+		{selector: '#id#id'},
+		{selector: '#id'},
+		{selector: '.class.class'},
+		{selector: '.class'},
+		{selector: 'tag tag'},
+		{selector: 'tag'},
+	];
+	assert.deepEqual(sortRulesBySpecificity(unsorted), sorted, 'Correct sort order');
+});
+
 /*global getSpecificity*/
 QUnit.test('getSpecificity', function(assert) {
 
