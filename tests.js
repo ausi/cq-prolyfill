@@ -8,6 +8,36 @@ QUnit.test('splitSelectors', function(assert) {
 	assert.deepEqual(splitSelectors('foo,foo\t\n ,\t\n foo'), ['foo', 'foo', 'foo'], 'Simple selectors do get split');
 });
 
+/*global getComputedLength*/
+QUnit.test('getComputedLength', function(assert) {
+
+	var data = [
+		['1px', 1],
+		['10px', 10],
+		['-0.123px', -0.123],
+		['12pt', 16],
+		['1pc', 16],
+		['1in', 96],
+		['2.54cm', 96],
+		['25.4mm', 96],
+		['1rem', 16],
+		['1em', 10],
+		['1ex', 5],
+		['100vw', window.innerWidth],
+		['100vh', window.innerHeight],
+		['100vmin', Math.min(window.innerWidth, window.innerHeight)],
+		['100vmax', Math.max(window.innerWidth, window.innerHeight)],
+	];
+
+	var dummy = document.createElement('div');
+	dummy.style.fontSize = '10px';
+
+	data.forEach(function(item) {
+		assert.equal(getComputedLength(item[0], dummy), item[1], item[0] + ' == ' + item[1] + 'px');
+	});
+
+});
+
 /*global sortRulesBySpecificity*/
 QUnit.test('sortRulesBySpecificity', function(assert) {
 	var unsorted = [

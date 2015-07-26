@@ -19,7 +19,7 @@ var SELECTOR_REGEXP = /:container\(\s*(?:min|max)-(?:width|height)\s*:\s*[^)]+\s
 var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(\s*((?:min|max)-(?:width|height))\s*\\:\s*([^)]+?)\s*\\\)/gi;
 var ESCAPE_REGEXP = /[:()]/g;
 var SPACE_REGEXP = / /g;
-var LENGTH_REGEXP = /^-?(?:\d*\.)?\d+(?:em|ex|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)$/i;
+var LENGTH_REGEXP = /^(-?(?:\d*\.)?\d+)(em|ex|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)$/i;
 var URL_VALUE_REGEXP = /url\(\s*(?:(["'])(.*?)\1|([^)\s]*))\s*\)/gi;
 var ATTR_REGEXP = /\[.+?\]/g;
 var PSEUDO_NOT_REGEXP = /:not\(/g;
@@ -28,6 +28,14 @@ var CLASS_REGEXP = /\.[^\s\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
 var PSEUDO_ELEMENT_REGEXP = /::[^\s\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
 var PSEUDO_CLASS_REGEXP = /:[^\s\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
 var ELEMENT_REGEXP = /[a-z-]+/gi;
+var FIXED_UNIT_MAP = {
+	px: 1,
+	pt: 16 / 12,
+	pc: 16,
+	in: 96,
+	cm: 96 / 2.54,
+	mm: 96 / 25.4,
+};
 
 var queries;
 var containerCache;
@@ -264,7 +272,7 @@ function updateClasses() {
 function updateClass(element, query) {
 	var container = getContainer(element.parentNode, query.prop);
 	var size = getSize(container, query.prop);
-	var value = parseFloat(query.value);
+	var value = getComputedLength(query.value, element.parentNode);
 	if (
 		(query.type === 'min' && size >= value)
 		|| (query.type === 'max' && size <= value)
@@ -424,6 +432,49 @@ function getSize(element, prop) {
 			- parseFloat(style.paddingBottom);
 	}
 	return 0;
+}
+
+/**
+ * Get the computed length in pixel of a CSS length value
+ *
+ * @param  {string}  value
+ * @param  {Element} element
+ * @return {number}
+ */
+function getComputedLength(value, element) {
+	var length = value.match(LENGTH_REGEXP);
+	if (!length) {
+		return parseFloat(value);
+	}
+	value = parseFloat(length[1]);
+	var unit = length[2].toLowerCase();
+	if (FIXED_UNIT_MAP[unit]) {
+		return value * FIXED_UNIT_MAP[unit];
+	}
+	if (unit === 'vw') {
+		return value * window.innerWidth / 100;
+	}
+	if (unit === 'vh') {
+		return value * window.innerHeight / 100;
+	}
+	if (unit === 'vmin') {
+		return value * Math.min(window.innerWidth, window.innerHeight) / 100;
+	}
+	if (unit === 'vmax') {
+		return value * Math.max(window.innerWidth, window.innerHeight) / 100;
+	}
+	if (unit === 'rem') {
+		element = document.documentElement;
+		unit = 'em';
+	}
+	if (unit === 'ex') {
+		value /= 2;
+		unit = 'em';
+	}
+	if (unit === 'em') {
+		return parseFloat(getComputedStyle(element).fontSize) * value;
+	}
+	return value;
 }
 
 /**
