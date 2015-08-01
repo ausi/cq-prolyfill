@@ -38,6 +38,36 @@ QUnit.test('getComputedLength', function(assert) {
 
 });
 
+/*global getOriginalStyle*/
+QUnit.test('getOriginalStyle', function(assert) {
+
+	var element = document.createElement('div');
+	element.className = 'myel';
+
+	var style = document.createElement('style');
+	style.type = 'text/css';
+	style.innerHTML = '.myel { width: 100%; height: auto !important }';
+
+	document.head.appendChild(style);
+	document.body.appendChild(element);
+
+	assert.equal(getOriginalStyle(element, ['width']).width, '100%', 'Get width from <style>');
+	assert.equal(getOriginalStyle(element, ['height']).height, 'auto', 'Get height from <style>');
+	assert.equal(getOriginalStyle(element, ['color']).color, undefined, 'Get undefined property');
+	element.style.width = '100px';
+	assert.equal(getOriginalStyle(element, ['width']).width, '100px', 'Get width from style attribute');
+	element.style.width = '';
+	assert.equal(getOriginalStyle(element, ['width']).width, '100%', 'Get width from <style>');
+	element.style.height = '100px';
+	assert.equal(getOriginalStyle(element, ['height']).height, 'auto', 'Get height from <style> !important');
+	element.style.setProperty('height', '100px', 'important');
+	assert.equal(getOriginalStyle(element, ['height']).height, '100px', 'Get height from style attribute !important');
+
+	document.head.removeChild(style);
+	document.body.removeChild(element);
+
+});
+
 /*global filterRulesByElementAndProps*/
 QUnit.test('filterRulesByElementAndProps', function(assert) {
 
