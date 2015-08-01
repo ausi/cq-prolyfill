@@ -159,14 +159,23 @@ function loadExternal(href, callback) {
  * @return {string}
  */
 function fixRelativeUrls(cssText, href) {
-	var base = new URL(href, document.baseURI);
+	var base = resolveRelativeUrl(href, document.baseURI);
 	return cssText.replace(URL_VALUE_REGEXP, function(match, quote, url1, url2) {
 		var url = url1 || url2;
 		if (!url) {
 			return match;
 		}
-		return 'url(' + (quote || '"') + new URL(url, base).href + (quote || '"') + ')';
+		return 'url(' + (quote || '"') + resolveRelativeUrl(url, base) + (quote || '"') + ')';
 	});
+}
+
+/**
+ * @param  {string} url
+ * @param  {string} base
+ * @return {string}
+ */
+function resolveRelativeUrl(url, base) {
+	return new URL(url, base).href;
 }
 
 /**
