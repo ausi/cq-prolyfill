@@ -585,10 +585,10 @@ function filterRulesByElementAndProps(rules, element, props) {
 					|| rules[i].parentRule.type !== 4 // @media rule
 					|| window.matchMedia(rules[i].parentRule.media).matches
 				)
-				&& element.matches(rules[i].selectorText)
+				&& elementMatchesSelector(element, rules[i].selectorText)
 			) {
 				splitSelectors(rules[i].selectorText).forEach(function(selector) {
-					if (element.matches(selector)) {
+					if (elementMatchesSelector(element, selector)) {
 						matchedRules.push({
 							selector: selector,
 							rule: rules[i],
@@ -599,6 +599,19 @@ function filterRulesByElementAndProps(rules, element, props) {
 		}
 	}
 	return matchedRules;
+}
+
+/**
+ * @param  {Element} element
+ * @param  {string}  selector
+ * @return {boolean}
+ */
+function elementMatchesSelector(element, selector) {
+	var func = element.matches
+		|| element.mozMatchesSelector
+		|| element.msMatchesSelector
+		|| element.webkitMatchesSelector;
+	return func.call(element, selector);
 }
 
 /**

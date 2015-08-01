@@ -38,6 +38,34 @@ QUnit.test('getComputedLength', function(assert) {
 
 });
 
+/*global filterRulesByElementAndProps*/
+QUnit.test('filterRulesByElementAndProps', function(assert) {
+
+	var element = document.createElement('div');
+	element.className = 'myel';
+
+	var style = document.createElement('style');
+	style.type = 'text/css';
+	style.innerHTML = '.myel, .notmyel { width: 1px }'
+		+ '.notmyel { width: 2px }'
+		+ '.myel { height: 3px }'
+		+ '@media screen { div.myel { width: 4px } }';
+
+	document.head.appendChild(style);
+	document.body.appendChild(element);
+
+	var rules = filterRulesByElementAndProps(style.sheet.cssRules, element, ['width']);
+	assert.equal(rules.length, 2, 'Two rules');
+	assert.equal(rules[0].selector, '.myel', 'First selector');
+	assert.equal(rules[0].rule.style.width, '1px', 'Property');
+	assert.equal(rules[1].selector, 'div.myel', 'Second selector');
+	assert.equal(rules[1].rule.style.width, '4px', 'Property');
+
+	document.head.removeChild(style);
+	document.body.removeChild(element);
+
+});
+
 /*global styleHasProperty*/
 QUnit.test('styleHasProperty', function(assert) {
 	var style = document.createElement('div').style;
