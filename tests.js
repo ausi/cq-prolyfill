@@ -8,6 +8,27 @@ QUnit.test('splitSelectors', function(assert) {
 	assert.deepEqual(splitSelectors('foo,foo\t\n ,\t\n foo'), ['foo', 'foo', 'foo'], 'Simple selectors do get split');
 });
 
+/*global isFixedSize*/
+QUnit.test('isFixedSize', function(assert) {
+
+	var element = document.createElement('div');
+	document.body.appendChild(element);
+
+	assert.equal(isFixedSize(element, 'width'), false, 'Standard <div> width');
+	assert.equal(isFixedSize(element, 'height'), false, 'Standard <div> height');
+
+	element.style.cssText = 'width: 100%; height: 100%';
+	assert.equal(isFixedSize(element, 'width'), false, 'Percentage width');
+	assert.equal(isFixedSize(element, 'height'), false, 'Percentage height');
+
+	element.style.cssText = 'width: 100px; height: 100px';
+	assert.equal(isFixedSize(element, 'width'), true, 'Fixed width');
+	assert.equal(isFixedSize(element, 'height'), true, 'Fixed height');
+
+	document.body.removeChild(element);
+
+});
+
 /*global isIntrinsicSize*/
 QUnit.test('isIntrinsicSize', function(assert) {
 
