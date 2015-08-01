@@ -2,6 +2,29 @@
 (function() {
 'use strict';
 
+/*global preprocess, SELECTOR_ESCAPED_REGEXP*/
+QUnit.test('preprocess', function(assert) {
+	var style = document.createElement('style');
+	style.type = 'text/css';
+	style.innerHTML = '.first:container( min-width: 100px ) { display: block }'
+		+ '.second:container( max-height: 10em ) > child { display: block }'
+		+ '.third:container( max-width: 100px ), .fourth:container( min-height: 100px ) { display: block }';
+	document.head.appendChild(style);
+	var done = assert.async();
+	preprocess(function () {
+		var newStyle = style.previousSibling;
+		var rules = newStyle.sheet.cssRules;
+		assert.equal(style.disabled, true, 'Old stylesheet disabled');
+		assert.equal(newStyle.disabled, false, 'New stylesheet enabled');
+		assert.equal(rules.length, 3, 'Three rules');
+		assert.equal(newStyle.innerHTML.match(SELECTOR_ESCAPED_REGEXP).length, 4, 'Four container queries');
+		assert.equal(rules[0].selectorText, '.first.\\:container\\(min-width\\:100px\\)', 'Escaped container query');
+		document.head.removeChild(style);
+		document.head.removeChild(newStyle);
+		done();
+	});
+});
+
 /*global splitSelectors*/
 QUnit.test('splitSelectors', function(assert) {
 	assert.deepEqual(splitSelectors('foo'), ['foo'], 'Simple selector doesn’t get split');
@@ -32,6 +55,7 @@ QUnit.test('getContainer', function(assert) {
 	span.style.cssText = 'display: block; height: 50%';
 	containerCache = new Map(); // Clear cache
 	assert.strictEqual(getContainer(link, 'height'), span, '<span> display block percentage height');
+	assert.ok(containerCache.has(link));
 
 	document.body.removeChild(element);
 
