@@ -2,7 +2,7 @@
 
 This is a [prolyfill](https://youtu.be/UpVj5azI-iI?t=24m54s) for a special version of [container queries](https://github.com/ResponsiveImagesCG/container-queries). You can read more about the syntax and how they work in [this article](https://au.si/css-container-queries).
 
-Use with caution! This is **not** a [polyfill](https://en.wikipedia.org/wiki/Polyfill).
+Use with caution! This is **not** a [polyfill](https://en.wikipedia.org/wiki/Polyfill). The syntax may change frequently.
 
 ## Download
 
@@ -15,6 +15,16 @@ You can load the script in any way you like, I would recommend to load it asynch
 ```html
 <script src="cq-prolyfill.min.js" async></script>
 ```
+
+Now you can use container queries in the following form:
+
+```css
+.element:container(min-width: 100px) {
+	/* Styles for .element if it’s container is at least 100px wide */
+}
+```
+
+Supported queries are `min-width`, `max-width`, `min-height` and `max-height`.
 
 The script triggers itself on load, on DOM ready and if the browser window resizes. If you want to trigger it manually you can call `reprocess` (step 1), `reparse` (step 2) or `reevaluate` (step 3) on the `window.containerQueries` object. Most of the time `reevaluate` should do the job if you didn’t add, remove or change stylesheets. E.g.
 
