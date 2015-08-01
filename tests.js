@@ -90,10 +90,13 @@ QUnit.test('getComputedLength', function(assert) {
 
 	var dummy = document.createElement('div');
 	dummy.style.fontSize = '10px';
+	document.body.appendChild(dummy);
 
 	data.forEach(function(item) {
 		assert.equal(getComputedLength(item[0], dummy), item[1], item[0] + ' == ' + item[1] + 'px');
 	});
+
+	document.body.removeChild(dummy);
 
 });
 
