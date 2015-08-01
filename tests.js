@@ -38,6 +38,15 @@ QUnit.test('getComputedLength', function(assert) {
 
 });
 
+/*global styleHasProperty*/
+QUnit.test('styleHasProperty', function(assert) {
+	var style = document.createElement('div').style;
+	style.width = '10px';
+	assert.ok(styleHasProperty(style, ['width']), 'Single property');
+	assert.ok(styleHasProperty(style, ['height', 'width']), 'One of two');
+	assert.ok(!styleHasProperty(style, ['height']), 'None');
+});
+
 /*global sortRulesBySpecificity*/
 QUnit.test('sortRulesBySpecificity', function(assert) {
 	var unsorted = [
