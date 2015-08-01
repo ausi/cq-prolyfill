@@ -8,6 +8,20 @@ QUnit.test('splitSelectors', function(assert) {
 	assert.deepEqual(splitSelectors('foo,foo\t\n ,\t\n foo'), ['foo', 'foo', 'foo'], 'Simple selectors do get split');
 });
 
+/*global getSize*/
+QUnit.test('getSize', function(assert) {
+	var element = document.createElement('div');
+	element.style.width = '100px';
+	element.style.height = '100px';
+	element.style.boxSizing = 'border-box';
+	element.style.padding = '1pc';
+	element.style.border = '10px solid black';
+	document.body.appendChild(element);
+	assert.equal(getSize(element, 'width'), 48, 'Width');
+	assert.equal(getSize(element, 'height'), 48, 'Height');
+	document.body.removeChild(element);
+});
+
 /*global getComputedLength*/
 QUnit.test('getComputedLength', function(assert) {
 
