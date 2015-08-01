@@ -8,6 +8,51 @@ QUnit.test('splitSelectors', function(assert) {
 	assert.deepEqual(splitSelectors('foo,foo\t\n ,\t\n foo'), ['foo', 'foo', 'foo'], 'Simple selectors do get split');
 });
 
+/*global isIntrinsicSize*/
+QUnit.test('isIntrinsicSize', function(assert) {
+
+	var element = document.createElement('div');
+	document.body.appendChild(element);
+
+	assert.equal(isIntrinsicSize(element, 'width'), false, 'Standard <div> width');
+	assert.equal(isIntrinsicSize(element, 'height'), true, 'Standard <div> height');
+
+	element.style.cssText = 'display: inline';
+	assert.equal(isIntrinsicSize(element, 'width'), true, 'Display inline width');
+	assert.equal(isIntrinsicSize(element, 'height'), true, 'Display inline height');
+
+	element.style.cssText = 'display: inline-block';
+	assert.equal(isIntrinsicSize(element, 'width'), true, 'Display inline-block width');
+	assert.equal(isIntrinsicSize(element, 'height'), true, 'Display inline-block height');
+
+	element.style.cssText = 'float: left';
+	assert.equal(isIntrinsicSize(element, 'width'), true, 'Float left width');
+	assert.equal(isIntrinsicSize(element, 'height'), true, 'Float left height');
+
+	element.style.cssText = 'position: absolute';
+	assert.equal(isIntrinsicSize(element, 'width'), true, 'Position absolute width');
+	assert.equal(isIntrinsicSize(element, 'height'), true, 'Position absolute height');
+
+	element.style.cssText = 'display: inline-block; width: 100%';
+	assert.equal(isIntrinsicSize(element, 'width'), false, 'Percentage width');
+
+	element.style.cssText = 'display: inline-block; width: 100px';
+	assert.equal(isIntrinsicSize(element, 'width'), false, 'Pixel width');
+
+	element.style.cssText = 'display: inline-block; height: 100%';
+	assert.equal(isIntrinsicSize(element, 'height'), false, 'Percentage height');
+
+	element.style.cssText = 'display: inline-block; height: 100px';
+	assert.equal(isIntrinsicSize(element, 'height'), false, 'Pixel height');
+
+	element.style.cssText = 'display: inline; float: left; width: 100px; height: 100px';
+	assert.equal(isIntrinsicSize(element, 'width'), false, 'Display inline float left pixel width');
+	assert.equal(isIntrinsicSize(element, 'height'), false, 'Display inline float left pixel height');
+
+	document.body.removeChild(element);
+
+});
+
 /*global getSize*/
 QUnit.test('getSize', function(assert) {
 	var element = document.createElement('div');

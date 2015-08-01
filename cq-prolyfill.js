@@ -391,7 +391,7 @@ function isIntrinsicSize(element, prop) {
 	if (
 		prop === 'width'
 		&& ['block', 'list-item', 'flex', 'grid'].indexOf(computedStyle.display) !== -1
-		&& computedStyle.float === 'none'
+		&& computedStyle.cssFloat === 'none'
 		&& computedStyle.position !== 'absolute'
 		&& computedStyle.position !== 'fixed'
 	) {
