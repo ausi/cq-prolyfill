@@ -583,7 +583,7 @@ function filterRulesByElementAndProps(rules, element, props) {
 				&& (
 					!rules[i].parentRule
 					|| rules[i].parentRule.type !== 4 // @media rule
-					|| window.matchMedia(rules[i].parentRule.media).matches
+					|| window.matchMedia(rules[i].parentRule.media.mediaText).matches
 				)
 				&& elementMatchesSelector(element, rules[i].selectorText)
 			) {
