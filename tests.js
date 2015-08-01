@@ -38,6 +38,20 @@ QUnit.test('getComputedLength', function(assert) {
 
 });
 
+/*global getComputedStyle*/
+QUnit.test('getComputedStyle', function(assert) {
+	var element = document.createElement('div');
+	element.style.width = '100px';
+	element.style.height = '1in';
+	element.style.cssFloat = 'left';
+	document.body.appendChild(element);
+	assert.equal(getComputedStyle(element).width, '100px', 'Normal style');
+	assert.equal(getComputedStyle(element).height, '96px', 'Converted to pixel');
+	assert.equal(getComputedStyle(element).cssFloat, 'left', 'Float left');
+	assert.equal(getComputedStyle(element).display, 'block', 'Default style');
+	document.body.removeChild(element);
+});
+
 /*global getOriginalStyle*/
 QUnit.test('getOriginalStyle', function(assert) {
 
