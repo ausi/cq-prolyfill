@@ -84,7 +84,6 @@ QUnit.test('getSpecificity', function(assert) {
 
 	data.reverse();
 	allSelectors = data.reduce(function(all, item) { return all + ' ' + item[0]; }, '').trim();
-	allSpecifity = data.reduce(function(all, item) { return all + item[1]; }, 0);
 	assert.equal(getSpecificity(allSelectors), allSpecifity, 'All combined reverse ("' + allSelectors.trim() + '")' + ': ' + allSpecifity);
 
 });
