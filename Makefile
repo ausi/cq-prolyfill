@@ -41,7 +41,7 @@ $(PHANTOMJS_RUNNER): package.json
 test: $(ESLINT) $(SOURCE) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HTML)
 	$(ESLINT) $(SOURCE)
 	$(SLIMERJS) $(TEST_RUNNER) $(TEST_HTML) | tee tests/slimerjs.log
-	@ ! grep 'Test failed:' tests/slimerjs.log > /dev/null
+	@ grep ' passed, 0 failed.' tests/slimerjs.log > /dev/null
 	@ rm tests/slimerjs.log
 
 .PHONY: watch
