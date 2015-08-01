@@ -111,6 +111,8 @@ QUnit.test('getComputedStyle', function(assert) {
 	assert.equal(getComputedStyle(element).height, '96px', 'Converted to pixel');
 	assert.equal(getComputedStyle(element).cssFloat, 'left', 'Float left');
 	assert.equal(getComputedStyle(element).display, 'block', 'Default style');
+	element.style.cssText = 'display: inline; float: left';
+	assert.equal(getComputedStyle(element).display, 'block', 'Correct display value');
 	document.body.removeChild(element);
 });
 

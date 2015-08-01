@@ -498,7 +498,27 @@ function getComputedLength(value, element) {
  * @return {CSSStyleDeclaration}
  */
 function getComputedStyle(element) {
-	return window.getComputedStyle(element);
+
+	var style = window.getComputedStyle(element);
+
+	// Fix display inline in some browsers
+	if (style.display === 'inline' && (
+		style.position === 'absolute'
+		|| style.position === 'fixed'
+		|| style.cssFloat !== 'none'
+	)) {
+		var newStyle = {};
+		for (var prop in style) {
+			if (typeof style[prop] === 'string') {
+				newStyle[prop] = style[prop];
+			}
+		}
+		style = newStyle;
+		style.display = 'block';
+	}
+
+	return style;
+
 }
 
 /**
