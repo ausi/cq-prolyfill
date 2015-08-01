@@ -25,6 +25,17 @@ QUnit.test('preprocess', function(assert) {
 	});
 });
 
+/*global resolveRelativeUrl*/
+QUnit.test('resolveRelativeUrl', function(assert) {
+	var base = 'http://example.com/dir/file.ext?query#anchor';
+	assert.equal(resolveRelativeUrl('http://example.org', base), 'http://example.org/', 'Absolute URL');
+	assert.equal(resolveRelativeUrl('//example.org', base), 'http://example.org/', 'Protocol relative');
+	assert.equal(resolveRelativeUrl('/foo', base), 'http://example.com/foo', 'Domain relative');
+	assert.equal(resolveRelativeUrl('foo', base), 'http://example.com/dir/foo', 'Directory relative');
+	assert.equal(resolveRelativeUrl('?foo', base), 'http://example.com/dir/file.ext?foo', 'Query relative');
+	assert.equal(resolveRelativeUrl('#foo', base), 'http://example.com/dir/file.ext?query#foo', 'Anchor relative');
+});
+
 /*global splitSelectors*/
 QUnit.test('splitSelectors', function(assert) {
 	assert.deepEqual(splitSelectors('foo'), ['foo'], 'Simple selector doesn’t get split');

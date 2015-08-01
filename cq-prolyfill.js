@@ -175,7 +175,21 @@ function fixRelativeUrls(cssText, href) {
  * @return {string}
  */
 function resolveRelativeUrl(url, base) {
-	return new URL(url, base).href;
+	try {
+		url = new URL(url, base).href;
+	}
+	catch(e) {
+		var baseElement = document.createElement('base');
+		baseElement.href = base;
+		document.head.insertBefore(baseElement, document.head.firstChild);
+		var link = document.createElement('a');
+		link.href = url;
+		document.body.appendChild(link);
+		url = link.href;
+		document.body.removeChild(link);
+		document.head.removeChild(baseElement);
+	}
+	return url;
 }
 
 /**
