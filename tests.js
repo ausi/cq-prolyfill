@@ -80,7 +80,7 @@ QUnit.test('Simple width and height Query', function(assert) {
 	});
 });
 
-/*global preprocess, SELECTOR_ESCAPED_REGEXP*/
+/*global preprocess, SELECTOR_ESCAPED_REGEXP, SELECTOR_REGEXP*/
 QUnit.test('preprocess', function(assert) {
 	var style = document.createElement('style');
 	style.type = 'text/css';
@@ -96,7 +96,7 @@ QUnit.test('preprocess', function(assert) {
 		assert.equal(newStyle.sheet.disabled, false, 'New stylesheet enabled');
 		assert.equal(rules.length, 3, 'Three rules');
 		assert.equal(newStyle.innerHTML.match(SELECTOR_ESCAPED_REGEXP).length, 4, 'Four container queries');
-		assert.equal(rules[0].selectorText, '.first.\\:container\\(min-width\\:100px\\)', 'Escaped container query');
+		assert.ok(rules[0].selectorText.match(SELECTOR_ESCAPED_REGEXP) || rules[0].selectorText.match(SELECTOR_REGEXP), 'Query matches either the escaped or unescaped RegExp');
 		document.head.removeChild(style);
 		document.head.removeChild(newStyle);
 		done();
@@ -380,6 +380,7 @@ QUnit.test('getSpecificity', function(assert) {
 		[':hover', 256, 'pseudo class'],
 		['[foo="bar"]', 256, 'attribute'],
 		['.\\:container\\(max-width\\:1px\\)', 256, 'escaped container query'],
+		['.:container(max-width:1px)', 256, 'unescaped container query'],
 	];
 
 	data.forEach(function(item) {

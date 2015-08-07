@@ -22,8 +22,8 @@ window.addEventListener('DOMContentLoaded', reprocess);
 window.addEventListener('load', reprocess);
 window.addEventListener('resize', reevaluate);
 
-var SELECTOR_REGEXP = /:container\(\s*(?:min|max)-(?:width|height)\s*:\s*[^)]+\s*\)/gi;
-var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(\s*((?:min|max)-(?:width|height))\s*\\:\s*([^)]+?)\s*\\\)/gi;
+var SELECTOR_REGEXP = /\.?:container\(\s*((?:min|max)-(?:width|height))\s*:\s*([^)]+?)\s*\)/gi;
+var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(((?:min|max)-(?:width|height))\\:([^)]+?)\\\)/gi;
 var ESCAPE_REGEXP = /[:()]/g;
 var SPACE_REGEXP = / /g;
 var LENGTH_REGEXP = /^(-?(?:\d*\.)?\d+)(em|ex|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)$/i;
@@ -253,20 +253,24 @@ function parseRule(rule) {
 		return;
 	}
 	splitSelectors(rule.selectorText).forEach(function(selector) {
+		var storeQuery = function(match, type, value, offset) {
+			var precedingSelector = selector.substr(0, offset);
+			if (!precedingSelector.substr(-1).trim()) {
+				precedingSelector += '*';
+			}
+			queries[precedingSelector + match.toLowerCase()] = {
+				selector: precedingSelector,
+				prop: type.split('-')[1].toLowerCase(),
+				type: type.split('-')[0].toLowerCase(),
+				value: value,
+				className: match.toLowerCase().substr(1).replace(/\\(.)/g, '$1'),
+			};
+		};
 		if (selector.search(SELECTOR_ESCAPED_REGEXP) !== -1) {
-			selector.replace(SELECTOR_ESCAPED_REGEXP, function(match, type, value, offset) {
-				var precedingSelector = selector.substr(0, offset);
-				if (!precedingSelector.substr(-1).trim()) {
-					precedingSelector += '*';
-				}
-				queries[precedingSelector + match.toLowerCase()] = {
-					selector: precedingSelector,
-					prop: type.split('-')[1].toLowerCase(),
-					type: type.split('-')[0].toLowerCase(),
-					value: value,
-					className: match.toLowerCase().substr(1).replace(/\\(.)/g, '$1'),
-				};
-			});
+			selector.replace(SELECTOR_ESCAPED_REGEXP, storeQuery);
+		}
+		else if (selector.search(SELECTOR_REGEXP) !== -1) {
+			selector.replace(SELECTOR_REGEXP, storeQuery);
 		}
 	});
 }
@@ -702,6 +706,10 @@ function getSpecificity(selector) {
 
 	selector
 		.replace(SELECTOR_ESCAPED_REGEXP, function() {
+			classScore++;
+			return '';
+		})
+		.replace(SELECTOR_REGEXP, function() {
 			classScore++;
 			return '';
 		})
