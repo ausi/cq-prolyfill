@@ -337,6 +337,22 @@ QUnit.test('filterRulesByElementAndProps', function(assert) {
 
 });
 
+/*global elementMatchesSelector*/
+QUnit.test('elementMatchesSelector', function(assert) {
+
+	var element = document.createElement('div');
+	element.className = ':container(min-width:100px)';
+	document.body.appendChild(element);
+
+	assert.ok(elementMatchesSelector(element, 'div'), 'Simple selector');
+	assert.ok(elementMatchesSelector(element, '.\\:container\\(min-width\\:100px\\)'), 'Escaped query');
+	assert.ok(elementMatchesSelector(element, ':container( min-width: 100px )'), 'Unescaped query');
+	assert.ok(elementMatchesSelector(element, '\.:container(min-width:100px)'), 'Unescaped query with leading dot');
+
+	document.body.removeChild(element);
+
+});
+
 /*global styleHasProperty*/
 QUnit.test('styleHasProperty', function(assert) {
 	var style = document.createElement('div').style;

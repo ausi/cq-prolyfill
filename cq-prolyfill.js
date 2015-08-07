@@ -307,6 +307,9 @@ function updateClasses() {
  * @param {object}  query
  */
 function updateClass(element, query) {
+	if (element === document.documentElement) {
+		return;
+	}
 	var container = getContainer(element.parentNode, query.prop);
 	var size = getSize(container, query.prop);
 	var value = getComputedLength(query.value, element.parentNode);
@@ -657,6 +660,9 @@ function filterRulesByElementAndProps(rules, element, props) {
  * @return {boolean}
  */
 function elementMatchesSelector(element, selector) {
+	selector = selector.replace(SELECTOR_REGEXP, function(query) {
+		return '.' + query.substr(query[0] === '.' ? 1 : 0).replace(SPACE_REGEXP, '').replace(ESCAPE_REGEXP, '\\$&');
+	});
 	var func = element.matches
 		|| element.mozMatchesSelector
 		|| element.msMatchesSelector
