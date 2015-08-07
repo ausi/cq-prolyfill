@@ -24,7 +24,7 @@ window.addEventListener('resize', reevaluate);
 
 var SELECTOR_REGEXP = /\.?:container\(\s*((?:min|max)-(?:width|height))\s*:\s*([^)]+?)\s*\)/gi;
 var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(((?:min|max)-(?:width|height))\\:([^)]+?)\\\)/gi;
-var ESCAPE_REGEXP = /[:()]/g;
+var ESCAPE_REGEXP = /[.:()]/g;
 var SPACE_REGEXP = / /g;
 var LENGTH_REGEXP = /^(-?(?:\d*\.)?\d+)(em|ex|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)$/i;
 var URL_VALUE_REGEXP = /url\(\s*(?:(["'])(.*?)\1|([^)\s]*))\s*\)/gi;

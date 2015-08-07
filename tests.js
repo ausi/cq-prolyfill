@@ -84,7 +84,7 @@ QUnit.test('Simple width and height Query', function(assert) {
 QUnit.test('preprocess', function(assert) {
 	var style = document.createElement('style');
 	style.type = 'text/css';
-	style.innerHTML = '.first:container( min-width: 100px ) { display: block }'
+	style.innerHTML = '.first:container( min-width: 100.00px ) { display: block }'
 		+ '.second:container( max-height: 10em ) > child { display: block }'
 		+ '.third:container( max-width: 100px ), .fourth:container( min-height: 100px ) { display: block }';
 	document.head.appendChild(style);
