@@ -22,7 +22,7 @@ window.addEventListener('DOMContentLoaded', reprocess);
 window.addEventListener('load', reprocess);
 window.addEventListener('resize', reevaluate);
 
-var SELECTOR_REGEXP = /\.?:container\(\s*((?:min|max)-(?:width|height))\s*:\s*([^)]+?)\s*\)/gi;
+var SELECTOR_REGEXP = /\.?:container\(\s*(?:min|max)-(?:width|height)\s*:\s*[^)]+\s*\)/gi;
 var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(((?:min|max)-(?:width|height))\\:([^)]+?)\\\)/gi;
 var ESCAPE_REGEXP = /[.:()]/g;
 var SPACE_REGEXP = / /g;
