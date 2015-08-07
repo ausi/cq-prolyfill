@@ -103,6 +103,24 @@ QUnit.test('preprocess', function(assert) {
 	});
 });
 
+/*global parseRules, queries*/
+QUnit.test('parseRules', function(assert) {
+	var style = document.createElement('style');
+	style.type = 'text/css';
+	style.innerHTML = '.foo:active:hover:focus:checked .before:container( MIN-WIDTH: 100.00px ).after>child { display: block }';
+	document.head.appendChild(style);
+	var done = assert.async();
+	preprocess(function () {
+		parseRules();
+		assert.equal(Object.keys(queries).length, 1, 'One query');
+		assert.ok(Object.keys(queries)[0].match(/^\.foo (?:\.before|\.after){2}\.\\:container\\\(min-width\\:100\\\.00px\\\)$/), 'Correct key');
+		assert.ok(queries[Object.keys(queries)[0]].selector.match(/^\.foo (?:\.before|\.after){2}$/), 'Preceding selector');
+		document.head.removeChild(style.previousSibling);
+		document.head.removeChild(style);
+		done();
+	});
+});
+
 /*global resolveRelativeUrl*/
 QUnit.test('resolveRelativeUrl', function(assert) {
 	var base = 'http://example.com/dir/file.ext?query#anchor';

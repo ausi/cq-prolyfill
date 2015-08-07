@@ -261,10 +261,11 @@ function parseRule(rule) {
 	splitSelectors(rule.selectorText).forEach(function(selector) {
 		selector = escapeSelectors(selector);
 		selector.replace(SELECTOR_ESCAPED_REGEXP, function(match, type, value, offset) {
-			var precedingSelector = selector.substr(0, offset);
+			var precedingSelector = selector.substr(0, offset) + selector.substr(offset + match.length).replace(/[\s>+~].*$/, '');
 			if (!precedingSelector.substr(-1).trim()) {
 				precedingSelector += '*';
 			}
+			precedingSelector = precedingSelector.replace(/:(?:active|hover|focus|checked)/gi, '');
 			queries[precedingSelector + match.toLowerCase()] = {
 				selector: precedingSelector,
 				prop: type.split('-')[1].toLowerCase(),
