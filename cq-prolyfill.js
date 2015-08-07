@@ -49,25 +49,28 @@ var containerCache;
 var processed = false;
 var parsed = false;
 
-function reprocess() {
+function reprocess(callback) {
 	preprocess(function() {
 		processed = true;
-		reparse();
+		reparse(callback);
 	});
 }
-function reparse() {
+function reparse(callback) {
 	if (!processed) {
-		return reprocess();
+		return reprocess(callback);
 	}
 	parseRules();
 	parsed = true;
-	reevaluate();
+	reevaluate(callback);
 }
-function reevaluate() {
+function reevaluate(callback) {
 	if (!parsed) {
-		return reparse();
+		return reparse(callback);
 	}
 	updateClasses();
+	if (typeof callback === 'function') {
+		callback();
+	}
 }
 
 /**
