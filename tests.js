@@ -14,8 +14,8 @@ QUnit.test('preprocess', function(assert) {
 	preprocess(function () {
 		var newStyle = style.previousSibling;
 		var rules = newStyle.sheet.cssRules;
-		assert.equal(style.disabled, true, 'Old stylesheet disabled');
-		assert.equal(newStyle.disabled, false, 'New stylesheet enabled');
+		assert.equal(style.sheet.disabled, true, 'Old stylesheet disabled');
+		assert.equal(newStyle.sheet.disabled, false, 'New stylesheet enabled');
 		assert.equal(rules.length, 3, 'Three rules');
 		assert.equal(newStyle.innerHTML.match(SELECTOR_ESCAPED_REGEXP).length, 4, 'Four container queries');
 		assert.equal(rules[0].selectorText, '.first.\\:container\\(min-width\\:100px\\)', 'Escaped container query');

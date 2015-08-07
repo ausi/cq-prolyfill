@@ -209,7 +209,7 @@ function preprocessStyle(node, cssText) {
 	style.textContent = cssText;
 	style.media = node.media;
 	node.parentNode.insertBefore(style, node);
-	node.disabled = true;
+	node.sheet.disabled = true;
 }
 
 /**
