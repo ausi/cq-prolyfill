@@ -200,19 +200,25 @@ function resolveRelativeUrl(url, base) {
  * @param {string} cssText
  */
 function preprocessStyle(node, cssText) {
-	var found = false;
-	cssText = cssText.replace(SELECTOR_REGEXP, function(selector) {
-		found = true;
-		return '.' + selector.replace(SPACE_REGEXP, '').replace(ESCAPE_REGEXP, '\\$&');
-	});
-	if (!found) {
+	var escapedText = escapeSelectors(cssText);
+	if (escapedText === cssText) {
 		return;
 	}
 	var style = document.createElement('style');
-	style.textContent = cssText;
+	style.textContent = escapedText;
 	style.media = node.media;
 	node.parentNode.insertBefore(style, node);
 	node.sheet.disabled = true;
+}
+
+/**
+ * @param  {string} cssText
+ * @return {string}
+ */
+function escapeSelectors(cssText) {
+	return cssText.replace(SELECTOR_REGEXP, function(selector) {
+		return '.' + selector.substr(selector[0] === '.' ? 1 : 0).replace(SPACE_REGEXP, '').replace(ESCAPE_REGEXP, '\\$&');
+	});
 }
 
 /**
@@ -253,7 +259,8 @@ function parseRule(rule) {
 		return;
 	}
 	splitSelectors(rule.selectorText).forEach(function(selector) {
-		var storeQuery = function(match, type, value, offset) {
+		selector = escapeSelectors(selector);
+		selector.replace(SELECTOR_ESCAPED_REGEXP, function(match, type, value, offset) {
 			var precedingSelector = selector.substr(0, offset);
 			if (!precedingSelector.substr(-1).trim()) {
 				precedingSelector += '*';
@@ -265,13 +272,7 @@ function parseRule(rule) {
 				value: value,
 				className: match.toLowerCase().substr(1).replace(/\\(.)/g, '$1'),
 			};
-		};
-		if (selector.search(SELECTOR_ESCAPED_REGEXP) !== -1) {
-			selector.replace(SELECTOR_ESCAPED_REGEXP, storeQuery);
-		}
-		else if (selector.search(SELECTOR_REGEXP) !== -1) {
-			selector.replace(SELECTOR_REGEXP, storeQuery);
-		}
+		});
 	});
 }
 
@@ -660,14 +661,11 @@ function filterRulesByElementAndProps(rules, element, props) {
  * @return {boolean}
  */
 function elementMatchesSelector(element, selector) {
-	selector = selector.replace(SELECTOR_REGEXP, function(query) {
-		return '.' + query.substr(query[0] === '.' ? 1 : 0).replace(SPACE_REGEXP, '').replace(ESCAPE_REGEXP, '\\$&');
-	});
 	var func = element.matches
 		|| element.mozMatchesSelector
 		|| element.msMatchesSelector
 		|| element.webkitMatchesSelector;
-	return func.call(element, selector);
+	return func.call(element, escapeSelectors(selector));
 }
 
 /**
