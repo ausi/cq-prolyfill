@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "test": "make test"
+  },
   "devDependencies": {
     "eslint": "^0.24.1",
     "qunit-phantomjs-runner": "^2.1.0",
