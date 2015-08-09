@@ -1,10 +1,13 @@
 /*eslint-env node*/
+/*eslint-disable strict, no-process-exit */
+
 var connect = require('connect');
 var serveStatic = require('serve-static');
 var request = require('request');
 var SauceTunnel = require('sauce-tunnel');
 
 var browserVersions = [
+	/*eslint-disable no-multi-spaces */
 	['Windows 10',  'chrome',             '40'    ],
 	['Mac 10.10',   'chrome',             'latest'],
 	['Linux',       'chrome',             'beta'  ],
@@ -22,6 +25,7 @@ var browserVersions = [
 	['Mac 10.10',   'iphone',             'latest'],
 	['Linux',       'android',            '4.0'   ],
 	['Linux',       'android',            'latest'],
+	/*eslint-enable no-multi-spaces */
 ];
 var versionsData;
 
@@ -90,7 +94,7 @@ function resolveVersions(platforms) {
 				var ab = [a, b].map(function(version) {
 					if (version.match(/^\d+(?:\.\d+)*$/)) {
 						return version.split('.').reduce(function(sum, current, index) {
-							return sum + (parseFloat(current) * Math.pow(100, 4 - index))
+							return sum + (parseFloat(current) * Math.pow(100, 4 - index));
 						}, 0);
 					}
 					return 0;
