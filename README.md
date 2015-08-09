@@ -32,7 +32,9 @@ The script triggers itself on load, on DOM ready and if the browser window resiz
 document.querySelector('.element').addEventListener('click', function() {
 	// Do something that changes the size of container elements
 	// ...
-	window.containerQueries.reevaluate();
+	window.containerQueries.reevaluate(function() {
+		// Do something after all elements were updated
+	});
 });
 ```
 
