@@ -155,7 +155,7 @@ QUnit.test('splitSelectors', function(assert) {
 	assert.deepEqual(splitSelectors('foo,foo\t\n ,\t\n foo'), ['foo', 'foo', 'foo'], 'Simple selectors do get split');
 });
 
-/*global getContainer, containerCache: true*/
+/*global getContainer, containerCache: true, createCacheMap*/
 QUnit.test('getContainer', function(assert) {
 
 	var element = document.createElement('div');
@@ -169,15 +169,15 @@ QUnit.test('getContainer', function(assert) {
 	assert.strictEqual(getContainer(link, 'height'), document.documentElement, 'Document element for height');
 
 	span.style.display = 'block';
-	containerCache = new Map(); // Clear cache
+	containerCache = createCacheMap(); // Clear cache
 	assert.strictEqual(getContainer(link, 'width'), span, '<span> display block for width');
 
 	element.style.height = '100px';
-	containerCache = new Map(); // Clear cache
+	containerCache = createCacheMap(); // Clear cache
 	assert.strictEqual(getContainer(link, 'height'), element, '<div> fixed height');
 
 	span.style.cssText = 'display: block; height: 50%';
-	containerCache = new Map(); // Clear cache
+	containerCache = createCacheMap(); // Clear cache
 	assert.strictEqual(getContainer(link, 'height'), span, '<span> display block percentage height');
 	assert.ok(containerCache.has(link));
 

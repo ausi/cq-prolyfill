@@ -178,21 +178,25 @@ function fixRelativeUrls(cssText, href) {
  * @return {string}
  */
 function resolveRelativeUrl(url, base) {
+	var absoluteUrl;
 	try {
-		url = new URL(url, base).href;
+		absoluteUrl = new URL(url, base).href;
 	}
 	catch(e) {
+		absoluteUrl = false;
+	}
+	if (!absoluteUrl) {
 		var baseElement = document.createElement('base');
 		baseElement.href = base;
 		document.head.insertBefore(baseElement, document.head.firstChild);
 		var link = document.createElement('a');
 		link.href = url;
 		document.body.appendChild(link);
-		url = link.href;
+		absoluteUrl = link.href;
 		document.body.removeChild(link);
 		document.head.removeChild(baseElement);
 	}
-	return url;
+	return absoluteUrl;
 }
 
 /**
@@ -293,7 +297,7 @@ function splitSelectors(selectors) {
  * matching elements
  */
 function updateClasses() {
-	containerCache = new Map();
+	containerCache = createCacheMap();
 	Object.keys(queries).forEach(function(key) {
 		var elements = document.querySelectorAll(queries[key].selector);
 		for (var i = 0; i < elements.length; i++) {
@@ -319,10 +323,10 @@ function updateClass(element, query) {
 		(query.type === 'min' && size >= value)
 		|| (query.type === 'max' && size <= value)
 	) {
-		element.classList.add(query.className);
+		addClass(element, query.className);
 	}
 	else {
-		element.classList.remove(query.className);
+		removeClass(element, query.className);
 	}
 }
 
@@ -638,7 +642,7 @@ function filterRulesByElementAndProps(rules, element, props) {
 				&& (
 					!rules[i].parentRule
 					|| rules[i].parentRule.type !== 4 // @media rule
-					|| window.matchMedia(rules[i].parentRule.media.mediaText).matches
+					|| matchesMedia(rules[i].parentRule.media.mediaText)
 				)
 				&& elementMatchesSelector(element, rules[i].selectorText)
 			) {
@@ -750,6 +754,71 @@ function getSpecificity(selector) {
 		+ typeScore
 	);
 
+}
+
+function createCacheMap() {
+
+	if (typeof Map === 'function') {
+		return new Map();
+	}
+
+	var keys = [];
+	var values = [];
+
+	function get(key) {
+		return values[keys.indexOf(key)];
+	}
+
+	function has(key) {
+		return keys.indexOf(key) !== -1;
+	}
+
+	function set(key, value) {
+		var index = keys.indexOf(key);
+		if (index === -1) {
+			index = keys.push(key) - 1;
+		}
+		values[index] = value;
+	}
+
+	return {
+		set: set,
+		get: get,
+		has: has,
+	};
+}
+
+function addClass(element, className) {
+	if (element.classList) {
+		element.classList.add(className);
+	}
+	else {
+		removeClass(element, className);
+		element.className += ' ' + className;
+	}
+}
+
+function removeClass(element, className) {
+	if (element.classList) {
+		element.classList.remove(className);
+	}
+	else {
+		element.className = element.className.replace(
+			new RegExp(
+				'(?:^|\\s+)'
+				+ className.replace(/[.?*+^$[\]\\(){}|-]/g, '\\$&')
+				+ '(?:$|\\s+)'
+			),
+			' '
+		);
+	}
+}
+
+function matchesMedia(media) {
+	if (window.matchMedia) {
+		return window.matchMedia(media).matches;
+	}
+	return (window.styleMedia || window.media).matchMedium(media);
 }
 
 })(window, document);

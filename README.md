@@ -79,11 +79,11 @@ Loops through all stored queries and adds or removes the CSS classes of the matc
 * Firefox 36+
 * Opera 30+
 * Chrome 40+
-* Internet Explorer 11+
+* Internet Explorer 9+
 * Edge
-* Safari 8+
-* iOS 8+
-* Android 5+
+* Safari 7+
+* iOS 7+
+* Android 4+
 
 ## License
 
