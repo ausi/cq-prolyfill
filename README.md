@@ -1,5 +1,7 @@
 # Container Queries Prolyfill
 
+[![Build Status](https://travis-ci.org/ausi/cq-prolyfill.svg?branch=master)](https://travis-ci.org/ausi/cq-prolyfill/branches)
+
 This is a [prolyfill](https://youtu.be/UpVj5azI-iI?t=24m54s) for a special version of [container queries](https://github.com/ResponsiveImagesCG/container-queries). You can read more about the syntax and how they work in [this article](https://au.si/css-container-queries).
 
 Use with caution! This is **not** a [polyfill](https://en.wikipedia.org/wiki/Polyfill). The syntax may change frequently.
