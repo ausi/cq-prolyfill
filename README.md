@@ -74,6 +74,17 @@ Loops through all stored queries and adds or removes the CSS classes of the matc
 <div class="element :container(min-width:10px)"></div>
 ```
 
+## Browser Support
+
+* Firefox 36+
+* Opera 30+
+* Chrome 40+
+* Internet Explorer 11+
+* Edge
+* Safari 8+
+* iOS 8+
+* Android 5+
+
 ## License
 
 MIT
