@@ -2,6 +2,23 @@
 (function() {
 'use strict';
 
+// Sauce Labs API
+(function() {
+	var tests = [];
+	QUnit.done(function (results) {
+		results.tests = tests;
+		/*eslint-disable camelcase */
+		window.global_test_results = results;
+		/*eslint-enable camelcase */
+	});
+	QUnit.log(function(details){
+		if (details.result) {
+			return;
+		}
+		tests.push(details);
+	});
+})();
+
 /*global reprocess, reevaluate*/
 QUnit.test('Simple width and height Query', function(assert) {
 
