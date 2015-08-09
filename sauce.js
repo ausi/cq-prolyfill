@@ -165,6 +165,9 @@ function checkStatus(jsTests) {
 			}
 			else {
 				console.log('Sauce Labs tests finished');
+				console.log(data['js tests'].map(function(test) {
+					return test.platform.join(' ');
+				}).join('\n'));
 				tunnel.stop(function(){
 					console.log('Sauce tunnel stopped');
 					process.exit(0);
