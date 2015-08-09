@@ -67,6 +67,8 @@ function startTests() {
 			url: 'http://127.0.0.1:8080/tests/index.html',
 			platforms: resolveVersions(browserVersions),
 			framework: 'qunit',
+			build: process.env.TRAVIS_BUILD_NUMBER ? 'travis-' + process.env.TRAVIS_BUILD_NUMBER : undefined,
+			tags: [process.env.TRAVIS_PULL_REQUEST || process.env.TRAVIS_BRANCH || 'local'],
 			tunnelIdentifier: tunnel.identifier,
 		},
 	}, function(err, resp, data) {
