@@ -210,7 +210,7 @@ function preprocessStyle(node, cssText) {
 	}
 	var style = document.createElement('style');
 	style.textContent = escapedText;
-	style.media = node.media;
+	style.media = node.media || 'all';
 	node.parentNode.insertBefore(style, node);
 	node.sheet.disabled = true;
 }
