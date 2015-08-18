@@ -426,6 +426,29 @@ QUnit.test('getSpecificity', function(assert) {
 
 });
 
+/*global createCacheMap*/
+QUnit.test('createCacheMap', function(assert) {
+
+	var map = createCacheMap();
+	var el1 = document.createElement('div');
+	var el2 = el1.cloneNode();
+
+	assert.strictEqual(map.has(el1), false, 'Empty map');
+	assert.strictEqual(map.has(el2), false, 'Empty map');
+	assert.strictEqual(map.get(el1), undefined, 'Value undefined');
+
+	map.set(el1, 'el1');
+	assert.strictEqual(map.has(el1), true, 'Has element1');
+	assert.strictEqual(map.has(el2), false, 'Hasn’t element2');
+
+	map.set(el2, 'el2');
+	assert.strictEqual(map.has(el1), true, 'Has element1');
+	assert.strictEqual(map.has(el2), true, 'Has element2');
+	assert.strictEqual(map.get(el1), 'el1', 'Value element1');
+	assert.strictEqual(map.get(el2), 'el2', 'Value element2');
+
+});
+
 /*global addClass, removeClass*/
 QUnit.test('addClass, removeClass', function(assert) {
 
