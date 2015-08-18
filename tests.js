@@ -19,6 +19,8 @@
 	});
 })();
 
+var fixture = document.getElementById('qunit-fixture');
+
 /*global reprocess, reevaluate*/
 QUnit.test('Simple width and height Query', function(assert) {
 
@@ -33,7 +35,7 @@ QUnit.test('Simple width and height Query', function(assert) {
 		+ '.maxW:container( max-width: 100px ) { font-family: max-width-100 }'
 		+ '.maxH:container( max-height: 200px ) { font-family: max-height-200 }'
 		+ '.maxH:container( max-height: 100px ) { font-family: max-height-100 }';
-	document.head.appendChild(style);
+	fixture.appendChild(style);
 
 	var element = document.createElement('div');
 	element.innerHTML = '<div style="padding: 5px; height: 100%; box-sizing: border-box"><span><div style="float: left"><span>'
@@ -41,7 +43,7 @@ QUnit.test('Simple width and height Query', function(assert) {
 		+ '<div class="minW"></div>'
 		+ '<div class="maxH"></div>'
 		+ '<div class="minH"></div>';
-	document.body.appendChild(element);
+	fixture.appendChild(element);
 	var minW = element.querySelector('.minW');
 	var maxW = element.querySelector('.maxW');
 	var minH = element.querySelector('.minH');
@@ -88,10 +90,6 @@ QUnit.test('Simple width and height Query', function(assert) {
 		assert.equal(font(maxW), 'no-query', 'max-width at 201px');
 		assert.equal(font(maxH), 'no-query', 'max-height at 201px');
 
-
-		document.head.removeChild(style.previousSibling);
-		document.head.removeChild(style);
-		document.body.removeChild(element);
 		done();
 
 	});
@@ -104,7 +102,7 @@ QUnit.test('preprocess', function(assert) {
 	style.innerHTML = '.first:container( min-width: 100.00px ) { display: block }'
 		+ '.second:container( max-height: 10em ) > child { display: block }'
 		+ '.third:container( max-width: 100px ), .fourth:container( min-height: 100px ) { display: block }';
-	document.head.appendChild(style);
+	fixture.appendChild(style);
 	var done = assert.async();
 	preprocess(function () {
 		var newStyle = style.previousSibling;
@@ -114,8 +112,6 @@ QUnit.test('preprocess', function(assert) {
 		assert.equal(rules.length, 3, 'Three rules');
 		assert.equal(newStyle.innerHTML.match(SELECTOR_ESCAPED_REGEXP).length, 4, 'Four container queries');
 		assert.ok(rules[0].selectorText.match(SELECTOR_ESCAPED_REGEXP) || rules[0].selectorText.match(SELECTOR_REGEXP), 'Query matches either the escaped or unescaped RegExp');
-		document.head.removeChild(style);
-		document.head.removeChild(newStyle);
 		done();
 	});
 });
@@ -125,15 +121,13 @@ QUnit.test('parseRules', function(assert) {
 	var style = document.createElement('style');
 	style.type = 'text/css';
 	style.innerHTML = '.foo:active:hover:focus:checked .before:container( MIN-WIDTH: 100.00px ).after>child { display: block }';
-	document.head.appendChild(style);
+	fixture.appendChild(style);
 	var done = assert.async();
 	preprocess(function () {
 		parseRules();
 		assert.equal(Object.keys(queries).length, 1, 'One query');
 		assert.ok(Object.keys(queries)[0].match(/^\.foo (?:\.before|\.after){2}\.\\:container\\\(min-width\\:100\\\.00px\\\)$/), 'Correct key');
 		assert.ok(queries[Object.keys(queries)[0]].selector.match(/^\.foo (?:\.before|\.after){2}$/), 'Preceding selector');
-		document.head.removeChild(style.previousSibling);
-		document.head.removeChild(style);
 		done();
 	});
 });
@@ -189,7 +183,7 @@ QUnit.test('getContainer', function(assert) {
 QUnit.test('isFixedSize', function(assert) {
 
 	var element = document.createElement('div');
-	document.body.appendChild(element);
+	fixture.appendChild(element);
 
 	assert.equal(isFixedSize(element, 'width'), false, 'Standard <div> width');
 	assert.equal(isFixedSize(element, 'height'), false, 'Standard <div> height');
@@ -202,15 +196,13 @@ QUnit.test('isFixedSize', function(assert) {
 	assert.equal(isFixedSize(element, 'width'), true, 'Fixed width');
 	assert.equal(isFixedSize(element, 'height'), true, 'Fixed height');
 
-	document.body.removeChild(element);
-
 });
 
 /*global isIntrinsicSize*/
 QUnit.test('isIntrinsicSize', function(assert) {
 
 	var element = document.createElement('div');
-	document.body.appendChild(element);
+	fixture.appendChild(element);
 
 	assert.equal(isIntrinsicSize(element, 'width'), false, 'Standard <div> width');
 	assert.equal(isIntrinsicSize(element, 'height'), true, 'Standard <div> height');
@@ -247,8 +239,6 @@ QUnit.test('isIntrinsicSize', function(assert) {
 	assert.equal(isIntrinsicSize(element, 'width'), false, 'Display inline float left pixel width');
 	assert.equal(isIntrinsicSize(element, 'height'), false, 'Display inline float left pixel height');
 
-	document.body.removeChild(element);
-
 });
 
 /*global getSize*/
@@ -259,10 +249,9 @@ QUnit.test('getSize', function(assert) {
 	element.style.boxSizing = 'border-box';
 	element.style.padding = '1pc';
 	element.style.border = '10px solid black';
-	document.body.appendChild(element);
+	fixture.appendChild(element);
 	assert.equal(getSize(element, 'width'), 48, 'Width');
 	assert.equal(getSize(element, 'height'), 48, 'Height');
-	document.body.removeChild(element);
 });
 
 /*global getComputedLength*/
@@ -288,13 +277,11 @@ QUnit.test('getComputedLength', function(assert) {
 
 	var dummy = document.createElement('div');
 	dummy.style.fontSize = '10px';
-	document.body.appendChild(dummy);
+	fixture.appendChild(dummy);
 
 	data.forEach(function(item) {
 		assert.equal(getComputedLength(item[0], dummy), item[1], item[0] + ' == ' + item[1] + 'px');
 	});
-
-	document.body.removeChild(dummy);
 
 });
 
@@ -304,14 +291,13 @@ QUnit.test('getComputedStyle', function(assert) {
 	element.style.width = '100px';
 	element.style.height = '1in';
 	element.style.cssFloat = 'left';
-	document.body.appendChild(element);
+	fixture.appendChild(element);
 	assert.equal(getComputedStyle(element).width, '100px', 'Normal style');
 	assert.equal(getComputedStyle(element).height, '96px', 'Converted to pixel');
 	assert.equal(getComputedStyle(element).cssFloat, 'left', 'Float left');
 	assert.equal(getComputedStyle(element).display, 'block', 'Default style');
 	element.style.cssText = 'display: inline; float: left';
 	assert.equal(getComputedStyle(element).display, 'block', 'Correct display value');
-	document.body.removeChild(element);
 });
 
 /*global getOriginalStyle*/
@@ -324,8 +310,8 @@ QUnit.test('getOriginalStyle', function(assert) {
 	style.type = 'text/css';
 	style.innerHTML = '.myel { width: 100%; height: auto !important }';
 
-	document.head.appendChild(style);
-	document.body.appendChild(element);
+	fixture.appendChild(style);
+	fixture.appendChild(element);
 
 	assert.equal(getOriginalStyle(element, ['width']).width, '100%', 'Get width from <style>');
 	assert.equal(getOriginalStyle(element, ['height']).height, 'auto', 'Get height from <style>');
@@ -338,9 +324,6 @@ QUnit.test('getOriginalStyle', function(assert) {
 	assert.equal(getOriginalStyle(element, ['height']).height, 'auto', 'Get height from <style> !important');
 	element.style.setProperty('height', '100px', 'important');
 	assert.equal(getOriginalStyle(element, ['height']).height, '100px', 'Get height from style attribute !important');
-
-	document.head.removeChild(style);
-	document.body.removeChild(element);
 
 });
 
@@ -357,8 +340,8 @@ QUnit.test('filterRulesByElementAndProps', function(assert) {
 		+ '.myel { height: 3px }'
 		+ '@media screen { div.myel { width: 4px } }';
 
-	document.head.appendChild(style);
-	document.body.appendChild(element);
+	fixture.appendChild(style);
+	fixture.appendChild(element);
 
 	var rules = filterRulesByElementAndProps(style.sheet.cssRules, element, ['width']);
 	assert.equal(rules.length, 2, 'Two rules');
@@ -367,9 +350,6 @@ QUnit.test('filterRulesByElementAndProps', function(assert) {
 	assert.equal(rules[1].selector, 'div.myel', 'Second selector');
 	assert.equal(rules[1].rule.style.width, '4px', 'Property');
 
-	document.head.removeChild(style);
-	document.body.removeChild(element);
-
 });
 
 /*global elementMatchesSelector*/
@@ -377,14 +357,12 @@ QUnit.test('elementMatchesSelector', function(assert) {
 
 	var element = document.createElement('div');
 	element.className = ':container(min-width:100px)';
-	document.body.appendChild(element);
+	fixture.appendChild(element);
 
 	assert.ok(elementMatchesSelector(element, 'div'), 'Simple selector');
 	assert.ok(elementMatchesSelector(element, '.\\:container\\(min-width\\:100px\\)'), 'Escaped query');
 	assert.ok(elementMatchesSelector(element, ':container( min-width: 100px )'), 'Unescaped query');
 	assert.ok(elementMatchesSelector(element, '\.:container(min-width:100px)'), 'Unescaped query with leading dot');
-
-	document.body.removeChild(element);
 
 });
 
