@@ -426,4 +426,21 @@ QUnit.test('getSpecificity', function(assert) {
 
 });
 
+/*global matchesMedia*/
+QUnit.test('matchesMedia', function(assert) {
+
+	assert.strictEqual(matchesMedia('screen'), true, 'Matches screen');
+	assert.strictEqual(matchesMedia('not screen'), false, 'Doesn’t match not screen');
+	assert.strictEqual(matchesMedia('print'), false, 'Doesn’t match print');
+	assert.strictEqual(matchesMedia('not print'), true, 'Matches not print');
+
+	var windowWidth = window.innerWidth || document.documentElement.clientWidth;
+
+	assert.strictEqual(matchesMedia('(min-width: ' + (windowWidth - 50) + 'px)'), true, 'Matches smaller min-width');
+	assert.strictEqual(matchesMedia('(min-width: ' + (windowWidth + 50) + 'px)'), false, 'Doesn’t match larger min-width');
+	assert.strictEqual(matchesMedia('(max-width: ' + (windowWidth + 50) + 'px)'), true, 'Matches larger max-width');
+	assert.strictEqual(matchesMedia('(max-width: ' + (windowWidth - 50) + 'px)'), false, 'Doesn’t match smaller max-width');
+
+});
+
 })();
