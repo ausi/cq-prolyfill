@@ -831,9 +831,9 @@ function removeClass(element, className) {
 			new RegExp(
 				'(?:^|\\s+)'
 				+ className.replace(/[.?*+^$[\]\\(){}|-]/g, '\\$&')
-				+ '(?:$|\\s+)'
+				+ '($|\\s+)'
 			),
-			' '
+			'$1'
 		);
 	}
 }
