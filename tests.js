@@ -426,6 +426,31 @@ QUnit.test('getSpecificity', function(assert) {
 
 });
 
+/*global addClass, removeClass*/
+QUnit.test('addClass, removeClass', function(assert) {
+
+	var element = document.createElement('div');
+
+	addClass(element, 'foo');
+	assert.equal(element.className.trim(), 'foo', 'Add class foo');
+	addClass(element, 'bar');
+	assert.equal(element.className.trim(), 'foo bar', 'Add class bar');
+	addClass(element, 'bar');
+	assert.equal(element.className.trim(), 'foo bar', 'Add class bar again');
+	addClass(element, ':container(min-width:100px)');
+	assert.equal(element.className.trim(), 'foo bar :container(min-width:100px)', 'Add container query class');
+	addClass(element, ':container(min-width:100px)');
+	assert.equal(element.className.trim(), 'foo bar :container(min-width:100px)', 'Add container query class again');
+
+	removeClass(element, 'foo');
+	assert.equal(element.className.trim(), 'bar :container(min-width:100px)', 'Remove class foo');
+	removeClass(element, 'bar');
+	assert.equal(element.className.trim(), ':container(min-width:100px)', 'Remove class bar');
+	removeClass(element, ':container(min-width:100px)');
+	assert.equal(element.className.trim(), '', 'Remove container query class');
+
+});
+
 /*global matchesMedia*/
 QUnit.test('matchesMedia', function(assert) {
 
