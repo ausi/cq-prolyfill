@@ -1,0 +1,14 @@
+{
+	"libs": [
+		"browser",
+		"ecma5"
+	],
+	"plugins": {
+		"complete_strings": {
+			"maxLength": 30
+		},
+		"doc_comment": {
+			"fullDocs": true
+		}
+	}
+}
