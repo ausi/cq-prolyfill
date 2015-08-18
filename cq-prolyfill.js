@@ -49,12 +49,19 @@ var containerCache;
 var processed = false;
 var parsed = false;
 
+/**
+ * @param {function()} callback
+ */
 function reprocess(callback) {
 	preprocess(function() {
 		processed = true;
 		reparse(callback);
 	});
 }
+
+/**
+ * @param {function()} callback
+ */
 function reparse(callback) {
 	if (!processed) {
 		return reprocess(callback);
@@ -63,6 +70,10 @@ function reparse(callback) {
 	parsed = true;
 	reevaluate(callback);
 }
+
+/**
+ * @param {function()} callback
+ */
 function reevaluate(callback) {
 	if (!parsed) {
 		return reparse(callback);
@@ -756,6 +767,11 @@ function getSpecificity(selector) {
 
 }
 
+/**
+ * Create a new Map or a simple shim of it in non-supporting browsers
+ *
+ * @return {Map}
+ */
 function createCacheMap() {
 
 	if (typeof Map === 'function') {
@@ -788,6 +804,10 @@ function createCacheMap() {
 	};
 }
 
+/**
+ * @param {Element} element
+ * @param {string}  className
+ */
 function addClass(element, className) {
 	if (element.classList) {
 		element.classList.add(className);
@@ -798,6 +818,10 @@ function addClass(element, className) {
 	}
 }
 
+/**
+ * @param {Element} element
+ * @param {string}  className
+ */
 function removeClass(element, className) {
 	if (element.classList) {
 		element.classList.remove(className);
@@ -814,6 +838,10 @@ function removeClass(element, className) {
 	}
 }
 
+/**
+ * @param  {string} media
+ * @return {boolean}
+ */
 function matchesMedia(media) {
 	if (window.matchMedia) {
 		return window.matchMedia(media).matches;
