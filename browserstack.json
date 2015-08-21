@@ -16,18 +16,6 @@
 		"opera_30",
 		"opera_latest",
 		{
-			"os": "android",
-			"os_version": "4.0"
-		},
-		{
-			"os": "android",
-			"os_version": "5.0"
-		},
-		{
-			"os": "ios",
-			"os_version": "7.0"
-		},
-		{
 			"os": "ios",
 			"os_version": "8.3"
 		}
