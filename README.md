@@ -81,7 +81,7 @@ Loops through all stored queries and adds or removes the CSS classes of the matc
 ## Browser Support
 
 * Firefox 36+
-* Opera 30+
+* Opera 12.16+
 * Chrome 40+
 * Internet Explorer 9+
 * Edge

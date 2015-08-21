@@ -9,7 +9,16 @@ QUnit.test('Simple width and height Query', function(assert) {
 
 	var style = document.createElement('style');
 	style.type = 'text/css';
-	style.innerHTML = '.minW, .maxW, .minH, .maxH { font-family: no-query }'
+	style.innerHTML = '@font-face { font-family: no-query; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: min-width-100; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: min-width-200; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: min-height-100; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: min-height-200; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: max-width-200; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: max-width-100; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: max-height-200; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: max-height-100; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '.minW, .maxW, .minH, .maxH { font-family: no-query }'
 		+ '.minW:container( min-width: 100px ) { font-family: min-width-100 }'
 		+ '.minW:container( min-width: 200px ) { font-family: min-width-200 }'
 		+ '.minH:container( min-height: 100px ) { font-family: min-height-100 }'
@@ -414,7 +423,7 @@ QUnit.test('createCacheMap', function(assert) {
 
 	var map = createCacheMap();
 	var el1 = document.createElement('div');
-	var el2 = el1.cloneNode();
+	var el2 = el1.cloneNode(false);
 
 	assert.strictEqual(map.has(el1), false, 'Empty map');
 	assert.strictEqual(map.has(el2), false, 'Empty map');

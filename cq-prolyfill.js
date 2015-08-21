@@ -680,6 +680,7 @@ function elementMatchesSelector(element, selector) {
 	var func = element.matches
 		|| element.mozMatchesSelector
 		|| element.msMatchesSelector
+		|| element.oMatchesSelector
 		|| element.webkitMatchesSelector;
 	return func.call(element, escapeSelectors(selector));
 }
