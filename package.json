@@ -3,7 +3,7 @@
     "test": "make test"
   },
   "devDependencies": {
-    "browserstack-runner": "shirish87/browserstack-runner.git#001204cce230cc1fb88c9159d6a11e481ab9b26b",
+    "browserstack-runner": "^0.3.7",
     "eslint": "^0.24.1",
     "qunit-phantomjs-runner": "^2.1.0",
     "qunitjs": "^1.18.0",
