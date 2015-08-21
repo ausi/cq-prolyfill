@@ -51,8 +51,10 @@ watch:
 $(TEST_HTML): $(TESTS) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS)
 	mkdir -p tests
 	echo '<!doctype html>' > $@
+	echo '<html><head>' >> $@
 	echo '<meta charset="utf-8">' >> $@
 	echo '<link rel="stylesheet" href="../$(QUNIT_CSS)">' >> $@
+	echo '</head><body>' >> $@
 	echo '<div id="qunit"></div>' >> $@
 	echo '<div id="qunit-fixture"></div>' >> $@
 	echo '<script src="../$(QUNIT_JS)"></script>' >> $@
@@ -61,6 +63,7 @@ $(TEST_HTML): $(TESTS) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS)
 	cat $< >> $@
 	cat $(SOURCE) | grep '})(window, document);' >> $@
 	echo '</script>' >> $@
+	echo '</body></html>' >> $@
 
 $(TEST_RUNNER): $(PHANTOMJS_RUNNER)
 	mkdir -p tests

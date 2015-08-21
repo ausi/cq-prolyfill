@@ -1,0 +1,35 @@
+{
+	"test_framework" : "qunit",
+	"test_path": "tests/index.html",
+	"browsers": [
+		"chrome_40",
+		"chrome_latest",
+		"firefox_36",
+		"firefox_latest",
+		"safari_7",
+		"safari_latest",
+		"ie_9",
+		"ie_10",
+		"ie_11",
+		"ie_latest",
+		"edge_latest",
+		"opera_30",
+		"opera_latest",
+		{
+			"os": "android",
+			"os_version": "4.0"
+		},
+		{
+			"os": "android",
+			"os_version": "5.0"
+		},
+		{
+			"os": "ios",
+			"os_version": "7.0"
+		},
+		{
+			"os": "ios",
+			"os_version": "8.3"
+		}
+	]
+}

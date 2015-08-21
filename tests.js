@@ -2,23 +2,6 @@
 (function() {
 'use strict';
 
-// Sauce Labs API
-(function() {
-	var tests = [];
-	QUnit.done(function (results) {
-		results.tests = tests;
-		/*eslint-disable camelcase */
-		window.global_test_results = results;
-		/*eslint-enable camelcase */
-	});
-	QUnit.log(function(details){
-		if (details.result) {
-			return;
-		}
-		tests.push(details);
-	});
-})();
-
 var fixture = document.getElementById('qunit-fixture');
 
 /*global reprocess, reevaluate*/
