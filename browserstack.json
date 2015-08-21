@@ -15,9 +15,14 @@
 		"edge_latest",
 		"opera_30",
 		"opera_latest",
+		"yandex_latest",
 		{
 			"os": "ios",
 			"os_version": "8.3"
+		},
+		{
+			"os":"winphone",
+			"os_version":"8.1"
 		}
 	]
 }

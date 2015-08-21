@@ -86,8 +86,10 @@ Loops through all stored queries and adds or removes the CSS classes of the matc
 * Internet Explorer 9+
 * Edge
 * Safari 7+
+* Yandex 14+
 * iOS 7+
 * Android 4+
+* Windows Phone 8.1+
 
 Thanks to [BrowserStack](https://www.browserstack.com/automate) for sponsoring automated cross browser testing for this project.
 
