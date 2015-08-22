@@ -3,7 +3,7 @@
 'use strict';
 
 var fixture = document.getElementById('qunit-fixture');
-var TEST_FILES_URL = 'http://cdn.rawgit.com/ausi/cq-prolyfill/aba440b/test-files/';
+var TEST_FILES_URL = 'http://cdn.rawgit.com/ausi/cq-prolyfill/344b5d0/test-files/';
 var TEST_FILES_PATH = 'test-files/';
 
 /*global reprocess, reevaluate*/
