@@ -3,6 +3,8 @@
 'use strict';
 
 var fixture = document.getElementById('qunit-fixture');
+var TEST_FILES_URL = 'http://cdn.rawgit.com/ausi/cq-prolyfill/aba440b/test-files/';
+var TEST_FILES_PATH = 'test-files/';
 
 /*global reprocess, reevaluate*/
 QUnit.test('Simple width and height Query', function(assert) {
@@ -102,11 +104,7 @@ QUnit.test('CORS', function(assert) {
 		assert.equal(getOriginalStyle(element, ['color']).color, 'blue', 'Container Query');
 	load('cors-with-cq.css', true, function() {
 		assert.equal(getOriginalStyle(element, ['color']).color, 'blue', 'Container Query with crossOrigin');
-	load('404', false, function() {
-		assert.equal(getOriginalStyle(element, ['color']).color, undefined, '404 stylesheet');
-	load('404', true, function() {
-		assert.equal(getOriginalStyle(element, ['color']).color, undefined, '404 stylesheet with crossOrigin');
-	done(); }); }); }); }); }); });
+	done(); }); }); }); });
 
 	function load(file, crossOrigin, callback) {
 
@@ -118,7 +116,7 @@ QUnit.test('CORS', function(assert) {
 			link.crossOrigin = 'anonymous';
 		}
 		link.onload = link.onerror = onLoad;
-		link.href = 'http://cdn.rawgit.com/ausi/cq-prolyfill/aba440b/test-files/' + file;
+		link.href = TEST_FILES_URL + file;
 		fixture.appendChild(link);
 
 		element = document.createElement('div');
@@ -170,6 +168,40 @@ QUnit.test('parseRules', function(assert) {
 		assert.ok(queries[Object.keys(queries)[0]].selector.match(/^\.foo (?:\.before|\.after){2}$/), 'Preceding selector');
 		done();
 	});
+});
+
+/*global loadExternal*/
+QUnit.test('loadExternal', function(assert) {
+
+	var allDone = assert.async();
+	var doneCount = 0;
+	var done = function() {
+		doneCount++;
+		if (doneCount >= 4) {
+			allDone();
+		}
+	};
+
+	loadExternal(TEST_FILES_PATH + 'test.txt', function(response) {
+		assert.strictEqual(response, 'test\n', 'Regular request');
+		done();
+	});
+
+	loadExternal(TEST_FILES_URL + 'test.txt', function(response) {
+		assert.strictEqual(response, 'test\n', 'CORS request');
+		done();
+	});
+
+	loadExternal(TEST_FILES_PATH + '404', function(response) {
+		assert.strictEqual(response, '', 'Regular 404 request');
+		done();
+	});
+
+	loadExternal(TEST_FILES_URL + '404', function(response) {
+		assert.strictEqual(response, '', 'CORS 404 request');
+		done();
+	});
+
 });
 
 /*global resolveRelativeUrl*/

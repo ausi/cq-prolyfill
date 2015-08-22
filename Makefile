@@ -64,6 +64,8 @@ $(TEST_HTML): $(TESTS) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS)
 	cat $(SOURCE) | grep '})(window, document);' >> $@
 	echo '</script>' >> $@
 	echo '</body></html>' >> $@
+	rm -rf tests/test-files
+	cp -r test-files tests/
 
 $(TEST_RUNNER): $(PHANTOMJS_RUNNER)
 	mkdir -p tests
