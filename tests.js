@@ -87,6 +87,30 @@ QUnit.test('Simple width and height Query', function(assert) {
 	});
 });
 
+/*global reprocess, getOriginalStyle*/
+QUnit.test('CORS getOriginalStyle', function(assert) {
+
+	var link = document.createElement('link');
+	link.rel = 'stylesheet';
+	link.onload = onLoad;
+	link.href = 'https://rawgit.com/ausi/cq-prolyfill/master/test-files/cors.css';
+	fixture.appendChild(link);
+
+	var element = document.createElement('div');
+	element.className = 'cors-test';
+	fixture.appendChild(element);
+
+	var done = assert.async();
+
+	function onLoad() {
+		reprocess(function() {
+			assert.equal(getOriginalStyle(element, ['color']).color, 'red', 'Get style from CORS Stylesheet');
+			done();
+		});
+	}
+
+});
+
 /*global preprocess, SELECTOR_ESCAPED_REGEXP, SELECTOR_REGEXP*/
 QUnit.test('preprocess', function(assert) {
 	var style = document.createElement('style');

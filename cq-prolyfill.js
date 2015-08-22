@@ -123,7 +123,7 @@ function preprocessSheet(sheet, callback) {
 	if (tag === 'LINK') {
 		loadExternal(sheet.ownerNode.href, function(cssText) {
 			// Check again because loadExternal is async
-			if (sheet.disabled) {
+			if (sheet.disabled || !cssText) {
 				callback();
 				return;
 			}
@@ -150,7 +150,6 @@ function preprocessSheet(sheet, callback) {
  */
 function loadExternal(href, callback) {
 	var xhr = new window.XMLHttpRequest();
-	xhr.open('GET', href);
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState !== 4) {
 			return;
@@ -158,6 +157,7 @@ function loadExternal(href, callback) {
 		callback(xhr.status === 200 ? xhr.responseText : '');
 	};
 	try {
+		xhr.open('GET', href);
 		xhr.send();
 	}
 	catch(e) {
@@ -216,8 +216,18 @@ function resolveRelativeUrl(url, base) {
  */
 function preprocessStyle(node, cssText) {
 	var escapedText = escapeSelectors(cssText);
+	var rulesLength = -1;
 	if (escapedText === cssText) {
-		return;
+		try {
+			rulesLength = node.sheet.cssRules.length;
+		}
+		catch(e) {
+			rulesLength = -1;
+		}
+		// Check if cssRules is accessible
+		if (rulesLength !== -1) {
+			return;
+		}
 	}
 	var style = document.createElement('style');
 	style.textContent = escapedText;
