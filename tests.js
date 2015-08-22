@@ -93,7 +93,7 @@ QUnit.test('CORS getOriginalStyle', function(assert) {
 	var link = document.createElement('link');
 	link.rel = 'stylesheet';
 	link.onload = onLoad;
-	link.href = 'https://rawgit.com/ausi/cq-prolyfill/master/test-files/cors.css';
+	link.href = 'https://cdn.rawgit.com/ausi/cq-prolyfill/a435fba/test-files/cors.css';
 	fixture.appendChild(link);
 
 	var element = document.createElement('div');
