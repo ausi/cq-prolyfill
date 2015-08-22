@@ -88,25 +88,49 @@ QUnit.test('Simple width and height Query', function(assert) {
 });
 
 /*global reprocess, getOriginalStyle*/
-QUnit.test('CORS getOriginalStyle', function(assert) {
-
-	var link = document.createElement('link');
-	link.rel = 'stylesheet';
-	link.onload = onLoad;
-	link.href = 'https://cdn.rawgit.com/ausi/cq-prolyfill/a435fba/test-files/cors.css';
-	fixture.appendChild(link);
-
-	var element = document.createElement('div');
-	element.className = 'cors-test';
-	fixture.appendChild(element);
+QUnit.test('CORS', function(assert) {
 
 	var done = assert.async();
 
-	function onLoad() {
-		reprocess(function() {
-			assert.equal(getOriginalStyle(element, ['color']).color, 'red', 'Get style from CORS Stylesheet');
-			done();
-		});
+	var element;
+
+	load('cors.css', false, function() {
+		assert.equal(getOriginalStyle(element, ['color']).color, 'red', 'Style Stylesheet');
+	load('cors.css', true, function() {
+		assert.equal(getOriginalStyle(element, ['color']).color, 'red', 'Style Stylesheet with crossOrigin');
+	load('cors-with-cq.css', false, function() {
+		assert.equal(getOriginalStyle(element, ['color']).color, 'blue', 'Container Query');
+	load('cors-with-cq.css', true, function() {
+		assert.equal(getOriginalStyle(element, ['color']).color, 'blue', 'Container Query with crossOrigin');
+	load('404', false, function() {
+		assert.equal(getOriginalStyle(element, ['color']).color, undefined, '404 stylesheet');
+	load('404', true, function() {
+		assert.equal(getOriginalStyle(element, ['color']).color, undefined, '404 stylesheet with crossOrigin');
+	done(); }); }); }); }); }); });
+
+	function load(file, crossOrigin, callback) {
+
+		fixture.innerHTML = '';
+
+		var link = document.createElement('link');
+		link.rel = 'stylesheet';
+		if (crossOrigin) {
+			link.crossOrigin = 'anonymous';
+		}
+		link.onload = link.onerror = onLoad;
+		link.href = 'https://rawgit.com/ausi/cq-prolyfill/master/test-files/' + file;
+		fixture.appendChild(link);
+
+		element = document.createElement('div');
+		element.className = 'cors-test';
+		fixture.appendChild(element);
+
+		function onLoad() {
+			reprocess(function() {
+				callback();
+			});
+		}
+
 	}
 
 });

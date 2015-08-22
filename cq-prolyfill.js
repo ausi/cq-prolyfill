@@ -150,18 +150,44 @@ function preprocessSheet(sheet, callback) {
  */
 function loadExternal(href, callback) {
 	var xhr = new window.XMLHttpRequest();
+	var error = function() {
+		callback('');
+	};
+	var load = function() {
+		if ((!xhr.status || xhr.status === 200) && xhr.responseText) {
+			callback(xhr.responseText);
+		}
+		else {
+			error();
+		}
+	};
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState !== 4) {
 			return;
 		}
-		callback(xhr.status === 200 ? xhr.responseText : '');
+		load();
 	};
 	try {
 		xhr.open('GET', href);
+		xhr.setRequestHeader('Accept', 'text/css,*/*;q=0.1');
 		xhr.send();
 	}
 	catch(e) {
-		callback('');
+		if (window.XDomainRequest) {
+			xhr = new window.XDomainRequest();
+			xhr.onerror = error;
+			xhr.onload = load;
+			try {
+				xhr.open('GET', href);
+				xhr.send();
+			}
+			catch(e2) {
+				return error();
+			}
+		}
+		else {
+			return error();
+		}
 	}
 }
 
@@ -260,6 +286,9 @@ function parseRules() {
 		}
 		try {
 			rules = sheets[i].cssRules;
+			if (!rules || !rules.length) {
+				continue;
+			}
 		}
 		catch(e) {
 			continue;
@@ -593,6 +622,9 @@ function getOriginalStyle(element, props) {
 		}
 		try {
 			rules = sheets[i].cssRules;
+			if (!rules || !rules.length) {
+				continue;
+			}
 		}
 		catch(e) {
 			continue;
