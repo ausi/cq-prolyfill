@@ -118,7 +118,7 @@ QUnit.test('CORS', function(assert) {
 			link.crossOrigin = 'anonymous';
 		}
 		link.onload = link.onerror = onLoad;
-		link.href = 'https://rawgit.com/ausi/cq-prolyfill/master/test-files/' + file;
+		link.href = 'https://cdn.rawgit.com/ausi/cq-prolyfill/aba440b/test-files/' + file;
 		fixture.appendChild(link);
 
 		element = document.createElement('div');
