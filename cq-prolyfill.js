@@ -94,7 +94,7 @@ function reevaluate(callback) {
  * @param {function()} callback
  */
 function preprocess(callback) {
-	var sheets = document.styleSheets;
+	var sheets = arrayFrom(document.styleSheets);
 	if (!sheets.length) {
 		callback();
 		return;
@@ -848,6 +848,23 @@ function matchesMedia(media) {
 		return window.matchMedia(media).matches;
 	}
 	return (window.styleMedia || window.media).matchMedium(media);
+}
+
+/**
+ * Array.from or a simple shim for non-supporting browsers
+ *
+ * @param  {{length: number}} arrayLike
+ * @return {array}
+ */
+function arrayFrom(arrayLike) {
+	if (Array.from) {
+		return Array.from(arrayLike);
+	}
+	var array = [];
+	for (var i = 0; i < arrayLike.length; i++) {
+		array.push(arrayLike[i]);
+	}
+	return array;
 }
 
 })(window, document);

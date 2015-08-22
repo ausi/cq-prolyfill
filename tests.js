@@ -483,4 +483,12 @@ QUnit.test('matchesMedia', function(assert) {
 
 });
 
+/*global arrayFrom*/
+QUnit.test('arrayFrom', function(assert) {
+
+	assert.deepEqual(arrayFrom({0: 'foo', 1: 'bar', length: 2}), ['foo', 'bar'], 'Simple array like');
+	assert.deepEqual(arrayFrom({0: 'foo', 2: 'bar', length: 3}), ['foo', undefined, 'bar'], 'Array like with gap');
+
+});
+
 })();
