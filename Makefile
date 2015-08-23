@@ -70,3 +70,9 @@ $(TEST_HTML): $(TESTS) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS)
 $(TEST_RUNNER): $(PHANTOMJS_RUNNER)
 	mkdir -p tests
 	cat $< | replace 'exit(failed ? 1 : 0);' 'setTimeout(function(){exit(failed ? 1 : 0);}, 500);' > $@
+
+.PHONY: clean
+clean:
+	rm $(TARGET)
+	rm -r tests
+	rm -r node_modules
