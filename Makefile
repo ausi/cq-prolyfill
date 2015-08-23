@@ -1,16 +1,17 @@
-BIN = ./node_modules/.bin
+MODULES = node_modules
+BIN = $(MODULES)/.bin
 UGLIFY = $(BIN)/uglifyjs
 UGLIFY_OPTS = --compress --mangle --screw-ie8
 ESLINT = $(BIN)/eslint
 SOURCE = cq-prolyfill.js
 TARGET = $(SOURCE:%.js=%.min.js)
 TESTS = tests.js
-QUNIT = node_modules/qunitjs/qunit
+QUNIT = $(MODULES)/qunitjs/qunit
 QUNIT_JS = $(QUNIT)/qunit.js
 QUNIT_CSS = $(QUNIT)/qunit.css
 TEST_HTML = tests/index.html
 SLIMERJS = $(BIN)/slimerjs
-PHANTOMJS_RUNNER = node_modules/qunit-phantomjs-runner/runner.js
+PHANTOMJS_RUNNER = $(MODULES)/qunit-phantomjs-runner/runner.js
 TEST_RUNNER = tests/slimerjs-runner.js
 
 all: $(TARGET)
@@ -19,23 +20,26 @@ $(TARGET): $(SOURCE) $(UGLIFY) $(TESTS)
 	make test
 	$(UGLIFY) $(UGLIFY_OPTS) $< > $@
 
-$(UGLIFY): package.json
+$(MODULES): package.json
 	npm install && touch $@
 
-$(ESLINT): package.json
-	npm install && touch $@
+$(UGLIFY): $(MODULES)
+	touch $@
 
-$(QUNIT_JS): package.json
-	npm install && touch $@
+$(ESLINT): $(MODULES)
+	touch $@
 
-$(QUNIT_CSS): package.json
-	npm install && touch $@
+$(QUNIT_JS): $(MODULES)
+	touch $@
 
-$(SLIMERJS): package.json
-	npm install && touch $@
+$(QUNIT_CSS): $(MODULES)
+	touch $@
 
-$(PHANTOMJS_RUNNER): package.json
-	npm install && touch $@
+$(SLIMERJS): $(MODULES)
+	touch $@
+
+$(PHANTOMJS_RUNNER): $(MODULES)
+	touch $@
 
 .PHONY: test
 test: $(ESLINT) $(SOURCE) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HTML)
@@ -73,6 +77,6 @@ $(TEST_RUNNER): $(PHANTOMJS_RUNNER)
 
 .PHONY: clean
 clean:
-	rm $(TARGET)
-	rm -r tests
-	rm -r node_modules
+	rm -f $(TARGET)
+	rm -fr tests
+	rm -fr $(MODULES)
