@@ -149,23 +149,15 @@ function preprocessSheet(sheet, callback) {
  *                                    success or empty string on failure
  */
 function loadExternal(href, callback) {
-	var xhr = new window.XMLHttpRequest();
+	var xhr = new XMLHttpRequest();
 	var error = function() {
 		callback('');
-	};
-	var load = function() {
-		if ((!xhr.status || xhr.status === 200) && xhr.responseText) {
-			callback(xhr.responseText);
-		}
-		else {
-			error();
-		}
 	};
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState !== 4) {
 			return;
 		}
-		load();
+		callback((xhr.status === 200 && xhr.responseText) || '');
 	};
 	try {
 		xhr.open('GET', href);
@@ -174,9 +166,11 @@ function loadExternal(href, callback) {
 	}
 	catch(e) {
 		if (window.XDomainRequest) {
-			xhr = new window.XDomainRequest();
+			xhr = new XDomainRequest();
 			xhr.onerror = error;
-			xhr.onload = load;
+			xhr.onload = function() {
+				callback(xhr.responseText || '');
+			};
 			try {
 				xhr.open('GET', href);
 				xhr.send();
