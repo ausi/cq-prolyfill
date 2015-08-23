@@ -42,9 +42,11 @@ $(PHANTOMJS_RUNNER): $(MODULES)
 	touch $@
 
 .PHONY: test
-test: $(ESLINT) $(SOURCE) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HTML)
+test: $(ESLINT) $(SOURCE) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HTML) $(MODULES)
 	$(ESLINT) $(SOURCE)
-	$(SLIMERJS) $(TEST_RUNNER) $(TEST_HTML) | tee tests/slimerjs.log
+	node -e "require('connect')().use(require('serve-static')(__dirname)).listen(8888)" & echo "$$!" > server.pid
+	$(SLIMERJS) $(TEST_RUNNER) http://localhost:8888/$(TEST_HTML) | tee tests/slimerjs.log
+	kill `cat server.pid` && rm server.pid
 	@ grep ' passed, 0 failed.' tests/slimerjs.log > /dev/null
 	@ rm tests/slimerjs.log
 

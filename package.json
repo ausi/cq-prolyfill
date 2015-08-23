@@ -4,9 +4,11 @@
   },
   "devDependencies": {
     "browserstack-runner": "^0.3.7",
+    "connect": "^3.4.0",
     "eslint": "^0.24.1",
     "qunit-phantomjs-runner": "^2.1.0",
     "qunitjs": "^1.18.0",
+    "serve-static": "^1.10.0",
     "slimerjs": "^0.9.6",
     "uglify-js": "^2.4.24"
   }
