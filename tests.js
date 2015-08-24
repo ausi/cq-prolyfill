@@ -165,7 +165,7 @@ QUnit.test('parseRules', function(assert) {
 		parseRules();
 		assert.equal(Object.keys(queries).length, 1, 'One query');
 		assert.ok(Object.keys(queries)[0].match(/^\.foo (?:\.before|\.after){2}\.\\:container\\\(min-width\\:100\\\.00px\\\)$/), 'Correct key');
-		assert.ok(queries[Object.keys(queries)[0]].selector.match(/^\.foo (?:\.before|\.after){2}$/), 'Preceding selector');
+		assert.ok(queries[Object.keys(queries)[0]].s.match(/^\.foo (?:\.before|\.after){2}$/), 'Preceding selector');
 		done();
 	});
 });
@@ -417,10 +417,10 @@ QUnit.test('filterRulesByElementAndProps', function(assert) {
 
 	var rules = filterRulesByElementAndProps(style.sheet.cssRules, element, ['width']);
 	assert.equal(rules.length, 2, 'Two rules');
-	assert.equal(rules[0].selector, '.myel', 'First selector');
-	assert.equal(rules[0].rule.style.width, '1px', 'Property');
-	assert.equal(rules[1].selector, 'div.myel', 'Second selector');
-	assert.equal(rules[1].rule.style.width, '4px', 'Property');
+	assert.equal(rules[0].s, '.myel', 'First selector');
+	assert.equal(rules[0].r.style.width, '1px', 'Property');
+	assert.equal(rules[1].s, 'div.myel', 'Second selector');
+	assert.equal(rules[1].r.style.width, '4px', 'Property');
 
 });
 
@@ -450,20 +450,20 @@ QUnit.test('styleHasProperty', function(assert) {
 /*global sortRulesBySpecificity*/
 QUnit.test('sortRulesBySpecificity', function(assert) {
 	var unsorted = [
-		{selector: 'tag'},
-		{selector: '.class'},
-		{selector: '#id'},
-		{selector: 'tag tag'},
-		{selector: '.class.class'},
-		{selector: '#id#id'},
+		{s: 'tag'},
+		{s: '.class'},
+		{s: '#id'},
+		{s: 'tag tag'},
+		{s: '.class.class'},
+		{s: '#id#id'},
 	];
 	var sorted = [
-		{selector: '#id#id'},
-		{selector: '#id'},
-		{selector: '.class.class'},
-		{selector: '.class'},
-		{selector: 'tag tag'},
-		{selector: 'tag'},
+		{s: '#id#id'},
+		{s: '#id'},
+		{s: '.class.class'},
+		{s: '.class'},
+		{s: 'tag tag'},
+		{s: 'tag'},
 	];
 	assert.deepEqual(sortRulesBySpecificity(unsorted), sorted, 'Correct sort order');
 });

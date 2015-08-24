@@ -22,6 +22,7 @@ window.addEventListener('DOMContentLoaded', reprocess);
 window.addEventListener('load', reprocess);
 window.addEventListener('resize', reevaluate);
 
+var REGEXP_ESCAPE_REGEXP = /[.?*+^$[\]\\(){}|-]/g;
 var SELECTOR_REGEXP = /\.?:container\(\s*(?:min|max)-(?:width|height)\s*:\s*[^)]+\s*\)/gi;
 var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(((?:min|max)-(?:width|height))\\:([^)]+?)\\\)/gi;
 var ESCAPE_REGEXP = /[.:()]/g;
@@ -48,6 +49,9 @@ var queries;
 var containerCache;
 var processed = false;
 var parsed = false;
+var documentElement = document.documentElement;
+var styleSheets = document.styleSheets;
+var createElement = document.createElement.bind(document);
 
 /**
  * @param {function()} callback
@@ -79,7 +83,7 @@ function reevaluate(callback) {
 		return reparse(callback);
 	}
 	updateClasses();
-	if (typeof callback === 'function') {
+	if (callback && callback.call) {
 		callback();
 	}
 }
@@ -94,20 +98,18 @@ function reevaluate(callback) {
  * @param {function()} callback
  */
 function preprocess(callback) {
-	var sheets = arrayFrom(document.styleSheets);
-	if (!sheets.length) {
-		callback();
-		return;
+	var sheets = arrayFrom(styleSheets);
+	var done = -1;
+	function step() {
+		done++;
+		if (done === sheets.length) {
+			callback();
+		}
 	}
-	var done = 0;
-	for (var i = 0, length = sheets.length; i < length; i++) {
-		preprocessSheet(sheets[i], function() {
-			done++;
-			if (done === length) {
-				callback();
-			}
-		});
-	}
+	sheets.forEach(function(sheet) {
+		preprocessSheet(sheet, step);
+	});
+	step();
 }
 
 /**
@@ -119,21 +121,21 @@ function preprocessSheet(sheet, callback) {
 		callback();
 		return;
 	}
-	var tag = sheet.ownerNode && sheet.ownerNode.tagName;
+	var ownerNode = sheet.ownerNode;
+	var tag = ownerNode && ownerNode.tagName;
 	if (tag === 'LINK') {
-		loadExternal(sheet.ownerNode.href, function(cssText) {
+		loadExternal(ownerNode.href, function(cssText) {
 			// Check again because loadExternal is async
 			if (sheet.disabled || !cssText) {
 				callback();
 				return;
 			}
-			cssText = fixRelativeUrls(cssText, sheet.ownerNode.href);
-			preprocessStyle(sheet.ownerNode, cssText);
+			preprocessStyle(ownerNode, fixRelativeUrls(cssText, ownerNode.href));
 			callback();
 		});
 	}
 	else if (tag === 'STYLE') {
-		preprocessStyle(sheet.ownerNode, sheet.ownerNode.innerHTML);
+		preprocessStyle(ownerNode, ownerNode.innerHTML);
 		callback();
 	}
 	else {
@@ -150,9 +152,6 @@ function preprocessSheet(sheet, callback) {
  */
 function loadExternal(href, callback) {
 	var xhr = new XMLHttpRequest();
-	var error = function() {
-		callback('');
-	};
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState !== 4) {
 			return;
@@ -161,14 +160,12 @@ function loadExternal(href, callback) {
 	};
 	try {
 		xhr.open('GET', href);
-		xhr.setRequestHeader('Accept', 'text/css,*/*;q=0.1');
 		xhr.send();
 	}
 	catch(e) {
 		if (window.XDomainRequest) {
 			xhr = new XDomainRequest();
-			xhr.onerror = error;
-			xhr.onload = function() {
+			xhr.onload = xhr.onerror = function() {
 				callback(xhr.responseText || '');
 			};
 			try {
@@ -176,11 +173,11 @@ function loadExternal(href, callback) {
 				xhr.send();
 			}
 			catch(e2) {
-				return error();
+				return callback('');
 			}
 		}
 		else {
-			return error();
+			return callback('');
 		}
 	}
 }
@@ -217,14 +214,12 @@ function resolveRelativeUrl(url, base) {
 		absoluteUrl = false;
 	}
 	if (!absoluteUrl) {
-		var baseElement = document.createElement('base');
+		var baseElement = createElement('base');
 		baseElement.href = base;
 		document.head.insertBefore(baseElement, document.head.firstChild);
-		var link = document.createElement('a');
+		var link = createElement('a');
 		link.href = url;
-		document.body.appendChild(link);
 		absoluteUrl = link.href;
-		document.body.removeChild(link);
 		document.head.removeChild(baseElement);
 	}
 	return absoluteUrl;
@@ -249,7 +244,7 @@ function preprocessStyle(node, cssText) {
 			return;
 		}
 	}
-	var style = document.createElement('style');
+	var style = createElement('style');
 	style.textContent = escapedText;
 	style.media = node.media || 'all';
 	node.parentNode.insertBefore(style, node);
@@ -272,14 +267,13 @@ function escapeSelectors(cssText) {
  */
 function parseRules() {
 	queries = {};
-	var sheets = document.styleSheets;
 	var rules;
-	for (var i = 0; i < sheets.length; i++) {
-		if (sheets[i].disabled) {
+	for (var i = 0; i < styleSheets.length; i++) {
+		if (styleSheets[i].disabled) {
 			continue;
 		}
 		try {
-			rules = sheets[i].cssRules;
+			rules = styleSheets[i].cssRules;
 			if (!rules || !rules.length) {
 				continue;
 			}
@@ -315,11 +309,11 @@ function parseRule(rule) {
 			}
 			precedingSelector = precedingSelector.replace(/:(?:active|hover|focus|checked)/gi, '');
 			queries[precedingSelector + match.toLowerCase()] = {
-				selector: precedingSelector,
-				prop: type.split('-')[1].toLowerCase(),
-				type: type.split('-')[0].toLowerCase(),
-				value: value,
-				className: match.toLowerCase().substr(1).replace(/\\(.)/g, '$1'),
+				s: precedingSelector,
+				p: type.split('-')[1].toLowerCase(),
+				t: type.split('-')[0].toLowerCase(),
+				v: value,
+				c: match.toLowerCase().substr(1).replace(/\\(.)/g, '$1'),
 			};
 		});
 	});
@@ -343,7 +337,7 @@ function splitSelectors(selectors) {
 function updateClasses() {
 	containerCache = createCacheMap();
 	Object.keys(queries).forEach(function(key) {
-		var elements = document.querySelectorAll(queries[key].selector);
+		var elements = document.querySelectorAll(queries[key].s);
 		for (var i = 0; i < elements.length; i++) {
 			updateClass(elements[i], queries[key]);
 		}
@@ -357,20 +351,20 @@ function updateClasses() {
  * @param {object}  query
  */
 function updateClass(element, query) {
-	if (element === document.documentElement) {
+	if (element === documentElement) {
 		return;
 	}
-	var container = getContainer(element.parentNode, query.prop);
-	var size = getSize(container, query.prop);
-	var value = getComputedLength(query.value, element.parentNode);
+	var container = getContainer(element.parentNode, query.p);
+	var size = getSize(container, query.p);
+	var value = getComputedLength(query.v, element.parentNode);
 	if (
-		(query.type === 'min' && size >= value)
-		|| (query.type === 'max' && size <= value)
+		(query.t === 'min' && size >= value)
+		|| (query.t === 'max' && size <= value)
 	) {
-		addClass(element, query.className);
+		addClass(element, query.c);
 	}
 	else {
-		removeClass(element, query.className);
+		removeClass(element, query.c);
 	}
 }
 
@@ -386,53 +380,43 @@ function getContainer(element, prop) {
 	var cache;
 	if (containerCache.has(element)) {
 		cache = containerCache.get(element);
-		if (cache.container[prop]) {
-			return cache.container[prop];
+		if (cache[prop]) {
+			return cache[prop];
 		}
 	}
 	else {
-		cache = {
-			container: {},
-		};
+		cache = {};
 		containerCache.set(element, cache);
 	}
 
-	if (element === document.documentElement) {
-		cache.container[prop] = element;
+	if (element === documentElement) {
+		cache[prop] = element;
 	}
 
 	// Skip inline elements
 	else if (getComputedStyle(element).display === 'inline') {
-		cache.container[prop] = getContainer(element.parentNode, prop);
+		cache[prop] = getContainer(element.parentNode, prop);
 	}
 
 	else if (isFixedSize(element, prop)) {
-		cache.container[prop] = element;
+		cache[prop] = element;
 	}
 
 	else {
 		var parentContainer = getContainer(element.parentNode, prop);
-		var chain = [];
-		for (var node = element; node !== parentContainer; node = node.parentNode) {
-			// Skip inline elements
-			if (getComputedStyle(node).display !== 'inline') {
-				chain.unshift(node);
-			}
+		var parentNode = element.parentNode;
+		while (getComputedStyle(parentNode).display === 'inline') {
+			parentNode = parentNode.parentNode;
 		}
-		for (var i = 0; i < chain.length; i++) {
-			if (isIntrinsicSize(chain[i], prop)) {
-				break;
-			}
-		}
-		if (i) {
-			cache.container[prop] = chain[i - 1];
+		if (parentNode === parentContainer && !isIntrinsicSize(element, prop)) {
+			cache[prop] = element;
 		}
 		else {
-			cache.container[prop] = parentContainer;
+			cache[prop] = parentContainer;
 		}
 	}
 
-	return cache.container[prop];
+	return cache[prop];
 
 }
 
@@ -445,7 +429,7 @@ function getContainer(element, prop) {
  */
 function isFixedSize(element, prop) {
 	var originalStyle = getOriginalStyle(element, [prop]);
-	if (originalStyle[prop] && originalStyle[prop].search(LENGTH_REGEXP) !== -1) {
+	if (originalStyle[prop] && originalStyle[prop].match(LENGTH_REGEXP)) {
 		return true;
 	}
 	return false;
@@ -484,7 +468,7 @@ function isIntrinsicSize(element, prop) {
 	var originalStyle = getOriginalStyle(element, [prop]);
 
 	// Fixed size
-	if (originalStyle[prop] && originalStyle[prop].search(LENGTH_REGEXP) !== -1) {
+	if (originalStyle[prop] && originalStyle[prop].match(LENGTH_REGEXP)) {
 		return false;
 	}
 
@@ -554,7 +538,7 @@ function getComputedLength(value, element) {
 		return value * Math.max(window.innerWidth, window.innerHeight) / 100;
 	}
 	if (unit === 'rem') {
-		element = document.documentElement;
+		element = documentElement;
 		unit = 'em';
 	}
 	if (unit === 'ex') {
@@ -605,17 +589,17 @@ function getComputedStyle(element) {
 function getOriginalStyle(element, props) {
 
 	var matchedRules = [];
-	var sheets = document.styleSheets;
 	var rules;
 	var result = {};
+	var value;
 	var i, j;
 
-	for (i = 0; i < sheets.length; i++) {
-		if (sheets[i].disabled) {
+	for (i = 0; i < styleSheets.length; i++) {
+		if (styleSheets[i].disabled) {
 			continue;
 		}
 		try {
-			rules = sheets[i].cssRules;
+			rules = styleSheets[i].cssRules;
 			if (!rules || !rules.length) {
 				continue;
 			}
@@ -630,7 +614,7 @@ function getOriginalStyle(element, props) {
 
 	// Add style attribute
 	matchedRules.unshift({
-		rule: {
+		r: {
 			style: element.style,
 		},
 	});
@@ -639,10 +623,10 @@ function getOriginalStyle(element, props) {
 	for (i = 0; i < props.length; i++) {
 		for (j = 0; j < matchedRules.length; j++) {
 			if (
-				matchedRules[j].rule.style.getPropertyValue(props[i])
-				&& matchedRules[j].rule.style.getPropertyPriority(props[i]) === 'important'
+				(value = matchedRules[j].r.style.getPropertyValue(props[i]))
+				&& matchedRules[j].r.style.getPropertyPriority(props[i]) === 'important'
 			) {
-				result[props[i]] = matchedRules[j].rule.style.getPropertyValue(props[i]);
+				result[props[i]] = value;
 				break;
 			}
 		}
@@ -656,10 +640,10 @@ function getOriginalStyle(element, props) {
 		}
 		for (j = 0; j < matchedRules.length; j++) {
 			if (
-				matchedRules[j].rule.style.getPropertyValue(props[i])
-				&& matchedRules[j].rule.style.getPropertyPriority(props[i]) !== 'important'
+				(value = matchedRules[j].r.style.getPropertyValue(props[i]))
+				&& matchedRules[j].r.style.getPropertyPriority(props[i]) !== 'important'
 			) {
-				result[props[i]] = matchedRules[j].rule.style.getPropertyValue(props[i]);
+				result[props[i]] = value;
 				break;
 			}
 		}
@@ -675,7 +659,7 @@ function getOriginalStyle(element, props) {
  * @param  {CSSRuleList}    rules
  * @param  {Element}        element
  * @param  {Array.<string>} props
- * @return {Array.<{selector: string, rule: CSSRule}>}
+ * @return {Array.<{s: string, r: CSSRule}>}
  */
 function filterRulesByElementAndProps(rules, element, props) {
 	var matchedRules = [];
@@ -696,8 +680,8 @@ function filterRulesByElementAndProps(rules, element, props) {
 				splitSelectors(rules[i].selectorText).forEach(function(selector) {
 					if (elementMatchesSelector(element, selector)) {
 						matchedRules.push({
-							selector: selector,
-							rule: rules[i],
+							s: selector,
+							r: rules[i],
 						});
 					}
 				});
@@ -738,14 +722,14 @@ function styleHasProperty(style, props) {
 }
 
 /**
- * @param  {Array.<{selector: string}>} rules
- * @return {Array.<{selector: string}>}
+ * @param  {Array.<{s: string}>} rules
+ * @return {Array.<{s: string}>}
  */
 function sortRulesBySpecificity(rules) {
 	return rules.map(function(rule, i) {
 		return [rule, i];
 	}).sort(function(a, b) {
-		return (getSpecificity(b[0].selector) - getSpecificity(a[0].selector)) || b[1] - a[1];
+		return (getSpecificity(b[0].s) - getSpecificity(a[0].s)) || b[1] - a[1];
 	}).map(function(rule) {
 		return rule[0];
 	});
@@ -867,7 +851,7 @@ function removeClass(element, className) {
 		element.className = element.className.replace(
 			new RegExp(
 				'(?:^|\\s+)'
-				+ className.replace(/[.?*+^$[\]\\(){}|-]/g, '\\$&')
+				+ className.replace(REGEXP_ESCAPE_REGEXP, '\\$&')
 				+ '($|\\s+)'
 			),
 			'$1'
@@ -898,7 +882,7 @@ function arrayFrom(arrayLike) {
 	}
 	var array = [];
 	for (var i = 0; i < arrayLike.length; i++) {
-		array.push(arrayLike[i]);
+		array[i] = arrayLike[i];
 	}
 	return array;
 }
