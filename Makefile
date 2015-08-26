@@ -1,7 +1,7 @@
 MODULES = node_modules
 BIN = $(MODULES)/.bin
 UGLIFY = $(BIN)/uglifyjs
-UGLIFY_OPTS = --compress --mangle --mangle-props --mangle-regex="/^_/" --screw-ie8
+UGLIFY_OPTS = --compress=unsafe,pure_getters --mangle --mangle-props --mangle-regex="/^_/" --screw-ie8
 ESLINT = $(BIN)/eslint
 SOURCE = cq-prolyfill.js
 TARGET = $(SOURCE:%.js=%.min.js)
