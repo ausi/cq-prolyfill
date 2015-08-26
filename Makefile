@@ -16,10 +16,11 @@ SLIMERJS = $(BIN)/slimerjs
 PHANTOMJS_RUNNER = $(MODULES)/qunit-phantomjs-runner/runner.js
 TEST_RUNNER = tests/slimerjs-runner.js
 
-all: test $(TARGET)
+all: $(TARGET)
 
 $(TARGET): $(SOURCE) $(UGLIFY) $(TESTS)
 	$(UGLIFY) $(UGLIFY_OPTS) $< > $@
+	make test
 
 $(MODULES): package.json
 	npm install && touch $@
