@@ -21,12 +21,12 @@ You can load the script in any way you like, I would recommend to load it asynch
 Now you can use container queries in the following form:
 
 ```css
-.element:container(min-width: 100px) {
+.element:container(width >= 100px) {
 	/* Styles for .element if it’s container is at least 100px wide */
 }
 ```
 
-Supported queries are `min-width`, `max-width`, `min-height` and `max-height`.
+Supported properties are `width` and `height`. Available comparison operators are `<`, `>`, `<=`, `>=`, `=` and `!=`.
 
 The script triggers itself on load, on DOM ready and if the browser window resizes. If you want to trigger it manually you can call `reprocess` (step 1), `reparse` (step 2) or `reevaluate` (step 3) on the `window.containerQueries` object. Most of the time `reevaluate` should do the job if you didn’t add, remove or change stylesheets. E.g.
 
@@ -51,7 +51,7 @@ Looks for stylesheets that contain container queries and escapes them to be read
 E.g. this:
 
 ```css
-.element:container(min-width: 10px) {
+.element:container(width >= 10px) {
 	color: red;
 }
 ```
@@ -59,7 +59,7 @@ E.g. this:
 gets converted to this:
 
 ```css
-.element.\:container\(min-width\:10px\) {
+.element.\:container\(width\>\=10px\) {
 	color: red;
 }
 ```
@@ -75,7 +75,7 @@ Parses all (pre)processed container query rules and stores them indexed by the p
 Loops through all stored queries and adds or removes the CSS classes of the matching elements. The added CSS classes look the same as the container query itself to improve the readability in the developer tools of the browser. E.g.:
 
 ```html
-<div class="element :container(min-width:10px)"></div>
+<div class="element :container(width>=10px)"></div>
 ```
 
 ## Browser Support

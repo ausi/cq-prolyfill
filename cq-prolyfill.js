@@ -23,9 +23,9 @@ window.addEventListener('load', reprocess);
 window.addEventListener('resize', reevaluate);
 
 var REGEXP_ESCAPE_REGEXP = /[.?*+^$[\]\\(){}|-]/g;
-var SELECTOR_REGEXP = /\.?:container\(\s*(?:min|max)-(?:width|height)\s*:\s*[^)]+\s*\)/gi;
-var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(((?:min|max)-(?:width|height))\\:([^)]+?)\\\)/gi;
-var ESCAPE_REGEXP = /[.:()]/g;
+var SELECTOR_REGEXP = /\.?:container\(\s*(?:width|height)\s*(?:\<=|>=|<|>|=|!=)\s*[^)]+\s*\)/gi;
+var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\((width|height)(\\<\\=|\\>\\=|\\<|\\>|\\=|\\!\\=)([^)]+?)\\\)/gi;
+var ESCAPE_REGEXP = /[.:()<>!=]/g;
 var SPACE_REGEXP = / /g;
 var LENGTH_REGEXP = /^(-?(?:\d*\.)?\d+)(em|ex|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)$/i;
 var URL_VALUE_REGEXP = /url\(\s*(?:(["'])(.*?)\1|([^)\s]*))\s*\)/gi;
@@ -92,8 +92,8 @@ function reevaluate(callback) {
  * Step 1: Preprocess all active stylesheets in the document
  *
  * Look for stylesheets that contain container queries and escape them to be
- * readable by the browser, e.g. convert `:container(min-width: 10px)` to
- * `\:container\(min-width\:10px\)`
+ * readable by the browser, e.g. convert `:container(width >= 10px)` to
+ * `\:container\(width\>\=10px\)`
  *
  * @param {function()} callback
  */
@@ -302,7 +302,7 @@ function parseRule(rule) {
 	}
 	splitSelectors(rule.selectorText).forEach(function(selector) {
 		selector = escapeSelectors(selector);
-		selector.replace(SELECTOR_ESCAPED_REGEXP, function(match, type, value, offset) {
+		selector.replace(SELECTOR_ESCAPED_REGEXP, function(match, prop, type, value, offset) {
 			var precedingSelector = selector.substr(0, offset) + selector.substr(offset + match.length).replace(/[\s>+~].*$/, '');
 			if (!precedingSelector.substr(-1).trim()) {
 				precedingSelector += '*';
@@ -310,9 +310,9 @@ function parseRule(rule) {
 			precedingSelector = precedingSelector.replace(/:(?:active|hover|focus|checked)/gi, '');
 			queries[precedingSelector + match.toLowerCase()] = {
 				s: precedingSelector,
-				p: type.split('-')[1].toLowerCase(),
-				t: type.split('-')[0].toLowerCase(),
-				v: value,
+				p: prop.replace(/\\(.)/g, '$1').toLowerCase(),
+				t: type.replace(/\\(.)/g, '$1'),
+				v: value.replace(/\\(.)/g, '$1'),
 				c: match.toLowerCase().substr(1).replace(/\\(.)/g, '$1'),
 			};
 		});
@@ -358,8 +358,12 @@ function updateClass(element, query) {
 	var size = getSize(container, query.p);
 	var value = getComputedLength(query.v, element.parentNode);
 	if (
-		(query.t === 'min' && size >= value)
-		|| (query.t === 'max' && size <= value)
+		(query.t === '>=' && size >= value)
+		|| (query.t === '<=' && size <= value)
+		|| (query.t === '>' && size > value)
+		|| (query.t === '<' && size < value)
+		|| (query.t === '=' && size === value)
+		|| (query.t === '!=' && size !== value)
 	) {
 		addClass(element, query.c);
 	}

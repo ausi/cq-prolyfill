@@ -21,14 +21,14 @@ QUnit.test('Simple width and height Query', function(assert) {
 		+ '@font-face { font-family: max-height-200; src: local("Times New Roman"), local("Droid Serif") }'
 		+ '@font-face { font-family: max-height-100; src: local("Times New Roman"), local("Droid Serif") }'
 		+ '.minW, .maxW, .minH, .maxH { font-family: no-query }'
-		+ '.minW:container( min-width: 100px ) { font-family: min-width-100 }'
-		+ '.minW:container( min-width: 200px ) { font-family: min-width-200 }'
-		+ '.minH:container( min-height: 100px ) { font-family: min-height-100 }'
-		+ '.minH:container( min-height: 200px ) { font-family: min-height-200 }'
-		+ '.maxW:container( max-width: 200px ) { font-family: max-width-200 }'
-		+ '.maxW:container( max-width: 100px ) { font-family: max-width-100 }'
-		+ '.maxH:container( max-height: 200px ) { font-family: max-height-200 }'
-		+ '.maxH:container( max-height: 100px ) { font-family: max-height-100 }';
+		+ '.minW:container( width >= 100px ) { font-family: min-width-100 }'
+		+ '.minW:container( width >= 200px ) { font-family: min-width-200 }'
+		+ '.minH:container( height >= 100px ) { font-family: min-height-100 }'
+		+ '.minH:container( height >= 200px ) { font-family: min-height-200 }'
+		+ '.maxW:container( width <= 200px ) { font-family: max-width-200 }'
+		+ '.maxW:container( width <= 100px ) { font-family: max-width-100 }'
+		+ '.maxH:container( height <= 200px ) { font-family: max-height-200 }'
+		+ '.maxH:container( height <= 100px ) { font-family: max-height-100 }';
 	fixture.appendChild(style);
 
 	var element = document.createElement('div');
@@ -137,9 +137,9 @@ QUnit.test('CORS', function(assert) {
 QUnit.test('preprocess', function(assert) {
 	var style = document.createElement('style');
 	style.type = 'text/css';
-	style.innerHTML = '.first:container( min-width: 100.00px ) { display: block }'
-		+ '.second:container( max-height: 10em ) > child { display: block }'
-		+ '.third:container( max-width: 100px ), .fourth:container( min-height: 100px ) { display: block }';
+	style.innerHTML = '.first:container( width >= 100.00px ) { display: block }'
+		+ '.second:container( height <= 10em ) > child { display: block }'
+		+ '.third:container( width <= 100px ), .fourth:container( height >= 100px ) { display: block }';
 	fixture.appendChild(style);
 	var done = assert.async();
 	preprocess(function () {
@@ -158,14 +158,18 @@ QUnit.test('preprocess', function(assert) {
 QUnit.test('parseRules', function(assert) {
 	var style = document.createElement('style');
 	style.type = 'text/css';
-	style.innerHTML = '.foo:active:hover:focus:checked .before:container( MIN-WIDTH: 100.00px ).after>child { display: block }';
+	style.innerHTML = '.foo:active:hover:focus:checked .before:container( WIDTH >= 100.00px ).after>child { display: block }';
 	fixture.appendChild(style);
 	var done = assert.async();
 	preprocess(function () {
 		parseRules();
 		assert.equal(Object.keys(queries).length, 1, 'One query');
-		assert.ok(Object.keys(queries)[0].match(/^\.foo (?:\.before|\.after){2}\.\\:container\\\(min-width\\:100\\\.00px\\\)$/), 'Correct key');
+		assert.ok(Object.keys(queries)[0].match(/^\.foo (?:\.before|\.after){2}\.\\:container\\\(width\\>\\=100\\\.00px\\\)$/), 'Correct key');
 		assert.ok(queries[Object.keys(queries)[0]].s.match(/^\.foo (?:\.before|\.after){2}$/), 'Preceding selector');
+		assert.equal(queries[Object.keys(queries)[0]].p, 'width', 'Property');
+		assert.equal(queries[Object.keys(queries)[0]].t, '>=', 'Mode');
+		assert.equal(queries[Object.keys(queries)[0]].v, '100.00px', 'Value');
+		assert.equal(queries[Object.keys(queries)[0]].c, ':container(width>=100.00px)', 'Class name');
 		done();
 	});
 });
@@ -428,13 +432,13 @@ QUnit.test('filterRulesByElementAndProps', function(assert) {
 QUnit.test('elementMatchesSelector', function(assert) {
 
 	var element = document.createElement('div');
-	element.className = ':container(min-width:100px)';
+	element.className = ':container(width>=100px)';
 	fixture.appendChild(element);
 
 	assert.ok(elementMatchesSelector(element, 'div'), 'Simple selector');
-	assert.ok(elementMatchesSelector(element, '.\\:container\\(min-width\\:100px\\)'), 'Escaped query');
-	assert.ok(elementMatchesSelector(element, ':container( min-width: 100px )'), 'Unescaped query');
-	assert.ok(elementMatchesSelector(element, '\.:container(min-width:100px)'), 'Unescaped query with leading dot');
+	assert.ok(elementMatchesSelector(element, '.\\:container\\(width\\>\\=100px\\)'), 'Escaped query');
+	assert.ok(elementMatchesSelector(element, ':container( width >= 100px )'), 'Unescaped query');
+	assert.ok(elementMatchesSelector(element, '\.:container(width>=100px)'), 'Unescaped query with leading dot');
 
 });
 
@@ -480,8 +484,8 @@ QUnit.test('getSpecificity', function(assert) {
 		['::after', 1, 'pseudo element'],
 		[':hover', 256, 'pseudo class'],
 		['[foo="bar"]', 256, 'attribute'],
-		['.\\:container\\(max-width\\:1px\\)', 256, 'escaped container query'],
-		['.:container(max-width:1px)', 256, 'unescaped container query'],
+		['.\\:container\\(width\\<\\=1px\\)', 256, 'escaped container query'],
+		['.:container(width<=1px)', 256, 'unescaped container query'],
 	];
 
 	data.forEach(function(item) {
@@ -532,16 +536,16 @@ QUnit.test('addClass, removeClass', function(assert) {
 	assert.equal(element.className.trim(), 'foo bar', 'Add class bar');
 	addClass(element, 'bar');
 	assert.equal(element.className.trim(), 'foo bar', 'Add class bar again');
-	addClass(element, ':container(min-width:100px)');
-	assert.equal(element.className.trim(), 'foo bar :container(min-width:100px)', 'Add container query class');
-	addClass(element, ':container(min-width:100px)');
-	assert.equal(element.className.trim(), 'foo bar :container(min-width:100px)', 'Add container query class again');
+	addClass(element, ':container(width>=100px)');
+	assert.equal(element.className.trim(), 'foo bar :container(width>=100px)', 'Add container query class');
+	addClass(element, ':container(width>=100px)');
+	assert.equal(element.className.trim(), 'foo bar :container(width>=100px)', 'Add container query class again');
 
 	removeClass(element, 'foo');
-	assert.equal(element.className.trim(), 'bar :container(min-width:100px)', 'Remove class foo');
+	assert.equal(element.className.trim(), 'bar :container(width>=100px)', 'Remove class foo');
 	removeClass(element, 'bar');
-	assert.equal(element.className.trim(), ':container(min-width:100px)', 'Remove class bar');
-	removeClass(element, ':container(min-width:100px)');
+	assert.equal(element.className.trim(), ':container(width>=100px)', 'Remove class bar');
+	removeClass(element, ':container(width>=100px)');
 	assert.equal(element.className.trim(), '', 'Remove container query class');
 
 });
