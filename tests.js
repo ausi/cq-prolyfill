@@ -2,6 +2,17 @@
 (function() {
 'use strict';
 
+QUnit.module('All', {
+	afterEach: function(assert) {
+		if (window.BrowserStack && QUnit.config.queue.length < 5) {
+			var done = assert.async();
+			window.BrowserStack.post('/_log', 'coverage: ' + JSON.stringify(window.__coverage__), function() {
+				done();
+			});
+		}
+	},
+});
+
 var fixture = document.getElementById('qunit-fixture');
 var TEST_FILES_URL = 'http://cdn.rawgit.com/ausi/cq-prolyfill/78569ef/test-files/';
 var TEST_FILES_PATH = 'test-files/';

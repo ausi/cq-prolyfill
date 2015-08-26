@@ -3,6 +3,7 @@ BIN = $(MODULES)/.bin
 UGLIFY = $(BIN)/uglifyjs
 UGLIFY_OPTS = --compress=unsafe,pure_getters --mangle --mangle-props --mangle-regex="/^_/" --screw-ie8
 ESLINT = $(BIN)/eslint
+ISTANBUL = $(BIN)/istanbul
 SOURCE = cq-prolyfill.js
 TARGET = $(SOURCE:%.js=%.min.js)
 TESTS = tests.js
@@ -15,6 +16,7 @@ TEST_HTML_FUNCTIONAL = tests/functional.html
 SLIMERJS = $(BIN)/slimerjs
 PHANTOMJS_RUNNER = $(MODULES)/qunit-phantomjs-runner/runner.js
 TEST_RUNNER = tests/slimerjs-runner.js
+BROWSERSTACK_RUNNER = $(BIN)/browserstack-runner
 
 all: $(TARGET)
 
@@ -31,6 +33,9 @@ $(UGLIFY): $(MODULES)
 $(ESLINT): $(MODULES)
 	touch $@
 
+$(ISTANBUL): $(MODULES)
+	touch $@
+
 $(QUNIT_JS): $(MODULES)
 	touch $@
 
@@ -41,6 +46,9 @@ $(SLIMERJS): $(MODULES)
 	touch $@
 
 $(PHANTOMJS_RUNNER): $(MODULES)
+	touch $@
+
+$(BROWSERSTACK_RUNNER): $(MODULES)
 	touch $@
 
 .PHONY: test
@@ -61,7 +69,7 @@ test: $(ESLINT) $(SOURCE) $(TARGET) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HTML) $(TE
 watch:
 	while true; do (make || make -t) | grep -v "Nothing to be done"; sleep 1; done
 
-$(TEST_HTML): $(TESTS) $(TESTS_FUNCTIONAL) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS)
+$(TEST_HTML): $(TESTS) $(TESTS_FUNCTIONAL) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS) $(ISTANBUL)
 	mkdir -p tests
 	echo '<!doctype html>' > $@
 	echo '<html><head>' >> $@
@@ -72,10 +80,10 @@ $(TEST_HTML): $(TESTS) $(TESTS_FUNCTIONAL) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS)
 	echo '<div id="qunit-fixture"></div>' >> $@
 	echo '<script src="../$(QUNIT_JS)"></script>' >> $@
 	echo '<script>' >> $@
-	cat $(SOURCE) | grep -v '})(window, document);' >> $@
+	$(ISTANBUL) instrument $(SOURCE) | replace '}(window,document));' '' >> $@
 	cat $< >> $@
 	cat $(TESTS_FUNCTIONAL) >> $@
-	cat $(SOURCE) | grep '})(window, document);' >> $@
+	echo '}(window,document));' >> $@
 	echo '</script>' >> $@
 	echo '</body></html>' >> $@
 	rm -rf tests/test-files
@@ -106,3 +114,10 @@ clean:
 	rm -f $(TARGET)
 	rm -fr tests
 	rm -fr $(MODULES)
+
+.PHONY: browserstack
+browserstack: $(BROWSERSTACK_RUNNER) $(ISTANBUL) $(TEST_HTML) $(TEST_HTML_FUNCTIONAL)
+	$(BROWSERSTACK_RUNNER) | tee tests/browserstack.log | grep -v '] coverage: {'
+	rm -f tests/coverage-*
+	cat tests/browserstack.log | grep '] coverage: {' | sed 's/^.*] coverage: //g' | split -l 1 - tests/coverage-
+	$(ISTANBUL) report --include 'tests/coverage-*' text-summary html lcovonly

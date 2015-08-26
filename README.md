@@ -1,6 +1,6 @@
 # Container Queries Prolyfill
 
-[![Build Status](https://travis-ci.org/ausi/cq-prolyfill.svg?branch=master)](https://travis-ci.org/ausi/cq-prolyfill/branches)
+[![Build Status](https://travis-ci.org/ausi/cq-prolyfill.svg?branch=master)](https://travis-ci.org/ausi/cq-prolyfill/branches) [![Coverage Status](https://coveralls.io/repos/ausi/cq-prolyfill/badge.svg?branch=master&service=github)](https://coveralls.io/github/ausi/cq-prolyfill?branch=master)
 
 This is a [prolyfill](https://youtu.be/UpVj5azI-iI?t=24m54s) for a special version of [container queries](https://github.com/ResponsiveImagesCG/container-queries). You can read more about the syntax and how they work in [this article](https://au.si/css-container-queries).
 

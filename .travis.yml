@@ -4,7 +4,7 @@ before_script:
     - "export DISPLAY=:99.0"
     - "sh -e /etc/init.d/xvfb start"
 script:
-    - make test && ./node_modules/.bin/browserstack-runner
+    - make test && make browserstack && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls
 env:
     global:
         - secure: bUyIN5cHVHRnihJw4z84nKhpp8LRy1WwqdI1n134HHZ1UnS52t0XfNRiO0iwmJmyT5TeHXqNEKN6IpvWUAdM8his2bvoAurNdoH3BELFXWz66esw/dNpl9pUy/mEgTsLnzCIIUcvIdVz6iSeH4aiBzImbuKS9JT2zzLZaSCpoKeNitRTHpuYd1wSaNmaNkdB6u5oy+YV1snzJuFQ4JetezmfZy4pEYrPYdxwh7YTigqQhRchoBvhHVRtyIxRjp9GNl5cITtYOejfMa2zuj6ISoDg04QslS3XQVX6MEUmTzlQBwZYBWFIbfOzkgdxk3wVXwi1QsgQEKN4781VJ3PrYpgxzCSRRpHfftCoWnhlunS953KGjqcf85MhcF/jZpKpM6LT5j2b52c2VJvSR2H2G/5NTGCBEdM+NUlQblHzqfGl/Iz0fYAhHuEDq3KiOPt7WCCfcu4YeLcih2MGsllnRJx4lrTisVtMTk1EZMaqnH0ChHbPX/Yo34VWoD0ByfGBhEFtgR5QbOYOTXldjq2BZKKEi1uA/bKA0Ey4Q9Q0xCfPc1VfD/8cAQooHTA5ta8C3w1/sxr7jNRX72c9C/JBL532BI0Gdng8PAl9Qvgj6xSmmPcXK5KWfmtAo/BIVwUtswk6WsmnHI7kfvAQv5CnpH9Azup9fO0jlCLCcjbhIH8=
