@@ -309,11 +309,11 @@ function parseRule(rule) {
 			}
 			precedingSelector = precedingSelector.replace(/:(?:active|hover|focus|checked)/gi, '');
 			queries[precedingSelector + match.toLowerCase()] = {
-				s: precedingSelector,
-				p: prop.replace(/\\(.)/g, '$1').toLowerCase(),
-				t: type.replace(/\\(.)/g, '$1'),
-				v: value.replace(/\\(.)/g, '$1'),
-				c: match.toLowerCase().substr(1).replace(/\\(.)/g, '$1'),
+				_selector: precedingSelector,
+				_prop: prop.replace(/\\(.)/g, '$1').toLowerCase(),
+				_type: type.replace(/\\(.)/g, '$1'),
+				_value: value.replace(/\\(.)/g, '$1'),
+				_className: match.toLowerCase().substr(1).replace(/\\(.)/g, '$1'),
 			};
 		});
 	});
@@ -337,7 +337,7 @@ function splitSelectors(selectors) {
 function updateClasses() {
 	containerCache = createCacheMap();
 	Object.keys(queries).forEach(function(key) {
-		var elements = document.querySelectorAll(queries[key].s);
+		var elements = document.querySelectorAll(queries[key]._selector);
 		for (var i = 0; i < elements.length; i++) {
 			updateClass(elements[i], queries[key]);
 		}
@@ -354,21 +354,21 @@ function updateClass(element, query) {
 	if (element === documentElement) {
 		return;
 	}
-	var container = getContainer(element.parentNode, query.p);
-	var size = getSize(container, query.p);
-	var value = getComputedLength(query.v, element.parentNode);
+	var container = getContainer(element.parentNode, query._prop);
+	var size = getSize(container, query._prop);
+	var value = getComputedLength(query._value, element.parentNode);
 	if (
-		(query.t === '>=' && size >= value)
-		|| (query.t === '<=' && size <= value)
-		|| (query.t === '>' && size > value)
-		|| (query.t === '<' && size < value)
-		|| (query.t === '=' && size === value)
-		|| (query.t === '!=' && size !== value)
+		(query._type === '>=' && size >= value)
+		|| (query._type === '<=' && size <= value)
+		|| (query._type === '>' && size > value)
+		|| (query._type === '<' && size < value)
+		|| (query._type === '=' && size === value)
+		|| (query._type === '!=' && size !== value)
 	) {
-		addClass(element, query.c);
+		addClass(element, query._className);
 	}
 	else {
-		removeClass(element, query.c);
+		removeClass(element, query._className);
 	}
 }
 
@@ -618,7 +618,7 @@ function getOriginalStyle(element, props) {
 
 	// Add style attribute
 	matchedRules.unshift({
-		r: {
+		_rule: {
 			style: element.style,
 		},
 	});
@@ -627,8 +627,8 @@ function getOriginalStyle(element, props) {
 	for (i = 0; i < props.length; i++) {
 		for (j = 0; j < matchedRules.length; j++) {
 			if (
-				(value = matchedRules[j].r.style.getPropertyValue(props[i]))
-				&& matchedRules[j].r.style.getPropertyPriority(props[i]) === 'important'
+				(value = matchedRules[j]._rule.style.getPropertyValue(props[i]))
+				&& matchedRules[j]._rule.style.getPropertyPriority(props[i]) === 'important'
 			) {
 				result[props[i]] = value;
 				break;
@@ -644,8 +644,8 @@ function getOriginalStyle(element, props) {
 		}
 		for (j = 0; j < matchedRules.length; j++) {
 			if (
-				(value = matchedRules[j].r.style.getPropertyValue(props[i]))
-				&& matchedRules[j].r.style.getPropertyPriority(props[i]) !== 'important'
+				(value = matchedRules[j]._rule.style.getPropertyValue(props[i]))
+				&& matchedRules[j]._rule.style.getPropertyPriority(props[i]) !== 'important'
 			) {
 				result[props[i]] = value;
 				break;
@@ -663,7 +663,7 @@ function getOriginalStyle(element, props) {
  * @param  {CSSRuleList}    rules
  * @param  {Element}        element
  * @param  {Array.<string>} props
- * @return {Array.<{s: string, r: CSSRule}>}
+ * @return {Array.<{_selector: string, _rule: CSSRule}>}
  */
 function filterRulesByElementAndProps(rules, element, props) {
 	var matchedRules = [];
@@ -684,8 +684,8 @@ function filterRulesByElementAndProps(rules, element, props) {
 				splitSelectors(rules[i].selectorText).forEach(function(selector) {
 					if (elementMatchesSelector(element, selector)) {
 						matchedRules.push({
-							s: selector,
-							r: rules[i],
+							_selector: selector,
+							_rule: rules[i],
 						});
 					}
 				});
@@ -726,14 +726,14 @@ function styleHasProperty(style, props) {
 }
 
 /**
- * @param  {Array.<{s: string}>} rules
- * @return {Array.<{s: string}>}
+ * @param  {Array.<{_selector: string}>} rules
+ * @return {Array.<{_selector: string}>}
  */
 function sortRulesBySpecificity(rules) {
 	return rules.map(function(rule, i) {
 		return [rule, i];
 	}).sort(function(a, b) {
-		return (getSpecificity(b[0].s) - getSpecificity(a[0].s)) || b[1] - a[1];
+		return (getSpecificity(b[0]._selector) - getSpecificity(a[0]._selector)) || b[1] - a[1];
 	}).map(function(rule) {
 		return rule[0];
 	});

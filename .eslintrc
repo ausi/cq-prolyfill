@@ -8,6 +8,7 @@
     "strict": [2, "function"],
     "no-console": 1,
     "no-use-before-define": [2, "nofunc"],
+    "no-underscore-dangle": 0,
     "no-loop-func": 0
   }
 }

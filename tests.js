@@ -82,11 +82,11 @@ QUnit.test('parseRules', function(assert) {
 		parseRules();
 		assert.equal(Object.keys(queries).length, 1, 'One query');
 		assert.ok(Object.keys(queries)[0].match(/^\.foo (?:\.before|\.after){2}\.\\:container\\\(width\\>\\=100\\\.00px\\\)$/), 'Correct key');
-		assert.ok(queries[Object.keys(queries)[0]].s.match(/^\.foo (?:\.before|\.after){2}$/), 'Preceding selector');
-		assert.equal(queries[Object.keys(queries)[0]].p, 'width', 'Property');
-		assert.equal(queries[Object.keys(queries)[0]].t, '>=', 'Mode');
-		assert.equal(queries[Object.keys(queries)[0]].v, '100.00px', 'Value');
-		assert.equal(queries[Object.keys(queries)[0]].c, ':container(width>=100.00px)', 'Class name');
+		assert.ok(queries[Object.keys(queries)[0]]._selector.match(/^\.foo (?:\.before|\.after){2}$/), 'Preceding selector');
+		assert.equal(queries[Object.keys(queries)[0]]._prop, 'width', 'Property');
+		assert.equal(queries[Object.keys(queries)[0]]._type, '>=', 'Mode');
+		assert.equal(queries[Object.keys(queries)[0]]._value, '100.00px', 'Value');
+		assert.equal(queries[Object.keys(queries)[0]]._className, ':container(width>=100.00px)', 'Class name');
 		done();
 	});
 });
@@ -338,10 +338,10 @@ QUnit.test('filterRulesByElementAndProps', function(assert) {
 
 	var rules = filterRulesByElementAndProps(style.sheet.cssRules, element, ['width']);
 	assert.equal(rules.length, 2, 'Two rules');
-	assert.equal(rules[0].s, '.myel', 'First selector');
-	assert.equal(rules[0].r.style.width, '1px', 'Property');
-	assert.equal(rules[1].s, 'div.myel', 'Second selector');
-	assert.equal(rules[1].r.style.width, '4px', 'Property');
+	assert.equal(rules[0]._selector, '.myel', 'First selector');
+	assert.equal(rules[0]._rule.style.width, '1px', 'Property');
+	assert.equal(rules[1]._selector, 'div.myel', 'Second selector');
+	assert.equal(rules[1]._rule.style.width, '4px', 'Property');
 
 });
 
@@ -371,20 +371,20 @@ QUnit.test('styleHasProperty', function(assert) {
 /*global sortRulesBySpecificity*/
 QUnit.test('sortRulesBySpecificity', function(assert) {
 	var unsorted = [
-		{s: 'tag'},
-		{s: '.class'},
-		{s: '#id'},
-		{s: 'tag tag'},
-		{s: '.class.class'},
-		{s: '#id#id'},
+		{_selector: 'tag'},
+		{_selector: '.class'},
+		{_selector: '#id'},
+		{_selector: 'tag tag'},
+		{_selector: '.class.class'},
+		{_selector: '#id#id'},
 	];
 	var sorted = [
-		{s: '#id#id'},
-		{s: '#id'},
-		{s: '.class.class'},
-		{s: '.class'},
-		{s: 'tag tag'},
-		{s: 'tag'},
+		{_selector: '#id#id'},
+		{_selector: '#id'},
+		{_selector: '.class.class'},
+		{_selector: '.class'},
+		{_selector: 'tag tag'},
+		{_selector: 'tag'},
 	];
 	assert.deepEqual(sortRulesBySpecificity(unsorted), sorted, 'Correct sort order');
 });
