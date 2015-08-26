@@ -1,6 +1,6 @@
 {
 	"test_framework" : "qunit",
-	"test_path": "tests/index.html",
+	"test_path": ["tests/index.html", "tests/functional.html"],
 	"browsers": [
 		"chrome_40",
 		"chrome_latest",
