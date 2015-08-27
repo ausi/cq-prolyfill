@@ -25,7 +25,7 @@ $(TARGET): $(TARGET_TMP)
 	make test
 	cat $< > $@
 
-$(TARGET_TMP): $(SOURCE) $(UGLIFY) $(TESTS)
+$(TARGET_TMP): $(SOURCE) $(UGLIFY) $(TESTS) $(TESTS_FUNCTIONAL)
 	$(UGLIFY) $(UGLIFY_OPTS) $< > $@
 
 $(MODULES): package.json
