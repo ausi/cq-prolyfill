@@ -165,6 +165,7 @@ function loadExternal(href, callback) {
 	catch(e) {
 		if (window.XDomainRequest) {
 			xhr = new XDomainRequest();
+			xhr.onprogress = function() {};
 			xhr.onload = xhr.onerror = function() {
 				callback(xhr.responseText || '');
 			};
