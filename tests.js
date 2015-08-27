@@ -85,27 +85,6 @@ QUnit.test('preprocess', function(assert) {
 /*global preprocessSheet*/
 QUnit.test('preprocessSheet', function(assert) {
 
-	var link = document.createElement('link');
-	link.rel = 'stylesheet';
-	link.href = TEST_FILES_PATH + 'cors-with-cq.css';
-	fixture.appendChild(link);
-
-	link.sheet.disabled = true;
-	var calledback = false;
-	preprocessSheet(link.sheet, function() {
-		calledback = true;
-		assert.notOk(link.previousSibling, 'Disabled stylesheet not preprocessed');
-	});
-	assert.ok(calledback, 'Disabled stylesheet callback instantly');
-	link.sheet.disabled = false;
-
-	calledback = false;
-	preprocessSheet({}, function() {
-		calledback = true;
-		assert.notOk(link.previousSibling, 'Stylesheet without ownerNode not preprocessed');
-	});
-	assert.ok(calledback, 'Stylesheet without ownerNode callback instantly');
-
 	var allDone = assert.async();
 	var doneCount = 0;
 	var done = function() {
@@ -115,11 +94,37 @@ QUnit.test('preprocessSheet', function(assert) {
 		}
 	};
 
-	for (var i = 0; i < 4; i++) {
+	var link = document.createElement('link');
+	link.rel = 'stylesheet';
+	link.href = TEST_FILES_PATH + 'cors-with-cq.css';
+	link.onload = link.onerror = onLoad;
+	fixture.appendChild(link);
+
+	function onLoad() {
+
+		link.sheet.disabled = true;
+		var calledback = false;
 		preprocessSheet(link.sheet, function() {
-			assert.equal(fixture.getElementsByTagName('style').length, 1, 'Calling multiple times doesn’t duplicate the styles');
-			done();
+			calledback = true;
+			assert.notOk(link.previousSibling, 'Disabled stylesheet not preprocessed');
 		});
+		assert.ok(calledback, 'Disabled stylesheet callback instantly');
+		link.sheet.disabled = false;
+
+		calledback = false;
+		preprocessSheet({}, function() {
+			calledback = true;
+			assert.notOk(link.previousSibling, 'Stylesheet without ownerNode not preprocessed');
+		});
+		assert.ok(calledback, 'Stylesheet without ownerNode callback instantly');
+
+		for (var i = 0; i < 4; i++) {
+			preprocessSheet(link.sheet, function() {
+				assert.equal(fixture.getElementsByTagName('style').length, 1, 'Calling multiple times doesn’t duplicate the styles');
+				done();
+			});
+		}
+
 	}
 
 });

@@ -123,6 +123,7 @@ clean:
 .PHONY: browserstack
 browserstack: $(BROWSERSTACK_RUNNER) $(ISTANBUL) $(TEST_HTML) $(TEST_HTML_FUNCTIONAL)
 	$(BROWSERSTACK_RUNNER) | tee tests/browserstack.log | grep -v '] coverage: {'
+	@ grep 'All tests done, failures: 0.' tests/browserstack.log > /dev/null
 	rm -f tests/coverage-*
 	cat tests/browserstack.log | grep '] coverage: {' | sed 's/^.*] coverage: //g' | split -l 1 - tests/coverage-
 	$(ISTANBUL) report --include 'tests/coverage-*' text-summary html lcovonly
