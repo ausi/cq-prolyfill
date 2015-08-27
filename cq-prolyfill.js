@@ -548,18 +548,14 @@ function getComputedLength(value, element) {
 	if (unit === 'vmax') {
 		return value * Math.max(window.innerWidth, window.innerHeight) / 100;
 	}
+	// em units
 	if (unit === 'rem') {
 		element = documentElement;
-		unit = 'em';
 	}
 	if (unit === 'ex') {
 		value /= 2;
-		unit = 'em';
 	}
-	if (unit === 'em') {
-		return parseFloat(getComputedStyle(element).fontSize) * value;
-	}
-	return value;
+	return parseFloat(getComputedStyle(element).fontSize) * value;
 }
 
 /**
