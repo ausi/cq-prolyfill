@@ -170,7 +170,7 @@ QUnit.test('loadExternal', function(assert) {
 	var doneCount = 0;
 	var done = function() {
 		doneCount++;
-		if (doneCount >= 5) {
+		if (doneCount >= 6) {
 			allDone();
 		}
 	};
@@ -197,6 +197,11 @@ QUnit.test('loadExternal', function(assert) {
 
 	loadExternal('http://google.com/', function(response) {
 		assert.strictEqual(response, '', 'Invalid CORS request');
+		done();
+	});
+
+	loadExternal('invalid-protocol://foo', function(response) {
+		assert.strictEqual(response, '', 'Invalid protocol request');
 		done();
 	});
 
