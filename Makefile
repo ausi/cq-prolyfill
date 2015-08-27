@@ -6,6 +6,7 @@ ESLINT = $(BIN)/eslint
 ISTANBUL = $(BIN)/istanbul
 SOURCE = cq-prolyfill.js
 TARGET = $(SOURCE:%.js=%.min.js)
+TARGET_TMP = $(SOURCE:%.js=%.tmp.min.js)
 TESTS = tests.js
 TESTS_FUNCTIONAL = tests-functional.js
 QUNIT = $(MODULES)/qunitjs/qunit
@@ -20,9 +21,12 @@ BROWSERSTACK_RUNNER = $(BIN)/browserstack-runner
 
 all: $(TARGET)
 
-$(TARGET): $(SOURCE) $(UGLIFY) $(TESTS)
-	$(UGLIFY) $(UGLIFY_OPTS) $< > $@
+$(TARGET): $(TARGET_TMP)
 	make test
+	cat $< > $@
+
+$(TARGET_TMP): $(SOURCE) $(UGLIFY) $(TESTS)
+	$(UGLIFY) $(UGLIFY_OPTS) $< > $@
 
 $(MODULES): package.json
 	npm install && touch $@
@@ -52,7 +56,7 @@ $(BROWSERSTACK_RUNNER): $(MODULES)
 	touch $@
 
 .PHONY: test
-test: $(ESLINT) $(SOURCE) $(TARGET) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HTML) $(TEST_HTML_FUNCTIONAL) $(MODULES)
+test: $(ESLINT) $(SOURCE) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HTML) $(TEST_HTML_FUNCTIONAL) $(MODULES)
 	$(ESLINT) $(SOURCE)
 	node -e "require('connect')().use(require('serve-static')(__dirname)).listen(8888)" & echo "$$!" > server.pid
 	$(SLIMERJS) $(TEST_RUNNER) http://localhost:8888/$(TEST_HTML) | tee tests/slimerjs.log
@@ -89,7 +93,7 @@ $(TEST_HTML): $(TESTS) $(TESTS_FUNCTIONAL) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS) $(
 	rm -rf tests/test-files
 	cp -r test-files tests/
 
-$(TEST_HTML_FUNCTIONAL): $(TESTS_FUNCTIONAL) $(TARGET) $(QUNIT_JS) $(QUNIT_CSS)
+$(TEST_HTML_FUNCTIONAL): $(TESTS_FUNCTIONAL) $(TARGET_TMP) $(QUNIT_JS) $(QUNIT_CSS)
 	mkdir -p tests
 	echo '<!doctype html>' > $@
 	echo '<html><head>' >> $@
@@ -99,7 +103,7 @@ $(TEST_HTML_FUNCTIONAL): $(TESTS_FUNCTIONAL) $(TARGET) $(QUNIT_JS) $(QUNIT_CSS)
 	echo '<div id="qunit"></div>' >> $@
 	echo '<div id="qunit-fixture"></div>' >> $@
 	echo '<script src="../$(QUNIT_JS)"></script>' >> $@
-	echo '<script src="../$(TARGET)"></script>' >> $@
+	echo '<script src="../$(TARGET_TMP)"></script>' >> $@
 	echo '<script src="../$(TESTS_FUNCTIONAL)"></script>' >> $@
 	echo '</body></html>' >> $@
 	rm -rf tests/test-files
@@ -111,6 +115,7 @@ $(TEST_RUNNER): $(PHANTOMJS_RUNNER)
 
 .PHONY: clean
 clean:
+	rm -f $(TARGET_TMP)
 	rm -f $(TARGET)
 	rm -fr tests
 	rm -fr $(MODULES)
