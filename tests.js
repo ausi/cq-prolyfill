@@ -82,22 +82,78 @@ QUnit.test('preprocess', function(assert) {
 	});
 });
 
+/*global preprocessSheet*/
+QUnit.test('preprocessSheet', function(assert) {
+
+	var link = document.createElement('link');
+	link.rel = 'stylesheet';
+	link.href = TEST_FILES_PATH + 'cors-with-cq.css';
+	fixture.appendChild(link);
+
+	link.sheet.disabled = true;
+	var calledback = false;
+	preprocessSheet(link.sheet, function() {
+		calledback = true;
+		assert.notOk(link.previousSibling, 'Disabled stylesheet not preprocessed');
+	});
+	assert.ok(calledback, 'Disabled stylesheet callback instantly');
+	link.sheet.disabled = false;
+
+	calledback = false;
+	preprocessSheet({}, function() {
+		calledback = true;
+		assert.notOk(link.previousSibling, 'Stylesheet without ownerNode not preprocessed');
+	});
+	assert.ok(calledback, 'Stylesheet without ownerNode callback instantly');
+
+	var allDone = assert.async();
+	var doneCount = 0;
+	var done = function() {
+		doneCount++;
+		if (doneCount >= 4) {
+			allDone();
+		}
+	};
+
+	for (var i = 0; i < 4; i++) {
+		preprocessSheet(link.sheet, function() {
+			assert.equal(fixture.getElementsByTagName('style').length, 1, 'Calling multiple times doesn’t duplicate the styles');
+			done();
+		});
+	}
+
+});
+
 /*global parseRules, queries*/
 QUnit.test('parseRules', function(assert) {
 	var style = document.createElement('style');
 	style.type = 'text/css';
-	style.innerHTML = '.foo:active:hover:focus:checked .before:container( WIDTH >= 100.00px ).after>child { display: block }';
+	style.innerHTML = '.foo:active:hover:focus:checked .before:container( WIDTH >= 100.00px ).after>child { display: block }'
+		+ ':container(height < 10em) .general-selector { display: block }'
+		+ '@media screen { .inside-media-query:container(height < 10em) { display: block } }';
 	fixture.appendChild(style);
 	var done = assert.async();
 	preprocess(function () {
+
 		parseRules();
-		assert.equal(Object.keys(queries).length, 1, 'One query');
+		assert.equal(Object.keys(queries).length, 3, 'Three queries');
+
 		assert.ok(Object.keys(queries)[0].match(/^\.foo (?:\.before|\.after){2}\.\\:container\\\(width\\>\\=100\\\.00px\\\)$/), 'Correct key');
 		assert.ok(queries[Object.keys(queries)[0]]._selector.match(/^\.foo (?:\.before|\.after){2}$/), 'Preceding selector');
 		assert.equal(queries[Object.keys(queries)[0]]._prop, 'width', 'Property');
 		assert.equal(queries[Object.keys(queries)[0]]._type, '>=', 'Mode');
 		assert.equal(queries[Object.keys(queries)[0]]._value, '100.00px', 'Value');
 		assert.equal(queries[Object.keys(queries)[0]]._className, ':container(width>=100.00px)', 'Class name');
+
+		assert.equal(Object.keys(queries)[1], '*.\\:container\\(height\\<10em\\)', 'Correct key');
+		assert.equal(queries[Object.keys(queries)[1]]._selector, '*', 'Preceding selector');
+		assert.equal(queries[Object.keys(queries)[1]]._prop, 'height', 'Property');
+		assert.equal(queries[Object.keys(queries)[1]]._type, '<', 'Mode');
+		assert.equal(queries[Object.keys(queries)[1]]._value, '10em', 'Value');
+		assert.equal(queries[Object.keys(queries)[1]]._className, ':container(height<10em)', 'Class name');
+
+		assert.equal(Object.keys(queries)[2], '.inside-media-query.\\:container\\(height\\<10em\\)', 'Correct key');
+
 		done();
 	});
 });
@@ -109,7 +165,7 @@ QUnit.test('loadExternal', function(assert) {
 	var doneCount = 0;
 	var done = function() {
 		doneCount++;
-		if (doneCount >= 4) {
+		if (doneCount >= 5) {
 			allDone();
 		}
 	};
@@ -134,6 +190,29 @@ QUnit.test('loadExternal', function(assert) {
 		done();
 	});
 
+	loadExternal('http://google.com/', function(response) {
+		assert.strictEqual(response, '', 'Invalid CORS request');
+		done();
+	});
+
+});
+
+/*global fixRelativeUrls*/
+QUnit.test('fixRelativeUrls', function(assert) {
+	var data = {
+		'url()': 'url()',
+		'url( \t)': 'url( \t)',
+		'url(foo)': 'url("http://example.org/foo")',
+		'url("foo")': 'url("http://example.org/foo")',
+		'url(\'foo\')': 'url(\'http://example.org/foo\')',
+		'url( foo \t)': 'url("http://example.org/foo")',
+		'url( "foo" \t)': 'url("http://example.org/foo")',
+		'url( \'foo\' \t)': 'url(\'http://example.org/foo\')',
+		'url("http://not.example.com/foo")': 'url("http://not.example.com/foo")',
+	};
+	Object.keys(data).forEach(function(css) {
+		assert.equal(fixRelativeUrls(css, 'http://example.org/'), data[css], css + ' => ' + data[css]);
+	});
 });
 
 /*global resolveRelativeUrl*/
@@ -215,6 +294,10 @@ QUnit.test('isIntrinsicSize', function(assert) {
 	assert.equal(isIntrinsicSize(element, 'width'), true, 'Display inline width');
 	assert.equal(isIntrinsicSize(element, 'height'), true, 'Display inline height');
 
+	element.style.cssText = 'display: none';
+	assert.equal(isIntrinsicSize(element, 'width'), false, 'Display none width');
+	assert.equal(isIntrinsicSize(element, 'height'), false, 'Display none height');
+
 	element.style.cssText = 'display: inline-block';
 	assert.equal(isIntrinsicSize(element, 'width'), true, 'Display inline-block width');
 	assert.equal(isIntrinsicSize(element, 'height'), true, 'Display inline-block height');
@@ -277,6 +360,7 @@ QUnit.test('getComputedLength', function(assert) {
 		['100vh', window.innerHeight],
 		['100vmin', Math.min(window.innerWidth, window.innerHeight)],
 		['100vmax', Math.max(window.innerWidth, window.innerHeight)],
+		['123foobar', 123],
 	];
 
 	var dummy = document.createElement('div');
@@ -382,7 +466,8 @@ QUnit.test('styleHasProperty', function(assert) {
 /*global sortRulesBySpecificity*/
 QUnit.test('sortRulesBySpecificity', function(assert) {
 	var unsorted = [
-		{_selector: 'tag'},
+		{_selector: 'tag1'},
+		{_selector: 'tag2'},
 		{_selector: '.class'},
 		{_selector: '#id'},
 		{_selector: 'tag tag'},
@@ -395,7 +480,8 @@ QUnit.test('sortRulesBySpecificity', function(assert) {
 		{_selector: '.class.class'},
 		{_selector: '.class'},
 		{_selector: 'tag tag'},
-		{_selector: 'tag'},
+		{_selector: 'tag2'},
+		{_selector: 'tag1'},
 	];
 	assert.deepEqual(sortRulesBySpecificity(unsorted), sorted, 'Correct sort order');
 });
@@ -450,6 +536,10 @@ QUnit.test('createCacheMap', function(assert) {
 	assert.strictEqual(map.has(el2), true, 'Has element2');
 	assert.strictEqual(map.get(el1), 'el1', 'Value element1');
 	assert.strictEqual(map.get(el2), 'el2', 'Value element2');
+
+	map.set(el1, 'el1-new');
+	assert.strictEqual(map.has(el1), true, 'Has element1');
+	assert.strictEqual(map.get(el1), 'el1-new', 'New value element1');
 
 });
 

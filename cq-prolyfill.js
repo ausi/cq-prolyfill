@@ -15,8 +15,8 @@ window.containerQueries = {
 	reevaluate: reevaluate,
 };
 
-// Reprocess now
-setTimeout(reprocess);
+// Reevaluate now
+setTimeout(reevaluate);
 
 window.addEventListener('DOMContentLoaded', reprocess);
 window.addEventListener('load', reprocess);
@@ -502,14 +502,13 @@ function getSize(element, prop) {
 			- parseFloat(style.borderRightWidth)
 			- parseFloat(style.paddingRight);
 	}
-	else if (prop === 'height') {
+	else {
 		return element.offsetHeight
 			- parseFloat(style.borderTopWidth)
 			- parseFloat(style.paddingTop)
 			- parseFloat(style.borderBottomWidth)
 			- parseFloat(style.paddingBottom);
 	}
-	return 0;
 }
 
 /**

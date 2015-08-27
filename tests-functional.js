@@ -8,7 +8,8 @@ QUnit.test('Simple width and height Query', function(assert) {
 
 	var style = document.createElement('style');
 	style.type = 'text/css';
-	style.innerHTML = '@font-face { font-family: no-query; src: local("Times New Roman"), local("Droid Serif") }'
+	style.innerHTML = '@font-face { font-family: invalid-query; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: no-query; src: local("Times New Roman"), local("Droid Serif") }'
 		+ '@font-face { font-family: min-width-100; src: local("Times New Roman"), local("Droid Serif") }'
 		+ '@font-face { font-family: min-width-200; src: local("Times New Roman"), local("Droid Serif") }'
 		+ '@font-face { font-family: min-height-100; src: local("Times New Roman"), local("Droid Serif") }'
@@ -17,6 +18,7 @@ QUnit.test('Simple width and height Query', function(assert) {
 		+ '@font-face { font-family: max-width-100; src: local("Times New Roman"), local("Droid Serif") }'
 		+ '@font-face { font-family: max-height-200; src: local("Times New Roman"), local("Droid Serif") }'
 		+ '@font-face { font-family: max-height-100; src: local("Times New Roman"), local("Droid Serif") }'
+		+ 'html:container( width >= 1px ) { font-family: invalid-query }'
 		+ '.minW, .maxW, .minH, .maxH { font-family: no-query }'
 		+ '.minW:container( width >= 100px ) { font-family: min-width-100 }'
 		+ '.minW:container( width >= 200px ) { font-family: min-width-200 }'
@@ -48,6 +50,9 @@ QUnit.test('Simple width and height Query', function(assert) {
 		var font = function(node) {
 			return window.getComputedStyle(node).fontFamily;
 		};
+
+		reevaluate();
+		assert.notEqual(font(document.documentElement), 'invalid-query', 'Invalid HTML container query');
 
 		element.style.cssText = 'width: 109px; height: 109px';
 		reevaluate();
