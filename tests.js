@@ -262,9 +262,11 @@ QUnit.test('splitSelectors', function(assert) {
 
 /*global evaluateQuery*/
 QUnit.test('evaluateQuery', function(assert) {
+
 	var element = document.createElement('div');
-	element.style.cssText = 'width: 100px; height: 100px; font-size: 10px;';
+	element.style.cssText = 'width: 100px; height: 100px; font-size: 10px; opacity: 0.5;';
 	fixture.appendChild(element);
+
 	var data = [
 		['>', 99, 100],
 		['<', 101, 100],
@@ -279,6 +281,21 @@ QUnit.test('evaluateQuery', function(assert) {
 		assert.strictEqual(evaluateQuery(element, {_prop: 'height', _type: item[0], _value: item[1] + 'px'}), true, 'Height 100 ' + item[0] + ' ' + item[1]);
 		assert.strictEqual(evaluateQuery(element, {_prop: 'height', _type: item[0], _value: item[2] + 'px'}), false, 'Height 100 not ' + item[0] + ' ' + item[2]);
 	});
+
+	data = [
+		['width', '=', '10em', '9.9em'],
+		['display', '=', 'block', 'inline'],
+		['display', '!=', 'inline', 'block'],
+		['visibility', '=', 'visible', 'hidden'],
+		['opacity', '=', '0.500', '1'],
+		['opacity', '>', '0.49', '0.5'],
+		['font-size', '=', '7.50pt', '10em'],
+	];
+	data.forEach(function(item) {
+		assert.strictEqual(evaluateQuery(element, {_prop: item[0], _type: item[1], _value: item[2]}), true, item[0] + ' ' + item[1] + ' ' + item[2]);
+		assert.strictEqual(evaluateQuery(element, {_prop: item[0], _type: item[1], _value: item[3]}), false, item[0] + ' not ' + item[1] + ' ' + item[3]);
+	});
+
 });
 
 /*global getContainer, containerCache: true, createCacheMap*/
@@ -433,8 +450,11 @@ QUnit.test('getComputedStyle', function(assert) {
 	assert.equal(getComputedStyle(element).height, '96px', 'Converted to pixel');
 	assert.equal(getComputedStyle(element).cssFloat, 'left', 'Float left');
 	assert.equal(getComputedStyle(element).display, 'block', 'Default style');
-	element.style.cssText = 'display: inline; float: left';
+	element.style.cssText = 'display: inline; float: left; font-size: 10px';
 	assert.equal(getComputedStyle(element).display, 'block', 'Correct display value');
+	assert.equal(getComputedStyle(element).getPropertyValue('display'), 'block', 'Correct display value via getPropertyValue');
+	assert.equal(getComputedStyle(element).fontSize, '10px', 'Correct font-size value');
+	assert.equal(getComputedStyle(element).getPropertyValue('font-size'), '10px', 'Correct font-size value via getPropertyValue');
 });
 
 /*global getOriginalStyle*/

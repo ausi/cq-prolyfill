@@ -152,4 +152,48 @@ QUnit.test('Combined Queries', function(assert) {
 	});
 });
 
+QUnit.test('Visibility Query', function(assert) {
+
+	var style = document.createElement('style');
+	style.type = 'text/css';
+	style.innerHTML = '@font-face { font-family: visible; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: hidden; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '.test:container(visibility = visible) { font-family: visible }'
+		+ '.test:container(visibility = hidden) { font-family: hidden }';
+	fixture.appendChild(style);
+
+	var element = document.createElement('div');
+	element.innerHTML = '<div class="test">';
+	fixture.appendChild(element);
+	var test = element.firstChild;
+
+	var reevaluate = window.containerQueries.reevaluate;
+
+	var done = assert.async();
+	window.containerQueries.reprocess(function () {
+
+		var font = function(node) {
+			return window.getComputedStyle(node).fontFamily;
+		};
+
+		assert.equal(font(test), 'visible', 'Default style visible');
+
+		element.style.cssText = 'visibility: visible';
+		reevaluate();
+		assert.equal(font(test), 'visible', 'Style visible');
+
+		element.style.cssText = 'visibility: hidden';
+		reevaluate();
+		assert.equal(font(test), 'hidden', 'Style hidden');
+
+		element.style.cssText = 'visibility: invalid';
+		reevaluate();
+		assert.equal(font(test), 'visible', 'Style invalid');
+
+		done();
+
+	});
+
+});
+
 })();

@@ -23,11 +23,12 @@ window.addEventListener('load', reprocess);
 window.addEventListener('resize', reevaluate);
 
 var REGEXP_ESCAPE_REGEXP = /[.?*+^$[\]\\(){}|-]/g;
-var SELECTOR_REGEXP = /\.?:container\(\s*(?:width|height)\s*(?:\<=|>=|<|>|=|!=)\s*[^)]+\s*\)/gi;
-var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\((width|height)(\\<\\=|\\>\\=|\\<|\\>|\\=|\\!\\=)([^)]+?)\\\)/gi;
+var SELECTOR_REGEXP = /\.?:container\(\s*(?:[a-z-]+)\s*(?:\<=|>=|<|>|=|!=)\s*[^)]+\s*\)/gi;
+var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(([a-z-]+)(\\<\\=|\\>\\=|\\<|\\>|\\=|\\!\\=)([^)]+?)\\\)/gi;
 var ESCAPE_REGEXP = /[.:()<>!=]/g;
 var SPACE_REGEXP = / /g;
 var LENGTH_REGEXP = /^(-?(?:\d*\.)?\d+)(em|ex|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)$/i;
+var NUMBER_REGEXP = /^-?(?:\d*\.)?\d+$/i;
 var URL_VALUE_REGEXP = /url\(\s*(?:(["'])(.*?)\1|([^)\s]*))\s*\)/gi;
 var ATTR_REGEXP = /\[.+?\]/g;
 var PSEUDO_NOT_REGEXP = /:not\(/g;
@@ -385,22 +386,43 @@ function updateClass(element, query) {
  * @return {boolean}
  */
 function evaluateQuery(parent, query) {
+
 	var container = getContainer(parent, query._prop);
-	var size = getSize(container, query._prop);
-	var value = getComputedLength(query._value, parent);
-	return (query._type === '>=' && size >= value)
-		|| (query._type === '<=' && size <= value)
-		|| (query._type === '>' && size > value)
-		|| (query._type === '<' && size < value)
-		|| (query._type === '=' && size === value)
-		|| (query._type === '!=' && size !== value);
+	var qValue = query._value;
+
+	var cValue;
+	if (query._prop === 'width' || query._prop === 'height') {
+		cValue = getSize(container, query._prop);
+	}
+	else {
+		cValue = getComputedStyle(container).getPropertyValue(query._prop);
+	}
+
+	if (qValue.match(LENGTH_REGEXP)) {
+		qValue = getComputedLength(qValue, parent);
+		if (typeof cValue === 'string') {
+			cValue = getComputedLength(cValue, parent);
+		}
+	}
+	else if (qValue.match(NUMBER_REGEXP)) {
+		qValue = parseFloat(qValue);
+		cValue = parseFloat(cValue);
+	}
+
+	return (query._type === '>=' && cValue >= qValue)
+		|| (query._type === '<=' && cValue <= qValue)
+		|| (query._type === '>' && cValue > qValue)
+		|| (query._type === '<' && cValue < qValue)
+		|| (query._type === '=' && cValue === qValue)
+		|| (query._type === '!=' && cValue !== qValue);
+
 }
 
 /**
  * Get the nearest qualified container element starting by the element itself
  *
  * @param  {Element} element
- * @param  {string}  prop    `width` or `height`
+ * @param  {string}  prop    CSS property
  * @return {Element}
  */
 function getContainer(element, prop) {
@@ -417,7 +439,7 @@ function getContainer(element, prop) {
 		containerCache.set(element, cache);
 	}
 
-	if (element === documentElement) {
+	if (element === documentElement || (prop !== 'width' && prop !== 'height')) {
 		cache[prop] = element;
 	}
 
@@ -596,6 +618,11 @@ function getComputedStyle(element) {
 		}
 		style = newStyle;
 		style.display = 'block';
+		style.getPropertyValue = function(property) {
+			return this[property.replace(/-+(.)/g, function(match, char) {
+				return char.toUpperCase();
+			})];
+		};
 	}
 
 	return style;
