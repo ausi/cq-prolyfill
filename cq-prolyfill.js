@@ -172,7 +172,9 @@ function loadExternal(href, callback) {
 	catch(e) {
 		if (window.XDomainRequest) {
 			xhr = new XDomainRequest();
-			xhr.onprogress = function() {};
+			xhr.onprogress =
+				/* istanbul ignore next: fix for a rare IE9 bug */
+				function() {};
 			xhr.onload = xhr.onerror = xhr.ontimeout = function() {
 				done(xhr.responseText);
 			};
