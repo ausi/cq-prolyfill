@@ -93,4 +93,63 @@ QUnit.test('Simple width and height Query', function(assert) {
 	});
 });
 
+QUnit.test('Combined Queries', function(assert) {
+
+	var style = document.createElement('style');
+	style.type = 'text/css';
+	style.innerHTML = '@font-face { font-family: query; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '.test:container(width > 100px):container(width < 200px):container(height > 100px):container(height < 200px) { font-family: query }';
+	fixture.appendChild(style);
+
+	var element = document.createElement('div');
+	element.innerHTML = '<div class="test">';
+	fixture.appendChild(element);
+	var test = element.firstChild;
+
+	var reevaluate = window.containerQueries.reevaluate;
+
+	var done = assert.async();
+	window.containerQueries.reprocess(function () {
+
+		var font = function(node) {
+			return window.getComputedStyle(node).fontFamily;
+		};
+
+		element.style.cssText = 'width: 100px; height: 100px';
+		reevaluate();
+		assert.notEqual(font(test), 'query', 'width 100, height 100');
+
+		element.style.cssText = 'width: 101px; height: 100px';
+		reevaluate();
+		assert.notEqual(font(test), 'query', 'width 101, height 100');
+
+		element.style.cssText = 'width: 100px; height: 101px';
+		reevaluate();
+		assert.notEqual(font(test), 'query', 'width 100, height 101');
+
+		element.style.cssText = 'width: 101px; height: 101px';
+		reevaluate();
+		assert.equal(font(test), 'query', 'width 101, height 101');
+
+		element.style.cssText = 'width: 199px; height: 199px';
+		reevaluate();
+		assert.equal(font(test), 'query', 'width 199, height 199');
+
+		element.style.cssText = 'width: 200px; height: 199px';
+		reevaluate();
+		assert.notEqual(font(test), 'query', 'width 200, height 199');
+
+		element.style.cssText = 'width: 199px; height: 200px';
+		reevaluate();
+		assert.notEqual(font(test), 'query', 'width 199, height 200');
+
+		element.style.cssText = 'width: 200px; height: 200px';
+		reevaluate();
+		assert.notEqual(font(test), 'query', 'width 200, height 200');
+
+		done();
+
+	});
+});
+
 })();

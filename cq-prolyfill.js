@@ -313,11 +313,16 @@ function parseRule(rule) {
 	splitSelectors(rule.selectorText).forEach(function(selector) {
 		selector = escapeSelectors(selector);
 		selector.replace(SELECTOR_ESCAPED_REGEXP, function(match, prop, type, value, offset) {
-			var precedingSelector = selector.substr(0, offset) + selector.substr(offset + match.length).replace(/[\s>+~].*$/, '');
+			var precedingSelector =
+				(
+					selector.substr(0, offset)
+					+ selector.substr(offset + match.length).replace(/(^|[^\\])[\s>+~].*$/, '$1')
+				)
+				.replace(SELECTOR_ESCAPED_REGEXP, '')
+				.replace(/:(?:active|hover|focus|checked)/gi, '');
 			if (!precedingSelector.substr(-1).trim()) {
 				precedingSelector += '*';
 			}
-			precedingSelector = precedingSelector.replace(/:(?:active|hover|focus|checked)/gi, '');
 			queries[precedingSelector + match.toLowerCase()] = {
 				_selector: precedingSelector,
 				_prop: prop.replace(/\\(.)/g, '$1').toLowerCase(),

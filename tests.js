@@ -135,13 +135,14 @@ QUnit.test('parseRules', function(assert) {
 	style.type = 'text/css';
 	style.innerHTML = '.foo:active:hover:focus:checked .before:container( WIDTH >= 100.00px ).after>child { display: block }'
 		+ ':container(height < 10em) .general-selector { display: block }'
+		+ '.combined-selector:container(width > 100px):container(height > 100px) { display: block }'
 		+ '@media screen { .inside-media-query:container(height < 10em) { display: block } }';
 	fixture.appendChild(style);
 	var done = assert.async();
 	preprocess(function () {
 
 		parseRules();
-		assert.equal(Object.keys(queries).length, 3, 'Three queries');
+		assert.equal(Object.keys(queries).length, 5, 'Three queries');
 
 		assert.ok(Object.keys(queries)[0].match(/^\.foo (?:\.before|\.after){2}\.\\:container\\\(width\\>\\=100\\\.00px\\\)$/), 'Correct key');
 		assert.ok(queries[Object.keys(queries)[0]]._selector.match(/^\.foo (?:\.before|\.after){2}$/), 'Preceding selector');
@@ -157,7 +158,21 @@ QUnit.test('parseRules', function(assert) {
 		assert.equal(queries[Object.keys(queries)[1]]._value, '10em', 'Value');
 		assert.equal(queries[Object.keys(queries)[1]]._className, ':container(height<10em)', 'Class name');
 
-		assert.equal(Object.keys(queries)[2], '.inside-media-query.\\:container\\(height\\<10em\\)', 'Correct key');
+		assert.equal(Object.keys(queries)[2], '.combined-selector.\\:container\\(width\\>100px\\)', 'Correct key');
+		assert.equal(queries[Object.keys(queries)[2]]._selector, '.combined-selector', 'Preceding selector');
+		assert.equal(queries[Object.keys(queries)[2]]._prop, 'width', 'Property');
+		assert.equal(queries[Object.keys(queries)[2]]._type, '>', 'Mode');
+		assert.equal(queries[Object.keys(queries)[2]]._value, '100px', 'Value');
+		assert.equal(queries[Object.keys(queries)[2]]._className, ':container(width>100px)', 'Class name');
+
+		assert.equal(Object.keys(queries)[3], '.combined-selector.\\:container\\(height\\>100px\\)', 'Correct key');
+		assert.equal(queries[Object.keys(queries)[3]]._selector, '.combined-selector', 'Preceding selector');
+		assert.equal(queries[Object.keys(queries)[3]]._prop, 'height', 'Property');
+		assert.equal(queries[Object.keys(queries)[3]]._type, '>', 'Mode');
+		assert.equal(queries[Object.keys(queries)[3]]._value, '100px', 'Value');
+		assert.equal(queries[Object.keys(queries)[3]]._className, ':container(height>100px)', 'Class name');
+
+		assert.equal(Object.keys(queries)[4], '.inside-media-query.\\:container\\(height\\<10em\\)', 'Correct key');
 
 		done();
 	});
