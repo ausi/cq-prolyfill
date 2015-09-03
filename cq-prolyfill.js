@@ -369,22 +369,31 @@ function updateClass(element, query) {
 	if (element === documentElement) {
 		return;
 	}
-	var container = getContainer(element.parentNode, query._prop);
-	var size = getSize(container, query._prop);
-	var value = getComputedLength(query._value, element.parentNode);
-	if (
-		(query._type === '>=' && size >= value)
-		|| (query._type === '<=' && size <= value)
-		|| (query._type === '>' && size > value)
-		|| (query._type === '<' && size < value)
-		|| (query._type === '=' && size === value)
-		|| (query._type === '!=' && size !== value)
-	) {
+	if (evaluateQuery(element.parentNode, query)) {
 		addClass(element, query._className);
 	}
 	else {
 		removeClass(element, query._className);
 	}
+}
+
+/**
+ * True if the query matches otherwise false
+ *
+ * @param  {Element} parent
+ * @param  {object}  query
+ * @return {boolean}
+ */
+function evaluateQuery(parent, query) {
+	var container = getContainer(parent, query._prop);
+	var size = getSize(container, query._prop);
+	var value = getComputedLength(query._value, parent);
+	return (query._type === '>=' && size >= value)
+		|| (query._type === '<=' && size <= value)
+		|| (query._type === '>' && size > value)
+		|| (query._type === '<' && size < value)
+		|| (query._type === '=' && size === value)
+		|| (query._type === '!=' && size !== value);
 }
 
 /**

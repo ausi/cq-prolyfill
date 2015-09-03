@@ -257,6 +257,27 @@ QUnit.test('splitSelectors', function(assert) {
 	assert.deepEqual(splitSelectors('foo,foo\t\n ,\t\n foo'), ['foo', 'foo', 'foo'], 'Simple selectors do get split');
 });
 
+/*global evaluateQuery*/
+QUnit.test('evaluateQuery', function(assert) {
+	var element = document.createElement('div');
+	element.style.cssText = 'width: 100px; height: 100px; font-size: 10px;';
+	fixture.appendChild(element);
+	var data = [
+		['>', 99, 100],
+		['<', 101, 100],
+		['>=', 100, 101],
+		['<=', 100, 99],
+		['=', 100, 50],
+		['!=', 50, 100],
+	];
+	data.forEach(function(item) {
+		assert.strictEqual(evaluateQuery(element, {_prop: 'width', _type: item[0], _value: item[1] + 'px'}), true, 'Width 100 ' + item[0] + ' ' + item[1]);
+		assert.strictEqual(evaluateQuery(element, {_prop: 'width', _type: item[0], _value: item[2] + 'px'}), false, 'Width 100 not ' + item[0] + ' ' + item[2]);
+		assert.strictEqual(evaluateQuery(element, {_prop: 'height', _type: item[0], _value: item[1] + 'px'}), true, 'Height 100 ' + item[0] + ' ' + item[1]);
+		assert.strictEqual(evaluateQuery(element, {_prop: 'height', _type: item[0], _value: item[2] + 'px'}), false, 'Height 100 not ' + item[0] + ' ' + item[2]);
+	});
+});
+
 /*global getContainer, containerCache: true, createCacheMap*/
 QUnit.test('getContainer', function(assert) {
 
