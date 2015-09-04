@@ -408,6 +408,9 @@ function evaluateQuery(parent, query) {
 		qValue = parseFloat(qValue);
 		cValue = parseFloat(cValue);
 	}
+	else if (typeof cValue === 'string') {
+		cValue = cValue.trim();
+	}
 
 	if (['>', '<'].indexOf(query._type[0]) !== -1 && (
 		typeof cValue !== 'number'

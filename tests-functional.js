@@ -196,4 +196,51 @@ QUnit.test('Visibility Query', function(assert) {
 
 });
 
+QUnit[window.CSS && CSS.supports && CSS.supports('--foo', 0)
+	? 'test'
+	: 'skip'
+]('CSS variable Query (only for supported browsers)', function(assert) {
+
+	var style = document.createElement('style');
+	style.type = 'text/css';
+	style.innerHTML = '@font-face { font-family: equal; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: less-than; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: greater-than; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '.test:container(--foo = bar) { font-family: equal }'
+		+ '.test:container(--foo < 10em) { font-family: less-than }'
+		+ '.test:container(--foo > 10em) { font-family: greater-than }';
+	fixture.appendChild(style);
+
+	var element = document.createElement('div');
+	element.innerHTML = '<div class="test">';
+	fixture.appendChild(element);
+	var test = element.firstChild;
+
+	var reevaluate = window.containerQueries.reevaluate;
+
+	var done = assert.async();
+	window.containerQueries.reprocess(function () {
+
+		var font = function(node) {
+			return window.getComputedStyle(node).fontFamily;
+		};
+
+		element.style.cssText = '--foo: bar';
+		reevaluate();
+		assert.equal(font(test), 'equal', 'Equal');
+
+		element.style.cssText = '--foo: 9.9em';
+		reevaluate();
+		assert.equal(font(test), 'less-than', 'Less than');
+
+		element.style.cssText = '--foo: 101px; font-size: 10px';
+		reevaluate();
+		assert.equal(font(test), 'greater-than', 'Greater than');
+
+		done();
+
+	});
+
+});
+
 })();
