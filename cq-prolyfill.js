@@ -23,9 +23,9 @@ window.addEventListener('load', reprocess);
 window.addEventListener('resize', reevaluate);
 
 var REGEXP_ESCAPE_REGEXP = /[.?*+^$[\]\\(){}|-]/g;
-var SELECTOR_REGEXP = /\.?:container\(\s*(?:[a-z-]+)\s*(?:\<=|>=|<|>|=|!=)\s*[^)]+\s*\)/gi;
-var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(([a-z-]+)(\\<\\=|\\>\\=|\\<|\\>|\\=|\\!\\=)([^)]+?)(?:(\\<\\=|\\>\\=|\\<|\\>|\\=|\\!\\=)([^)]+?))?\\\)/gi;
-var ESCAPE_REGEXP = /[.:()<>!=]/g;
+var SELECTOR_REGEXP = /\.?:container\(\s*[a-z-]+(?:(?:\s+|\|)[a-z-]+)?\s*(?:\<=|>=|<|>|=|!=)\s*[^)]+\s*\)/gi;
+var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(([a-z-]+)(\\\|[a-z-]+)?(\\<\\=|\\>\\=|\\<|\\>|\\=|\\!\\=)([^)]+?)(?:(\\<\\=|\\>\\=|\\<|\\>|\\=|\\!\\=)([^)]+?))?\\\)/gi;
+var ESCAPE_REGEXP = /[.:()<>!=%]/g;
 var SPACE_REGEXP = / /g;
 var LENGTH_REGEXP = /^(-?(?:\d*\.)?\d+)(em|ex|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)$/i;
 var NUMBER_REGEXP = /^-?(?:\d*\.)?\d+$/i;
@@ -268,7 +268,7 @@ function preprocessStyle(node, cssText) {
  */
 function escapeSelectors(cssText) {
 	return cssText.replace(SELECTOR_REGEXP, function(selector) {
-		return '.' + selector.substr(selector[0] === '.' ? 1 : 0).replace(SPACE_REGEXP, '').replace(ESCAPE_REGEXP, '\\$&');
+		return '.' + selector.substr(selector[0] === '.' ? 1 : 0).replace(/([a-z])(?:\s+|\|)([a-z])/gi, '$1\\|$2').replace(SPACE_REGEXP, '').replace(ESCAPE_REGEXP, '\\$&').toLowerCase();
 	});
 }
 
@@ -313,7 +313,7 @@ function parseRule(rule) {
 	}
 	splitSelectors(rule.selectorText).forEach(function(selector) {
 		selector = escapeSelectors(selector);
-		selector.replace(SELECTOR_ESCAPED_REGEXP, function(match, prop, type1, value1, type2, value2, offset) {
+		selector.replace(SELECTOR_ESCAPED_REGEXP, function(match, prop, filter, type1, value1, type2, value2, offset) {
 			var precedingSelector =
 				(
 					selector.substr(0, offset)
@@ -324,12 +324,13 @@ function parseRule(rule) {
 			if (!precedingSelector.substr(-1).trim()) {
 				precedingSelector += '*';
 			}
-			queries[precedingSelector + match.toLowerCase()] = {
+			queries[precedingSelector + match] = {
 				_selector: precedingSelector,
-				_prop: unescape(prop.toLowerCase()),
+				_prop: unescape(prop),
+				_filter: filter && filter.substr(2),
 				_types: [unescape(type1), unescape(type2)].filter(Boolean),
 				_values: [unescape(value1), unescape(value2)].filter(Boolean),
-				_className: unescape(match.toLowerCase().substr(1)),
+				_className: unescape(match.substr(1)),
 			};
 		});
 	});
@@ -408,7 +409,26 @@ function evaluateQuery(parent, query) {
 		cValue = getComputedStyle(container).getPropertyValue(query._prop);
 	}
 
-	if (qValues[0].match(LENGTH_REGEXP)) {
+	if (query._filter) {
+		var color = parseColor(cValue);
+		if (query._filter[0] === 'h') {
+			cValue = color[0];
+		}
+		else if (query._filter[0] === 's') {
+			cValue = color[1];
+		}
+		else if (query._filter[0] === 'l') {
+			cValue = color[2];
+		}
+		else if (query._filter[0] === 'a') {
+			cValue = color[3];
+		}
+		else {
+			return false;
+		}
+		qValues = qValues.map(parseFloat);
+	}
+	else if (qValues[0].match(LENGTH_REGEXP)) {
 		qValues = qValues.map(function(value) {
 			return getComputedLength(value, parent);
 		});
@@ -465,8 +485,18 @@ function getContainer(element, prop) {
 		containerCache.set(element, cache);
 	}
 
-	if (element === documentElement || (prop !== 'width' && prop !== 'height')) {
+	if (element === documentElement) {
 		cache[prop] = element;
+	}
+
+	else if (prop !== 'width' && prop !== 'height') {
+		// Skip transparent background colors
+		if (prop === 'background-color' && !parseColor(getComputedStyle(element).getPropertyValue(prop))[3]) {
+			cache[prop] = getContainer(element.parentNode, prop);
+		}
+		else {
+			cache[prop] = element;
+		}
 	}
 
 	// Skip inline elements
@@ -727,6 +757,60 @@ function getOriginalStyle(element, props) {
 
 	return result;
 
+}
+
+/**
+ * Parse CSS color and return as HSLA array
+ *
+ * @param  {string} color
+ * @return {Array.<number>}
+ */
+function parseColor(color) {
+	if (!color || !color.split || !color.split('(')[1]) {
+		return [0, 0, 0, 0];
+	}
+	color = color.split('(')[1].split(',').map(parseFloat);
+	if (color[3] === undefined) {
+		color[3] = 1;
+	}
+	return rgbaToHsla(color);
+}
+
+/**
+ * @param  {Array.<number>} color
+ * @return {Array.<number>}
+ */
+function rgbaToHsla(color) {
+
+	var red = color[0] / 255;
+	var green = color[1] / 255;
+	var blue = color[2] / 255;
+
+	var max = Math.max(red, green, blue);
+	var min = Math.min(red, green, blue);
+
+	var hue;
+	var saturation;
+	var lightness = (max + min) / 2;
+
+	hue = saturation = 0;
+
+	if (max !== min) {
+		var delta = max - min;
+		saturation = delta / (lightness > 0.5 ? 2 - max - min : max + min);
+		if (max === red) {
+			hue = (green - blue) / delta + ((green < blue) * 6);
+		}
+		else if (max === green) {
+			hue = (blue - red) / delta + 2;
+		}
+		else {
+			hue = (red - green) / delta + 4;
+		}
+		hue /= 6;
+	}
+
+	return [hue * 360, saturation * 100, lightness * 100, color[3]];
 }
 
 /**

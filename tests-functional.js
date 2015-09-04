@@ -239,6 +239,76 @@ QUnit.test('Visibility Query', function(assert) {
 
 });
 
+QUnit.test('Background Color Query', function(assert) {
+
+	var style = document.createElement('style');
+	style.type = 'text/css';
+	style.innerHTML = '@font-face { font-family: light; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: dark; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: green; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '.test:container(background-color lightness > 80%) { font-family: light }'
+		+ '.test:container(background-color lightness < 20%) { font-family: dark }'
+		+ '.test:container(background-color hue > 80deg < 160deg) { font-family: green }';
+	fixture.appendChild(style);
+
+	var element = document.createElement('div');
+	element.innerHTML = '<span><div class="test">';
+	fixture.appendChild(element);
+	var test = element.firstChild.firstChild;
+
+	var reevaluate = window.containerQueries.reevaluate;
+
+	var done = assert.async();
+	window.containerQueries.reprocess(function () {
+
+		var font = function(node) {
+			return window.getComputedStyle(node).fontFamily;
+		};
+
+		element.style.cssText = 'background: white';
+		reevaluate();
+		assert.equal(font(test), 'light', 'White background');
+
+		element.style.cssText = 'background: black';
+		reevaluate();
+		assert.equal(font(test), 'dark', 'Black background');
+
+		element.style.cssText = 'background: green';
+		reevaluate();
+		assert.equal(font(test), 'green', 'Green background');
+
+		element.style.cssText = 'background: #40bf93';
+		reevaluate();
+		assert.equal(font(test), 'green', 'Green HEX background');
+
+		element.style.cssText = 'background: #af1';
+		reevaluate();
+		assert.equal(font(test), 'green', 'Green short HEX background');
+
+		element.style.cssText = 'background: rgba(64, 191, 147, 0.5)';
+		reevaluate();
+		assert.equal(font(test), 'green', 'Semi transparent blue green background');
+
+		element.style.cssText = 'background: hsla(159, 50%, 50%, 0.5)';
+		reevaluate();
+		assert.equal(font(test), 'green', 'Semi transparent blue green HSLA background');
+
+		element.style.cssText = 'color: green; background: currentColor';
+		reevaluate();
+		assert.equal(font(test), 'green', 'Green currentColor');
+
+		if (window.CSS && CSS.supports && CSS.supports('--foo', 0)) {
+			element.style.cssText = '--my-color: green; background: var(--my-color)';
+			reevaluate();
+			assert.equal(font(test), 'green', 'Green via CSS variable');
+		}
+
+		done();
+
+	});
+
+});
+
 QUnit[window.CSS && CSS.supports && CSS.supports('--foo', 0)
 	? 'test'
 	: 'skip'

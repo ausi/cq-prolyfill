@@ -131,8 +131,9 @@ QUnit.test('preprocessSheet', function(assert) {
 
 /*global escapeSelectors*/
 QUnit.test('escapeSelectors', function(assert) {
-	assert.equal(escapeSelectors(':container( WIDTH > 100px )'), '.\\:container\\(WIDTH\\>100px\\)', 'Simple query');
+	assert.equal(escapeSelectors(':container( WIDTH > 100px )'), '.\\:container\\(width\\>100px\\)', 'Simple query');
 	assert.equal(escapeSelectors(':container(width > 100px < 200px)'), '.\\:container\\(width\\>100px\\<200px\\)', 'Double comparison');
+	assert.equal(escapeSelectors(':container(color lightness < 10%)'), '.\\:container\\(color\\|lightness\\<10\\%\\)', 'Filter parameter');
 });
 
 /*global parseRules, queries*/
@@ -143,13 +144,14 @@ QUnit.test('parseRules', function(assert) {
 		+ ':container(height < 10em) .general-selector { display: block }'
 		+ '.combined-selector:container(width > 100px):container(height > 100px) { display: block }'
 		+ '.double-comparison:container(width > 100px < 200px) { display: block }'
+		+ '.filter:container(color lightness < 10%) { display: block }'
 		+ '@media screen { .inside-media-query:container(height < 10em) { display: block } }';
 	fixture.appendChild(style);
 	var done = assert.async();
 	preprocess(function () {
 
 		parseRules();
-		assert.equal(Object.keys(queries).length, 6, 'Three queries');
+		assert.equal(Object.keys(queries).length, 7, 'Seven queries');
 
 		assert.ok(Object.keys(queries)[0].match(/^\.foo (?:\.before|\.after){2}\.\\:container\\\(width\\>\\=100\\\.00px\\\)$/), 'Correct key');
 		assert.ok(queries[Object.keys(queries)[0]]._selector.match(/^\.foo (?:\.before|\.after){2}$/), 'Preceding selector');
@@ -189,7 +191,15 @@ QUnit.test('parseRules', function(assert) {
 		assert.deepEqual(queries[Object.keys(queries)[4]]._values, ['100px', '200px'], 'Value');
 		assert.equal(queries[Object.keys(queries)[4]]._className, ':container(width>100px<200px)', 'Class name');
 
-		assert.equal(Object.keys(queries)[5], '.inside-media-query.\\:container\\(height\\<10em\\)', 'Correct key');
+		assert.equal(Object.keys(queries)[5], '.filter.\\:container\\(color\\|lightness\\<10\\%\\)', 'Correct key');
+		assert.equal(queries[Object.keys(queries)[5]]._selector, '.filter', 'Preceding selector');
+		assert.equal(queries[Object.keys(queries)[5]]._prop, 'color', 'Property');
+		assert.deepEqual(queries[Object.keys(queries)[5]]._filter, 'lightness', 'Filter');
+		assert.deepEqual(queries[Object.keys(queries)[5]]._types, ['<'], 'Mode');
+		assert.deepEqual(queries[Object.keys(queries)[5]]._values, ['10%'], 'Value');
+		assert.equal(queries[Object.keys(queries)[5]]._className, ':container(color|lightness<10%)', 'Class name');
+
+		assert.equal(Object.keys(queries)[6], '.inside-media-query.\\:container\\(height\\<10em\\)', 'Correct key');
 
 		done();
 	});
@@ -278,7 +288,7 @@ QUnit.test('splitSelectors', function(assert) {
 QUnit.test('evaluateQuery', function(assert) {
 
 	var element = document.createElement('div');
-	element.style.cssText = 'width: 100px; height: 100px; font-size: 10px; opacity: 0.5;';
+	element.style.cssText = 'width: 100px; height: 100px; font-size: 10px; opacity: 0.5; background: red';
 	fixture.appendChild(element);
 
 	var data = [
@@ -310,6 +320,15 @@ QUnit.test('evaluateQuery', function(assert) {
 		assert.strictEqual(evaluateQuery(element, {_prop: item[0], _types: [item[1]], _values: [item[3]]}), false, item[0] + ' not ' + item[1] + ' ' + item[3]);
 	});
 
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'hue', _types: ['='], _values: ['0deg']}), true, 'Red Hue = 0deg');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'hue', _types: ['>'], _values: ['10deg']}), false, 'Red Hue not > 10deg');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'saturation', _types: ['='], _values: ['100%']}), true, 'Red Saturation = 100%');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'saturation', _types: ['<'], _values: ['90%']}), false, 'Red Saturation not < 90%');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'lightness', _types: ['>'], _values: ['10%']}), true, 'Red Lightness > 10%');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'lightness', _types: ['<'], _values: ['10%']}), false, 'Red Lightness not < 10%');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'alpha', _types: ['='], _values: ['1']}), true, 'Red Alpha = 1');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'alpha', _types: ['<'], _values: ['0.99']}), false, 'Red Alpha not < 0.99');
+
 	assert.strictEqual(evaluateQuery(element, {_prop: 'display', _types: ['<'], _values: ['10px']}), false, 'Invalid block < 10px');
 	assert.strictEqual(evaluateQuery(element, {_prop: 'display', _types: ['>'], _values: ['10px']}), false, 'Invalid block > 10px');
 	assert.strictEqual(evaluateQuery(element, {_prop: 'invalid', _types: ['<'], _values: ['10px']}), false, 'Invalid undefined < 10px');
@@ -318,6 +337,7 @@ QUnit.test('evaluateQuery', function(assert) {
 	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _types: ['>'], _values: ['foo']}), false, 'Invalid 10px > foo');
 	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _types: ['<'], _values: ['']}), false, 'Invalid 10px < ""');
 	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _types: ['>'], _values: ['']}), false, 'Invalid 10px > ""');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'width', _filter: 'invalid', _types: ['>'], _values: ['0px']}), false, 'Invalid filter');
 
 });
 
@@ -505,6 +525,23 @@ QUnit.test('getOriginalStyle', function(assert) {
 	element.style.setProperty('height', '100px', 'important');
 	assert.equal(getOriginalStyle(element, ['height']).height, '100px', 'Get height from style attribute !important');
 
+});
+
+/*global parseColor*/
+QUnit.test('parseColor', function(assert) {
+	assert.deepEqual(parseColor('rgb(255, 0, 0)'), [0, 100, 50, 1], 'Rgb');
+	assert.deepEqual(parseColor('rgba(255, 0, 0, 0.5)'), [0, 100, 50, 0.5], 'Rgba');
+	assert.deepEqual(parseColor('transparent'), [0, 0, 0, 0], 'Transparent');
+	assert.deepEqual(parseColor(undefined), [0, 0, 0, 0], 'Undefined');
+});
+
+/*global rgbaToHsla*/
+QUnit.test('rgbaToHsla', function(assert) {
+	assert.deepEqual(rgbaToHsla([0, 0, 0, 1]), [0, 0, 0, 1], 'Black');
+	assert.deepEqual(rgbaToHsla([255, 0, 0, 1]), [0, 100, 50, 1], 'Red');
+	assert.deepEqual(rgbaToHsla([0, 255, 0, 1]), [120, 100, 50, 1], 'Green');
+	assert.deepEqual(rgbaToHsla([0, 0, 255, 1]), [240, 100, 50, 1], 'Blue');
+	assert.deepEqual(rgbaToHsla([204, 255, 204, 0.5]), [120, 100, 90, 0.5], 'Light semitransparent green');
 });
 
 /*global filterRulesByElementAndProps*/
