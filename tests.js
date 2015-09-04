@@ -296,6 +296,15 @@ QUnit.test('evaluateQuery', function(assert) {
 		assert.strictEqual(evaluateQuery(element, {_prop: item[0], _type: item[1], _value: item[3]}), false, item[0] + ' not ' + item[1] + ' ' + item[3]);
 	});
 
+	assert.strictEqual(evaluateQuery(element, {_prop: 'display', _type: '<', _value: '10px'}), false, 'Invalid block < 10px');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'display', _type: '>', _value: '10px'}), false, 'Invalid block > 10px');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'invalid', _type: '<', _value: '10px'}), false, 'Invalid undefined < 10px');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'invalid', _type: '>', _value: '10px'}), false, 'Invalid undefined > 10px');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _type: '<', _value: 'foo'}), false, 'Invalid 10px < foo');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _type: '>', _value: 'foo'}), false, 'Invalid 10px > foo');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _type: '<', _value: ''}), false, 'Invalid 10px < ""');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _type: '>', _value: ''}), false, 'Invalid 10px > ""');
+
 });
 
 /*global getContainer, containerCache: true, createCacheMap*/

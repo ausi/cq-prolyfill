@@ -409,6 +409,13 @@ function evaluateQuery(parent, query) {
 		cValue = parseFloat(cValue);
 	}
 
+	if (['>', '<'].indexOf(query._type[0]) !== -1 && (
+		typeof cValue !== 'number'
+		|| typeof qValue !== 'number'
+	)) {
+		return false;
+	}
+
 	return (query._type === '>=' && cValue >= qValue)
 		|| (query._type === '<=' && cValue <= qValue)
 		|| (query._type === '>' && cValue > qValue)
