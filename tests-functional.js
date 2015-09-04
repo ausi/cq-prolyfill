@@ -356,4 +356,54 @@ QUnit[window.CSS && CSS.supports && CSS.supports('--foo', 0)
 
 });
 
+QUnit.test('Opacity Query', function(assert) {
+
+	var style = document.createElement('style');
+	style.type = 'text/css';
+	style.innerHTML = '@font-face { font-family: opaque; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: semi-transparent; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: transparent; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '.test:container(opacity = 1) { font-family: opaque }'
+		+ '.test:container(opacity < 1 > 0) { font-family: semi-transparent }'
+		+ '.test:container(opacity = 0) { font-family: transparent }';
+	fixture.appendChild(style);
+
+	var element = document.createElement('div');
+	element.innerHTML = '<div class="test">';
+	fixture.appendChild(element);
+	var test = element.firstChild;
+
+	var reevaluate = window.containerQueries.reevaluate;
+
+	var done = assert.async();
+	window.containerQueries.reprocess(function () {
+
+		var font = function(node) {
+			return window.getComputedStyle(node).fontFamily;
+		};
+
+		assert.equal(font(test), 'opaque', 'Default opacity');
+
+		element.style.cssText = 'opacity: 1';
+		reevaluate();
+		assert.equal(font(test), 'opaque', 'Opacity 1');
+
+		element.style.cssText = 'opacity: 0.9';
+		reevaluate();
+		assert.equal(font(test), 'semi-transparent', 'Opacity 0.9');
+
+		element.style.cssText = 'opacity: 0.1';
+		reevaluate();
+		assert.equal(font(test), 'semi-transparent', 'Opacity 0.1');
+
+		element.style.cssText = 'opacity: 0';
+		reevaluate();
+		assert.equal(font(test), 'transparent', 'Opacity 0');
+
+		done();
+
+	});
+
+});
+
 })();
