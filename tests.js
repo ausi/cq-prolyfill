@@ -129,6 +129,12 @@ QUnit.test('preprocessSheet', function(assert) {
 
 });
 
+/*global escapeSelectors*/
+QUnit.test('escapeSelectors', function(assert) {
+	assert.equal(escapeSelectors(':container( WIDTH > 100px )'), '.\\:container\\(WIDTH\\>100px\\)', 'Simple query');
+	assert.equal(escapeSelectors(':container(width > 100px < 200px)'), '.\\:container\\(width\\>100px\\<200px\\)', 'Double comparison');
+});
+
 /*global parseRules, queries*/
 QUnit.test('parseRules', function(assert) {
 	var style = document.createElement('style');
@@ -136,26 +142,27 @@ QUnit.test('parseRules', function(assert) {
 	style.innerHTML = '.foo:active:hover:focus:checked .before:container( WIDTH >= 100.00px ).after>child { display: block }'
 		+ ':container(height < 10em) .general-selector { display: block }'
 		+ '.combined-selector:container(width > 100px):container(height > 100px) { display: block }'
+		+ '.double-comparison:container(width > 100px < 200px) { display: block }'
 		+ '@media screen { .inside-media-query:container(height < 10em) { display: block } }';
 	fixture.appendChild(style);
 	var done = assert.async();
 	preprocess(function () {
 
 		parseRules();
-		assert.equal(Object.keys(queries).length, 5, 'Three queries');
+		assert.equal(Object.keys(queries).length, 6, 'Three queries');
 
 		assert.ok(Object.keys(queries)[0].match(/^\.foo (?:\.before|\.after){2}\.\\:container\\\(width\\>\\=100\\\.00px\\\)$/), 'Correct key');
 		assert.ok(queries[Object.keys(queries)[0]]._selector.match(/^\.foo (?:\.before|\.after){2}$/), 'Preceding selector');
 		assert.equal(queries[Object.keys(queries)[0]]._prop, 'width', 'Property');
-		assert.equal(queries[Object.keys(queries)[0]]._type, '>=', 'Mode');
-		assert.equal(queries[Object.keys(queries)[0]]._value, '100.00px', 'Value');
+		assert.deepEqual(queries[Object.keys(queries)[0]]._types, ['>='], 'Mode');
+		assert.deepEqual(queries[Object.keys(queries)[0]]._values, ['100.00px'], 'Value');
 		assert.equal(queries[Object.keys(queries)[0]]._className, ':container(width>=100.00px)', 'Class name');
 
 		assert.equal(Object.keys(queries)[1], '*.\\:container\\(height\\<10em\\)', 'Correct key');
 		assert.equal(queries[Object.keys(queries)[1]]._selector, '*', 'Preceding selector');
 		assert.equal(queries[Object.keys(queries)[1]]._prop, 'height', 'Property');
-		assert.equal(queries[Object.keys(queries)[1]]._type, '<', 'Mode');
-		assert.equal(queries[Object.keys(queries)[1]]._value, '10em', 'Value');
+		assert.deepEqual(queries[Object.keys(queries)[1]]._types, ['<'], 'Mode');
+		assert.deepEqual(queries[Object.keys(queries)[1]]._values, ['10em'], 'Value');
 		assert.equal(queries[Object.keys(queries)[1]]._className, ':container(height<10em)', 'Class name');
 
 		// Fix CSS class sorting for IE/Edge
@@ -164,18 +171,25 @@ QUnit.test('parseRules', function(assert) {
 		assert.equal(combinedKeys[0], '.combined-selector.\\:container\\(width\\>100px\\)', 'Correct key');
 		assert.equal(queries[combinedKeys[0]]._selector, '.combined-selector', 'Preceding selector');
 		assert.equal(queries[combinedKeys[0]]._prop, 'width', 'Property');
-		assert.equal(queries[combinedKeys[0]]._type, '>', 'Mode');
-		assert.equal(queries[combinedKeys[0]]._value, '100px', 'Value');
+		assert.deepEqual(queries[combinedKeys[0]]._types, ['>'], 'Mode');
+		assert.deepEqual(queries[combinedKeys[0]]._values, ['100px'], 'Value');
 		assert.equal(queries[combinedKeys[0]]._className, ':container(width>100px)', 'Class name');
 
 		assert.equal(combinedKeys[1], '.combined-selector.\\:container\\(height\\>100px\\)', 'Correct key');
 		assert.equal(queries[combinedKeys[1]]._selector, '.combined-selector', 'Preceding selector');
 		assert.equal(queries[combinedKeys[1]]._prop, 'height', 'Property');
-		assert.equal(queries[combinedKeys[1]]._type, '>', 'Mode');
-		assert.equal(queries[combinedKeys[1]]._value, '100px', 'Value');
+		assert.deepEqual(queries[combinedKeys[1]]._types, ['>'], 'Mode');
+		assert.deepEqual(queries[combinedKeys[1]]._values, ['100px'], 'Value');
 		assert.equal(queries[combinedKeys[1]]._className, ':container(height>100px)', 'Class name');
 
-		assert.equal(Object.keys(queries)[4], '.inside-media-query.\\:container\\(height\\<10em\\)', 'Correct key');
+		assert.equal(Object.keys(queries)[4], '.double-comparison.\\:container\\(width\\>100px\\<200px\\)', 'Correct key');
+		assert.equal(queries[Object.keys(queries)[4]]._selector, '.double-comparison', 'Preceding selector');
+		assert.equal(queries[Object.keys(queries)[4]]._prop, 'width', 'Property');
+		assert.deepEqual(queries[Object.keys(queries)[4]]._types, ['>', '<'], 'Mode');
+		assert.deepEqual(queries[Object.keys(queries)[4]]._values, ['100px', '200px'], 'Value');
+		assert.equal(queries[Object.keys(queries)[4]]._className, ':container(width>100px<200px)', 'Class name');
+
+		assert.equal(Object.keys(queries)[5], '.inside-media-query.\\:container\\(height\\<10em\\)', 'Correct key');
 
 		done();
 	});
@@ -276,10 +290,10 @@ QUnit.test('evaluateQuery', function(assert) {
 		['!=', 50, 100],
 	];
 	data.forEach(function(item) {
-		assert.strictEqual(evaluateQuery(element, {_prop: 'width', _type: item[0], _value: item[1] + 'px'}), true, 'Width 100 ' + item[0] + ' ' + item[1]);
-		assert.strictEqual(evaluateQuery(element, {_prop: 'width', _type: item[0], _value: item[2] + 'px'}), false, 'Width 100 not ' + item[0] + ' ' + item[2]);
-		assert.strictEqual(evaluateQuery(element, {_prop: 'height', _type: item[0], _value: item[1] + 'px'}), true, 'Height 100 ' + item[0] + ' ' + item[1]);
-		assert.strictEqual(evaluateQuery(element, {_prop: 'height', _type: item[0], _value: item[2] + 'px'}), false, 'Height 100 not ' + item[0] + ' ' + item[2]);
+		assert.strictEqual(evaluateQuery(element, {_prop: 'width', _types: [item[0]], _values: [item[1] + 'px']}), true, 'Width 100 ' + item[0] + ' ' + item[1]);
+		assert.strictEqual(evaluateQuery(element, {_prop: 'width', _types: [item[0]], _values: [item[2] + 'px']}), false, 'Width 100 not ' + item[0] + ' ' + item[2]);
+		assert.strictEqual(evaluateQuery(element, {_prop: 'height', _types: [item[0]], _values: [item[1] + 'px']}), true, 'Height 100 ' + item[0] + ' ' + item[1]);
+		assert.strictEqual(evaluateQuery(element, {_prop: 'height', _types: [item[0]], _values: [item[2] + 'px']}), false, 'Height 100 not ' + item[0] + ' ' + item[2]);
 	});
 
 	data = [
@@ -292,18 +306,18 @@ QUnit.test('evaluateQuery', function(assert) {
 		['font-size', '=', '7.50pt', '10em'],
 	];
 	data.forEach(function(item) {
-		assert.strictEqual(evaluateQuery(element, {_prop: item[0], _type: item[1], _value: item[2]}), true, item[0] + ' ' + item[1] + ' ' + item[2]);
-		assert.strictEqual(evaluateQuery(element, {_prop: item[0], _type: item[1], _value: item[3]}), false, item[0] + ' not ' + item[1] + ' ' + item[3]);
+		assert.strictEqual(evaluateQuery(element, {_prop: item[0], _types: [item[1]], _values: [item[2]]}), true, item[0] + ' ' + item[1] + ' ' + item[2]);
+		assert.strictEqual(evaluateQuery(element, {_prop: item[0], _types: [item[1]], _values: [item[3]]}), false, item[0] + ' not ' + item[1] + ' ' + item[3]);
 	});
 
-	assert.strictEqual(evaluateQuery(element, {_prop: 'display', _type: '<', _value: '10px'}), false, 'Invalid block < 10px');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'display', _type: '>', _value: '10px'}), false, 'Invalid block > 10px');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'invalid', _type: '<', _value: '10px'}), false, 'Invalid undefined < 10px');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'invalid', _type: '>', _value: '10px'}), false, 'Invalid undefined > 10px');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _type: '<', _value: 'foo'}), false, 'Invalid 10px < foo');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _type: '>', _value: 'foo'}), false, 'Invalid 10px > foo');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _type: '<', _value: ''}), false, 'Invalid 10px < ""');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _type: '>', _value: ''}), false, 'Invalid 10px > ""');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'display', _types: ['<'], _values: ['10px']}), false, 'Invalid block < 10px');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'display', _types: ['>'], _values: ['10px']}), false, 'Invalid block > 10px');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'invalid', _types: ['<'], _values: ['10px']}), false, 'Invalid undefined < 10px');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'invalid', _types: ['>'], _values: ['10px']}), false, 'Invalid undefined > 10px');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _types: ['<'], _values: ['foo']}), false, 'Invalid 10px < foo');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _types: ['>'], _values: ['foo']}), false, 'Invalid 10px > foo');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _types: ['<'], _values: ['']}), false, 'Invalid 10px < ""');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _types: ['>'], _values: ['']}), false, 'Invalid 10px > ""');
 
 });
 

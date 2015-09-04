@@ -152,6 +152,49 @@ QUnit.test('Combined Queries', function(assert) {
 	});
 });
 
+QUnit.test('Double comparison Query', function(assert) {
+
+	var style = document.createElement('style');
+	style.type = 'text/css';
+	style.innerHTML = '@font-face { font-family: query; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '.test:container(width > 100px < 200px) { font-family: query }';
+	fixture.appendChild(style);
+
+	var element = document.createElement('div');
+	element.innerHTML = '<div class="test">';
+	fixture.appendChild(element);
+	var test = element.firstChild;
+
+	var reevaluate = window.containerQueries.reevaluate;
+
+	var done = assert.async();
+	window.containerQueries.reprocess(function () {
+
+		var font = function(node) {
+			return window.getComputedStyle(node).fontFamily;
+		};
+
+		element.style.cssText = 'width: 100px';
+		reevaluate();
+		assert.notEqual(font(test), 'query', 'width 100');
+
+		element.style.cssText = 'width: 101px';
+		reevaluate();
+		assert.equal(font(test), 'query', 'width 101');
+
+		element.style.cssText = 'width: 199px';
+		reevaluate();
+		assert.equal(font(test), 'query', 'width 199');
+
+		element.style.cssText = 'width: 200px';
+		reevaluate();
+		assert.notEqual(font(test), 'query', 'width 200');
+
+		done();
+
+	});
+});
+
 QUnit.test('Visibility Query', function(assert) {
 
 	var style = document.createElement('style');

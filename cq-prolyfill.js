@@ -24,7 +24,7 @@ window.addEventListener('resize', reevaluate);
 
 var REGEXP_ESCAPE_REGEXP = /[.?*+^$[\]\\(){}|-]/g;
 var SELECTOR_REGEXP = /\.?:container\(\s*(?:[a-z-]+)\s*(?:\<=|>=|<|>|=|!=)\s*[^)]+\s*\)/gi;
-var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(([a-z-]+)(\\<\\=|\\>\\=|\\<|\\>|\\=|\\!\\=)([^)]+?)\\\)/gi;
+var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(([a-z-]+)(\\<\\=|\\>\\=|\\<|\\>|\\=|\\!\\=)([^)]+?)(?:(\\<\\=|\\>\\=|\\<|\\>|\\=|\\!\\=)([^)]+?))?\\\)/gi;
 var ESCAPE_REGEXP = /[.:()<>!=]/g;
 var SPACE_REGEXP = / /g;
 var LENGTH_REGEXP = /^(-?(?:\d*\.)?\d+)(em|ex|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)$/i;
@@ -313,7 +313,7 @@ function parseRule(rule) {
 	}
 	splitSelectors(rule.selectorText).forEach(function(selector) {
 		selector = escapeSelectors(selector);
-		selector.replace(SELECTOR_ESCAPED_REGEXP, function(match, prop, type, value, offset) {
+		selector.replace(SELECTOR_ESCAPED_REGEXP, function(match, prop, type1, value1, type2, value2, offset) {
 			var precedingSelector =
 				(
 					selector.substr(0, offset)
@@ -326,13 +326,23 @@ function parseRule(rule) {
 			}
 			queries[precedingSelector + match.toLowerCase()] = {
 				_selector: precedingSelector,
-				_prop: prop.replace(/\\(.)/g, '$1').toLowerCase(),
-				_type: type.replace(/\\(.)/g, '$1'),
-				_value: value.replace(/\\(.)/g, '$1'),
-				_className: match.toLowerCase().substr(1).replace(/\\(.)/g, '$1'),
+				_prop: unescape(prop.toLowerCase()),
+				_types: [unescape(type1), unescape(type2)].filter(Boolean),
+				_values: [unescape(value1), unescape(value2)].filter(Boolean),
+				_className: unescape(match.toLowerCase().substr(1)),
 			};
 		});
 	});
+}
+
+/**
+ * Unescape backslash escaped string
+ *
+ * @param  {string} string
+ * @return {string}
+ */
+function unescape(string) {
+	return string && string.replace(/\\(.)/g, '$1');
 }
 
 /**
@@ -388,7 +398,7 @@ function updateClass(element, query) {
 function evaluateQuery(parent, query) {
 
 	var container = getContainer(parent, query._prop);
-	var qValue = query._value;
+	var qValues = query._values;
 
 	var cValue;
 	if (query._prop === 'width' || query._prop === 'height') {
@@ -398,33 +408,39 @@ function evaluateQuery(parent, query) {
 		cValue = getComputedStyle(container).getPropertyValue(query._prop);
 	}
 
-	if (qValue.match(LENGTH_REGEXP)) {
-		qValue = getComputedLength(qValue, parent);
+	if (qValues[0].match(LENGTH_REGEXP)) {
+		qValues = qValues.map(function(value) {
+			return getComputedLength(value, parent);
+		});
 		if (typeof cValue === 'string') {
 			cValue = getComputedLength(cValue, parent);
 		}
 	}
-	else if (qValue.match(NUMBER_REGEXP)) {
-		qValue = parseFloat(qValue);
+	else if (qValues[0].match(NUMBER_REGEXP)) {
+		qValues = qValues.map(parseFloat);
 		cValue = parseFloat(cValue);
 	}
 	else if (typeof cValue === 'string') {
 		cValue = cValue.trim();
 	}
 
-	if (['>', '<'].indexOf(query._type[0]) !== -1 && (
+	if (['>', '<'].indexOf(query._types[0][0]) !== -1 && (
 		typeof cValue !== 'number'
-		|| typeof qValue !== 'number'
+		|| typeof qValues[0] !== 'number'
 	)) {
 		return false;
 	}
 
-	return (query._type === '>=' && cValue >= qValue)
-		|| (query._type === '<=' && cValue <= qValue)
-		|| (query._type === '>' && cValue > qValue)
-		|| (query._type === '<' && cValue < qValue)
-		|| (query._type === '=' && cValue === qValue)
-		|| (query._type === '!=' && cValue !== qValue);
+	return qValues.reduce(function(result, qValue, index) {
+		return result && (
+			(query._types[index] === '>=' && cValue >= qValue)
+			|| (query._types[index] === '<=' && cValue <= qValue)
+			|| (query._types[index] === '>' && cValue > qValue)
+			|| (query._types[index] === '<' && cValue < qValue)
+			|| (query._types[index] === '=' && cValue === qValue)
+			|| (query._types[index] === '!=' && cValue !== qValue)
+		);
+	}, true);
 
 }
 
