@@ -23,8 +23,8 @@ window.addEventListener('load', reprocess);
 window.addEventListener('resize', reevaluate);
 
 var REGEXP_ESCAPE_REGEXP = /[.?*+^$[\]\\(){}|-]/g;
-var SELECTOR_REGEXP = /\.?:container\(\s*[a-z-]+(?:(?:\s+|\|)[a-z-]+)?\s*(?:\<=|>=|<|>|=|!=)\s*[^)]+\s*\)/gi;
-var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(([a-z-]+)(\\\|[a-z-]+)?(\\<\\=|\\>\\=|\\<|\\>|\\=|\\!\\=)([^)]+?)(?:(\\<\\=|\\>\\=|\\<|\\>|\\=|\\!\\=)([^)]+?))?\\\)/gi;
+var SELECTOR_REGEXP = /\.?:container\(\s*[a-z-]+(?:(?:\s+|\|)[a-z-]+)?\s*(?:[<>!=]=?)\s*[^)]+\s*\)/gi;
+var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(([a-z-]+)(\\\|[a-z-]+)?(\\[<>!=](?:\\=)?)([^)]+?)(?:(\\[<>!=](?:\\=)?)([^)]+?))?\\\)/gi;
 var ESCAPE_REGEXP = /[.:()<>!=%]/g;
 var SPACE_REGEXP = / /g;
 var LENGTH_REGEXP = /^(-?(?:\d*\.)?\d+)(em|ex|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)$/i;
@@ -32,10 +32,10 @@ var NUMBER_REGEXP = /^-?(?:\d*\.)?\d+$/i;
 var URL_VALUE_REGEXP = /url\(\s*(?:(["'])(.*?)\1|([^)\s]*))\s*\)/gi;
 var ATTR_REGEXP = /\[.+?\]/g;
 var PSEUDO_NOT_REGEXP = /:not\(/g;
-var ID_REGEXP = /#[^\s\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
-var CLASS_REGEXP = /\.[^\s\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
-var PSEUDO_ELEMENT_REGEXP = /::[^\s\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
-var PSEUDO_CLASS_REGEXP = /:[^\s\[\]\\!"#$%&'()*+,./:;<=>?@^`{|}~-]+/g;
+var ID_REGEXP = /#[^\s\[#+,.:>~]+/g;
+var CLASS_REGEXP = /\.[^\s\[#+,.:>~]+/g;
+var PSEUDO_ELEMENT_REGEXP = /::[^\s\[#+,.:>~]+/g;
+var PSEUDO_CLASS_REGEXP = /:[^\s\[#+,.:>~]+/g;
 var ELEMENT_REGEXP = /[a-z-]+/gi;
 var FIXED_UNIT_MAP = {
 	px: 1,
