@@ -354,6 +354,7 @@ QUnit.test('evaluateQuery', function(assert) {
 	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _types: ['<'], _values: ['']}), false, 'Invalid 10px < ""');
 	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _types: ['>'], _values: ['']}), false, 'Invalid 10px > ""');
 	assert.strictEqual(evaluateQuery(element, {_prop: 'width', _filter: 'invalid', _types: ['>'], _values: ['0px']}), false, 'Invalid filter');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'width', _types: ['='], _values: ['auto']}), false, 'Invalid width = auto');
 
 });
 
