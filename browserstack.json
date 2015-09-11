@@ -20,10 +20,6 @@
 		{
 			"os": "ios",
 			"os_version": "8.3"
-		},
-		{
-			"os":"winphone",
-			"os_version":"8.1"
 		}
 	]
 }
