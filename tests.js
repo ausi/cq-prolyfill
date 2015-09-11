@@ -14,7 +14,8 @@ QUnit.module('All', {
 });
 
 var fixture = document.getElementById('qunit-fixture');
-var TEST_FILES_URL = 'http://cdn.rawgit.com/ausi/cq-prolyfill/78569ef/test-files/';
+var TEST_FILES_URL_CORS = 'http://cdn.rawgit.com/ausi/cq-prolyfill/78569ef/test-files/';
+var TEST_FILES_URL_CROSS_ORIGIN = 'http://127.0.0.1.xip.io:8888/test-files/';
 var TEST_FILES_PATH = 'test-files/';
 
 /*global reprocess, getOriginalStyle*/
@@ -24,17 +25,32 @@ QUnit.test('CORS', function(assert) {
 
 	var element;
 
-	load('cors.css', false, function() {
+	load('cors.css', false, true, function() {
 		assert.equal(getOriginalStyle(element, ['color']).color, 'red', 'Style Stylesheet');
-	load('cors.css', true, function() {
+	load('cors.css', true, true, function() {
 		assert.equal(getOriginalStyle(element, ['color']).color, 'red', 'Style Stylesheet with crossOrigin');
-	load('cors-with-cq.css', false, function() {
+	load('cors-with-cq.css', false, true, function() {
 		assert.equal(getOriginalStyle(element, ['color']).color, 'blue', 'Container Query');
-	load('cors-with-cq.css', true, function() {
+	load('cors-with-cq.css', true, true, function() {
 		assert.equal(getOriginalStyle(element, ['color']).color, 'blue', 'Container Query with crossOrigin');
-	done(); }); }); }); });
+	load('cors.css', false, false, function() {
+		assert.ok(getOriginalStyle(element, ['color']).color === undefined || getOriginalStyle(element, ['color']).color === 'red', 'Non-CORS Style Stylesheet');
+		assert.equal(getComputedStyle(element).color, 'rgb(255, 0, 0)', 'Non-CORS Style Stylesheet computed style');
+	load('cors.css', true, false, function() {
+		assert.ok(getOriginalStyle(element, ['color']).color === undefined || getOriginalStyle(element, ['color']).color === 'red', 'Non-CORS Style Stylesheet with crossOrigin');
+		if ('crossOrigin' in document.createElement('link')) {
+			assert.equal(getComputedStyle(element).color, 'rgb(0, 0, 0)', 'Non-CORS Style Stylesheet with crossOrigin computed style (crossOrigin supported)');
+		}
+		else {
+			assert.equal(getComputedStyle(element).color, 'rgb(255, 0, 0)', 'Non-CORS Style Stylesheet with crossOrigin computed style (crossOrigin not supported)');
+		}
+	load('cors-with-cq.css', false, false, function() {
+		assert.strictEqual(getOriginalStyle(element, ['color']).color, undefined, 'Non-CORS Container Query');
+	load('cors-with-cq.css', true, false, function() {
+		assert.strictEqual(getOriginalStyle(element, ['color']).color, undefined, 'Non-CORS Container Query with crossOrigin');
+	done(); }); }); }); }); }); }); }); });
 
-	function load(file, crossOrigin, callback) {
+	function load(file, crossOrigin, cors, callback) {
 
 		fixture.innerHTML = '';
 
@@ -44,7 +60,7 @@ QUnit.test('CORS', function(assert) {
 			link.crossOrigin = 'anonymous';
 		}
 		link.onload = link.onerror = onLoad;
-		link.href = TEST_FILES_URL + file;
+		link.href = (cors ? TEST_FILES_URL_CORS : TEST_FILES_URL_CROSS_ORIGIN) + file;
 		fixture.appendChild(link);
 
 		element = document.createElement('div');
@@ -222,7 +238,7 @@ QUnit.test('loadExternal', function(assert) {
 		done();
 	});
 
-	loadExternal(TEST_FILES_URL + 'test.txt', function(response) {
+	loadExternal(TEST_FILES_URL_CORS + 'test.txt', function(response) {
 		assert.strictEqual(response, 'test\n', 'CORS request');
 		done();
 	});
@@ -232,7 +248,7 @@ QUnit.test('loadExternal', function(assert) {
 		done();
 	});
 
-	loadExternal(TEST_FILES_URL + '404', function(response) {
+	loadExternal(TEST_FILES_URL_CORS + '404', function(response) {
 		assert.strictEqual(response, '', 'CORS 404 request');
 		done();
 	});
