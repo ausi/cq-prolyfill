@@ -231,6 +231,8 @@ function resolveRelativeUrl(url, base) {
 		var link = createElement('a');
 		link.href = url;
 		absoluteUrl = link.href;
+		// Fix for a bug in Opera 12
+		delete baseElement.href;
 		document.head.removeChild(baseElement);
 	}
 	return absoluteUrl;

@@ -292,6 +292,9 @@ QUnit.test('resolveRelativeUrl', function(assert) {
 	assert.equal(resolveRelativeUrl('foo', base), 'http://example.com/dir/foo', 'Directory relative');
 	assert.equal(resolveRelativeUrl('?foo', base), 'http://example.com/dir/file.ext?foo', 'Query relative');
 	assert.equal(resolveRelativeUrl('#foo', base), 'http://example.com/dir/file.ext?query#foo', 'Anchor relative');
+	var link = document.createElement('a');
+	link.href = '/';
+	assert.equal(link.href, document.location.protocol + '//' + document.location.href.split('://')[1].split('/')[0] + '/', 'Opera <base> tag bug');
 });
 
 /*global splitSelectors*/
