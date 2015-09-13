@@ -364,31 +364,94 @@ function splitSelectors(selectors) {
  * matching elements
  */
 function updateClasses() {
+
+	if (!Object.keys(queries).length) {
+		return;
+	}
+
 	containerCache = createCacheMap();
-	Object.keys(queries).forEach(function(key) {
-		var elements = document.querySelectorAll(queries[key]._selector);
-		for (var i = 0; i < elements.length; i++) {
-			updateClass(elements[i], queries[key]);
-		}
-	});
+
+	var elementsTree = buildElementsTree(queries);
+
+	while(read(elementsTree)) {
+		write(elementsTree);
+	}
+	write(elementsTree);
+
+	function read(treeNodes) {
+		var hasChanges = false;
+		treeNodes.forEach(function(node) {
+			if (!node._done) {
+				node._queries.forEach(function(query) {
+					var queryMatches = evaluateQuery(node._element.parentNode, query);
+					if (queryMatches !== hasClass(node._element, query._className)) {
+						node._changes.push([queryMatches, query]);
+					}
+				});
+				node._done = true;
+			}
+			if (node._changes.length) {
+				hasChanges = true;
+			}
+			else {
+				hasChanges = read(node._children);
+			}
+		});
+		return hasChanges;
+	}
+
+	function write(treeNodes) {
+		treeNodes.forEach(function(node) {
+			node._changes.forEach(function(change) {
+				(change[0] ? addClass : removeClass)(node._element, change[1]._className);
+			});
+			node._changes = [];
+			write(node._children);
+		});
+	}
+
 }
 
 /**
- * Add or remove CSS class on the element depending on the specified query
+ * Build tree of all query elements
  *
- * @param {Element} element
- * @param {object}  query
+ * @return {Array.<{_element: Element, _children: array, _queries: array, _changes: array, _done: boolean}>}
  */
-function updateClass(element, query) {
-	if (element === documentElement) {
-		return;
-	}
-	if (evaluateQuery(element.parentNode, query)) {
-		addClass(element, query._className);
-	}
-	else {
-		removeClass(element, query._className);
-	}
+function buildElementsTree() {
+	var elements = document.querySelectorAll(
+		Object.keys(queries).map(function(key) {
+			return queries[key]._selector;
+		}).join(',')
+	);
+	var tree = [];
+	var treeCache = createCacheMap();
+	arrayFrom(elements).forEach(function(element) {
+		if (element === documentElement) {
+			return;
+		}
+		var treeNode = {
+			_element: element,
+			_children: [],
+			_queries: [],
+			_changes: [],
+			_done: false,
+		};
+		var children = tree;
+		for (var node = element.parentNode; node; node = node.parentNode) {
+			if (treeCache.get(node)) {
+				children = treeCache.get(node)._children;
+				break;
+			}
+		}
+		treeCache.set(element, treeNode);
+		children.push(treeNode);
+		Object.keys(queries).forEach(function(key) {
+			if (elementMatchesSelector(element, queries[key]._selector)) {
+				treeNode._queries.push(queries[key]);
+			}
+		});
+	});
+	return tree;
 }
 
 /**
@@ -991,12 +1054,26 @@ function createCacheMap() {
  * @param {Element} element
  * @param {string}  className
  */
+function hasClass(element, className) {
+	if (element.classList) {
+		return element.classList.contains(className);
+	}
+	return !!element.className.match(new RegExp(
+		'(?:^|\\s+)'
+		+ className.replace(REGEXP_ESCAPE_REGEXP, '\\$&')
+		+ '($|\\s+)'
+	));
+}
+
+/**
+ * @param {Element} element
+ * @param {string}  className
+ */
 function addClass(element, className) {
 	if (element.classList) {
 		element.classList.add(className);
 	}
-	else {
-		removeClass(element, className);
+	else if (!hasClass(element, className)) {
 		element.className += ' ' + className;
 	}
 }

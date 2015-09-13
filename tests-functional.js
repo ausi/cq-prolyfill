@@ -406,4 +406,119 @@ QUnit.test('Opacity Query', function(assert) {
 
 });
 
+QUnit.test('Performance of many elements on the same level', function(assert) {
+
+	var style = document.createElement('style');
+	style.type = 'text/css';
+	style.innerHTML = '@font-face { font-family: no-query; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: query; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '.test { font-family: no-query }'
+		+ '.test:container(width > 100px) { font-family: query }';
+	fixture.appendChild(style);
+
+	var element = document.createElement('div');
+	element.innerHTML = new Array(1001).join('<div class="test"></div>');
+	fixture.appendChild(element);
+
+	var reevaluate = window.containerQueries.reevaluate;
+
+	var done = assert.async();
+	window.containerQueries.reprocess(function () {
+
+		var font = function(node) {
+			return window.getComputedStyle(node).fontFamily;
+		};
+
+		element.style.cssText = 'width: 100px';
+		element.getBoundingClientRect(); // force reflow
+		/*eslint-disable no-console*/
+		if (window.console && console.timeStamp) {
+			console.timeStamp('No reflow should occur from here');
+		}
+		reevaluate();
+		if (window.console && console.timeStamp) {
+			console.timeStamp('No reflow should occur until here');
+		}
+		/*eslint-enable no-console*/
+		assert.equal(font(element.firstChild), 'no-query', 'Width 100px first');
+		assert.equal(font(element.lastChild), 'no-query', 'Width 100px last');
+
+		element.style.cssText = 'width: 101px';
+		reevaluate();
+		assert.equal(font(element.firstChild), 'query', 'Width 101px first');
+		assert.equal(font(element.lastChild), 'query', 'Width 101px last');
+
+		done();
+
+	});
+
+});
+
+QUnit.test('Performance of many nested elements', function(assert) {
+
+	var style = document.createElement('style');
+	style.type = 'text/css';
+	style.innerHTML = '@font-face { font-family: no-query; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: query; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '.test { font-family: no-query }'
+		+ '.test:container(width > 100px) { padding: 1px; font-family: query }';
+	fixture.appendChild(style);
+
+	var element = document.createElement('div');
+	element.style.cssText = 'width: 0';
+	element.innerHTML = new Array(101).join(
+		new Array(11).join('<div class="test">')
+		+ new Array(11).join('</div>')
+	);
+	fixture.appendChild(element);
+	var first = element.firstChild;
+	var nestedLast = element.lastChild.querySelector('.test:empty');
+
+	var reevaluate = window.containerQueries.reevaluate;
+
+	var done = assert.async();
+	window.containerQueries.reprocess(function () {
+
+		var font = function(node) {
+			return window.getComputedStyle(node).fontFamily;
+		};
+
+		element.style.cssText = 'width: 100px';
+		element.getBoundingClientRect(); // force reflow
+		/*eslint-disable no-console*/
+		if (window.console && console.timeStamp) {
+			console.timeStamp('No reflow should occur from here');
+			console.profile('No reflow should occur');
+		}
+		reevaluate();
+		if (window.console && console.timeStamp) {
+			console.timeStamp('No reflow should occur until here');
+			console.profileEnd('No reflow should occur');
+		}
+		/*eslint-enable no-console*/
+		assert.equal(font(first), 'no-query', 'Width 100px first');
+		assert.equal(font(nestedLast), 'no-query', 'Width 100px nested last');
+
+		element.style.cssText = 'width: 118px';
+		/*eslint-disable no-console*/
+		if (window.console && console.timeStamp) {
+			console.timeStamp('Not more than 10 reflows should occur from here');
+			console.profile('Not more than 10 reflows should occur');
+		}
+		reevaluate();
+		if (window.console && console.timeStamp) {
+			console.timeStamp('Not more than 10 reflows should occur until here');
+			console.profileEnd('Not more than 10 reflows should occur');
+		}
+		/*eslint-enable no-console*/
+		assert.equal(font(first), 'query', 'Width 118px first');
+		assert.equal(font(nestedLast.parentNode), 'query', 'Width 118px nested last parent');
+		assert.equal(font(nestedLast), 'no-query', 'Width 118px nested last');
+
+		done();
+
+	});
+
+});
+
 })();
