@@ -938,8 +938,8 @@ function elementMatchesSelector(element, selector) {
  * @return {boolean}
  */
 function styleHasProperty(style, props) {
-	for (var i = 0; i < style.length; i++) {
-		if (props.indexOf(style.item(i)) !== -1) {
+	for (var i = 0; i < props.length; i++) {
+		if (style.getPropertyValue(props[i])) {
 			return true;
 		}
 	}
