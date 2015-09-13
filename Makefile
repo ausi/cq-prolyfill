@@ -59,12 +59,12 @@ $(BROWSERSTACK_RUNNER): $(MODULES)
 test: $(ESLINT) $(SOURCE) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HTML) $(TEST_HTML_FUNCTIONAL) $(MODULES)
 	$(ESLINT) $(SOURCE)
 	node -e "require('connect')().use(require('serve-static')(__dirname)).listen(8888)" & echo "$$!" > server.pid
-	$(SLIMERJS) $(TEST_RUNNER) http://localhost:8888/$(TEST_HTML) | tee tests/slimerjs.log
+	$(SLIMERJS) $(TEST_RUNNER) http://localhost:8888/$(TEST_HTML) 20 | tee tests/slimerjs.log
 	kill `cat server.pid` && rm server.pid
 	@ grep ' passed, 0 failed.' tests/slimerjs.log > /dev/null
 	@ rm tests/slimerjs.log
 	node -e "require('connect')().use(require('serve-static')(__dirname)).listen(8888)" & echo "$$!" > server.pid
-	$(SLIMERJS) $(TEST_RUNNER) http://localhost:8888/$(TEST_HTML_FUNCTIONAL) | tee tests/slimerjs.log
+	$(SLIMERJS) $(TEST_RUNNER) http://localhost:8888/$(TEST_HTML_FUNCTIONAL) 20 | tee tests/slimerjs.log
 	kill `cat server.pid` && rm server.pid
 	@ grep ' passed, 0 failed.' tests/slimerjs.log > /dev/null
 	@ rm tests/slimerjs.log
