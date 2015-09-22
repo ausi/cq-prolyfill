@@ -6,6 +6,7 @@ ESLINT = $(BIN)/eslint
 ISTANBUL = $(BIN)/istanbul
 SOURCE = cq-prolyfill.js
 TARGET = $(SOURCE:%.js=%.min.js)
+TARGET_GZ = $(SOURCE:%.js=%.min.js.gz)
 TARGET_TMP = $(SOURCE:%.js=%.tmp.min.js)
 TESTS = tests.js
 TESTS_FUNCTIONAL = tests-functional.js
@@ -20,11 +21,14 @@ PHANTOMJS_RUNNER = $(MODULES)/qunit-phantomjs-runner/runner.js
 TEST_RUNNER = tests/slimerjs-runner.js
 BROWSERSTACK_RUNNER = $(BIN)/browserstack-runner
 
-all: $(TARGET)
+all: $(TARGET) $(TARGET_GZ)
 
 $(TARGET): $(TARGET_TMP)
 	make test
 	cat $< > $@
+
+$(TARGET_GZ): $(TARGET)
+	cat $< | gzip -9 > $@
 
 $(TARGET_TMP): $(SOURCE) $(UGLIFY) $(TESTS) $(TESTS_FUNCTIONAL)
 	$(UGLIFY) $(UGLIFY_OPTS) $< > $@
