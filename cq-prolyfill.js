@@ -18,9 +18,9 @@ window.containerQueries = {
 // Reevaluate now
 setTimeout(reevaluate);
 
-window.addEventListener('DOMContentLoaded', reprocess);
-window.addEventListener('load', reprocess);
-window.addEventListener('resize', reevaluate);
+window.addEventListener('DOMContentLoaded', reprocess.bind(undefined, undefined));
+window.addEventListener('load', reprocess.bind(undefined, undefined));
+window.addEventListener('resize', reevaluate.bind(undefined, true, undefined));
 
 var REGEXP_ESCAPE_REGEXP = /[.?*+^$[\]\\(){}|-]/g;
 var SELECTOR_REGEXP = /\.?:container\(\s*[a-z-]+(?:(?:\s+|\|)[a-z-]+)?\s*(?:[<>!=]=?)\s*[^)]+\s*\)/gi;
@@ -73,18 +73,19 @@ function reparse(callback) {
 	}
 	parseRules();
 	parsed = true;
-	reevaluate(callback);
+	reevaluate(true, callback);
 }
 
 /**
+ * @param {boolean}    clearContainerCache
  * @param {function()} callback
  */
-function reevaluate(callback) {
+function reevaluate(clearContainerCache, callback) {
 	if (!parsed) {
 		return reparse(callback);
 	}
-	updateClasses();
-	if (callback && callback.call) {
+	updateClasses(clearContainerCache);
+	if (callback) {
 		callback();
 	}
 }
@@ -362,14 +363,18 @@ function splitSelectors(selectors) {
 /**
  * Step 3: Loop through the `queries` and add or remove the CSS classes of all
  * matching elements
+ *
+ * @param {boolean} clearContainerCache
  */
-function updateClasses() {
+function updateClasses(clearContainerCache) {
+
+	if (clearContainerCache || !containerCache) {
+		containerCache = createCacheMap();
+	}
 
 	if (!Object.keys(queries).length) {
 		return;
 	}
-
-	containerCache = createCacheMap();
 
 	var elementsTree = buildElementsTree(queries);
 

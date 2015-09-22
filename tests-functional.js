@@ -55,7 +55,7 @@ QUnit.test('Simple width and height Query', function(assert) {
 		assert.notEqual(font(document.documentElement), 'invalid-query', 'Invalid HTML container query');
 
 		element.style.cssText = 'width: 109px; height: 109px';
-		reevaluate();
+		reevaluate(true);
 		assert.equal(font(minW), 'no-query', 'min-width at 99px');
 		assert.equal(font(minH), 'no-query', 'min-height at 99px');
 
@@ -116,7 +116,7 @@ QUnit.test('Combined Queries', function(assert) {
 		};
 
 		element.style.cssText = 'width: 100px; height: 100px';
-		reevaluate();
+		reevaluate(true);
 		assert.notEqual(font(test), 'query', 'width 100, height 100');
 
 		element.style.cssText = 'width: 101px; height: 100px';
@@ -266,7 +266,7 @@ QUnit.test('Background Color Query', function(assert) {
 		};
 
 		element.style.cssText = 'background: white';
-		reevaluate();
+		reevaluate(true);
 		assert.equal(font(test), 'light', 'White background');
 
 		element.style.cssText = 'background: black';
@@ -418,6 +418,7 @@ QUnit.test('Performance of many elements on the same level', function(assert) {
 
 	var element = document.createElement('div');
 	element.innerHTML = new Array(1001).join('<div class="test"></div>');
+	element.style.cssText = 'width: 0';
 	fixture.appendChild(element);
 
 	var reevaluate = window.containerQueries.reevaluate;
