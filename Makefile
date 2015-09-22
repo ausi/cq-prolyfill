@@ -12,7 +12,8 @@ TESTS_FUNCTIONAL = tests-functional.js
 QUNIT = $(MODULES)/qunitjs/qunit
 QUNIT_JS = $(QUNIT)/qunit.js
 QUNIT_CSS = $(QUNIT)/qunit.css
-TEST_HTML = tests/index.html
+TEST_HTML_ALL = tests/all.html
+TEST_HTML_COVERAGE = tests/coverage.html
 TEST_HTML_FUNCTIONAL = tests/functional.html
 SLIMERJS = $(BIN)/slimerjs
 PHANTOMJS_RUNNER = $(MODULES)/qunit-phantomjs-runner/runner.js
@@ -56,10 +57,10 @@ $(BROWSERSTACK_RUNNER): $(MODULES)
 	touch $@
 
 .PHONY: test
-test: $(ESLINT) $(SOURCE) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HTML) $(TEST_HTML_FUNCTIONAL) $(MODULES)
+test: $(ESLINT) $(SOURCE) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HTML_ALL) $(TEST_HTML_COVERAGE) $(TEST_HTML_FUNCTIONAL) $(MODULES)
 	$(ESLINT) $(SOURCE)
 	node -e "require('connect')().use(require('serve-static')(__dirname)).listen(8888)" & echo "$$!" > server.pid
-	$(SLIMERJS) $(TEST_RUNNER) http://localhost:8888/$(TEST_HTML) 20 | tee tests/slimerjs.log
+	$(SLIMERJS) $(TEST_RUNNER) http://localhost:8888/$(TEST_HTML_ALL) 20 | tee tests/slimerjs.log
 	kill `cat server.pid` && rm server.pid
 	@ grep ' passed, 0 failed.' tests/slimerjs.log > /dev/null
 	@ rm tests/slimerjs.log
@@ -73,7 +74,27 @@ test: $(ESLINT) $(SOURCE) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HTML) $(TEST_HTML_FU
 watch:
 	while true; do (make || make -t) | grep -v "Nothing to be done"; sleep 1; done
 
-$(TEST_HTML): $(TESTS) $(TESTS_FUNCTIONAL) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS) $(ISTANBUL)
+$(TEST_HTML_ALL): $(TESTS) $(TESTS_FUNCTIONAL) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS)
+	mkdir -p tests
+	echo '<!doctype html>' > $@
+	echo '<html><head>' >> $@
+	echo '<meta charset="utf-8">' >> $@
+	echo '<link rel="stylesheet" href="../$(QUNIT_CSS)">' >> $@
+	echo '</head><body>' >> $@
+	echo '<div id="qunit"></div>' >> $@
+	echo '<div id="qunit-fixture"></div>' >> $@
+	echo '<script src="../$(QUNIT_JS)"></script>' >> $@
+	echo '<script>' >> $@
+	cat $(SOURCE) | replace '})(window, document);' '' >> $@
+	cat $< >> $@
+	cat $(TESTS_FUNCTIONAL) >> $@
+	echo '})(window, document);' >> $@
+	echo '</script>' >> $@
+	echo '</body></html>' >> $@
+	rm -rf tests/test-files
+	cp -r test-files tests/
+
+$(TEST_HTML_COVERAGE): $(TESTS) $(TESTS_FUNCTIONAL) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS) $(ISTANBUL)
 	mkdir -p tests
 	echo '<!doctype html>' > $@
 	echo '<html><head>' >> $@
@@ -121,7 +142,7 @@ clean:
 	rm -fr $(MODULES)
 
 .PHONY: browserstack
-browserstack: $(BROWSERSTACK_RUNNER) $(ISTANBUL) $(TEST_HTML) $(TEST_HTML_FUNCTIONAL)
+browserstack: $(BROWSERSTACK_RUNNER) $(ISTANBUL) $(TEST_HTML_COVERAGE) $(TEST_HTML_FUNCTIONAL)
 	$(BROWSERSTACK_RUNNER) | tee tests/browserstack.log | grep -v '] coverage: {'
 	@ grep 'All tests done, failures: 0.' tests/browserstack.log > /dev/null
 	rm -f tests/coverage-*
