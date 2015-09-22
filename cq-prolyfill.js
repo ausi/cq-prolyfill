@@ -5,7 +5,13 @@
  * file that was distributed with this source code.
  */
 
-(function(window, document) {
+(function(
+	window,
+	document,
+	/*eslint-disable no-shadow-restricted-names*/
+	undefined
+	/*eslint-enable no-shadow-restricted-names*/
+) {
 'use strict';
 
 // Public API
