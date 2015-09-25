@@ -4,6 +4,7 @@ UGLIFY = $(BIN)/uglifyjs
 UGLIFY_OPTS = --compress=unsafe,pure_getters --mangle --mangle-props --mangle-regex="/^_/" --screw-ie8
 ESLINT = $(BIN)/eslint
 ISTANBUL = $(BIN)/istanbul
+ZOPFLI = $(BIN)/zopfli
 SOURCE = cq-prolyfill.js
 TARGET = $(SOURCE:%.js=%.min.js)
 TARGET_GZ = $(SOURCE:%.js=%.min.js.gz)
@@ -27,8 +28,9 @@ $(TARGET): $(TARGET_TMP)
 	make test
 	cat $< > $@
 
-$(TARGET_GZ): $(TARGET)
-	cat $< | gzip -9 > $@
+$(TARGET_GZ): $(TARGET) $(ZOPFLI)
+	rm -f $@
+	$(ZOPFLI) $<
 
 $(TARGET_TMP): $(SOURCE) $(UGLIFY) $(TESTS) $(TESTS_FUNCTIONAL)
 	$(UGLIFY) $(UGLIFY_OPTS) $< > $@
@@ -43,6 +45,9 @@ $(ESLINT): $(MODULES)
 	touch $@
 
 $(ISTANBUL): $(MODULES)
+	touch $@
+
+$(ZOPFLI): $(MODULES)
 	touch $@
 
 $(QUNIT_JS): $(MODULES)
@@ -141,6 +146,7 @@ $(TEST_RUNNER): $(PHANTOMJS_RUNNER)
 .PHONY: clean
 clean:
 	rm -f $(TARGET_TMP)
+	rm -f $(TARGET_GZ)
 	rm -f $(TARGET)
 	rm -fr tests
 	rm -fr $(MODULES)

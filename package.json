@@ -8,6 +8,7 @@
     "coveralls": "^2.11.4",
     "eslint": "^0.24.1",
     "istanbul": "^0.3.18",
+    "node-zopfli": "^1.4.0",
     "qunit-phantomjs-runner": "^2.1.0",
     "qunitjs": "^1.18.0",
     "serve-static": "^1.10.0",
