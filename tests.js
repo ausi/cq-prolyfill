@@ -14,7 +14,7 @@ QUnit.module('All', {
 });
 
 var fixture = document.getElementById('qunit-fixture');
-var TEST_FILES_URL_CORS = 'http://cdn.rawgit.com/ausi/cq-prolyfill/78569ef/test-files/';
+var TEST_FILES_URL_CORS = 'http://cdn.rawgit.com/ausi/cq-prolyfill/542e526/test-files/';
 var TEST_FILES_URL_CROSS_ORIGIN = 'http://127.0.0.1.xip.io:8888/test-files/';
 var TEST_FILES_PATH = 'test-files/';
 
