@@ -610,8 +610,8 @@ function getContainer(element, prop) {
  * @return {boolean}
  */
 function isFixedSize(element, prop) {
-	var originalStyle = getOriginalStyle(element, [prop]);
-	if (originalStyle[prop] && originalStyle[prop].match(LENGTH_REGEXP)) {
+	var originalStyle = getOriginalStyle(element, prop);
+	if (originalStyle && originalStyle.match(LENGTH_REGEXP)) {
 		return true;
 	}
 	return false;
@@ -647,15 +647,15 @@ function isIntrinsicSize(element, prop) {
 		return false;
 	}
 
-	var originalStyle = getOriginalStyle(element, [prop]);
+	var originalStyle = getOriginalStyle(element, prop);
 
 	// Fixed size
-	if (originalStyle[prop] && originalStyle[prop].match(LENGTH_REGEXP)) {
+	if (originalStyle && originalStyle.match(LENGTH_REGEXP)) {
 		return false;
 	}
 
 	// Percentage size
-	if (originalStyle[prop] && originalStyle[prop].substr(-1) === '%') {
+	if (originalStyle && originalStyle.substr(-1) === '%') {
 		return false;
 	}
 
@@ -764,15 +764,14 @@ function getComputedStyle(element) {
 /**
  * Get the original style of an element as it was specified in CSS
  *
- * @param  {Element}        element
- * @param  {Array.<string>} props   Properties to return, e.g. `['width', 'height']`
- * @return {Object.<string, string>}
+ * @param  {Element} element
+ * @param  {string}  prop    Property to return, e.g. `width` or `height`
+ * @return {string}
  */
-function getOriginalStyle(element, props) {
+function getOriginalStyle(element, prop) {
 
 	var matchedRules = [];
 	var rules;
-	var result = {};
 	var value;
 	var i, j;
 
@@ -789,7 +788,7 @@ function getOriginalStyle(element, props) {
 		catch(e) {
 			continue;
 		}
-		matchedRules = matchedRules.concat(filterRulesByElementAndProps(rules, element, props));
+		matchedRules = matchedRules.concat(filterRulesByElementAndProp(rules, element, prop));
 	}
 
 	matchedRules = sortRulesBySpecificity(matchedRules);
@@ -802,36 +801,26 @@ function getOriginalStyle(element, props) {
 	});
 
 	// Loop through all important styles
-	for (i = 0; i < props.length; i++) {
-		for (j = 0; j < matchedRules.length; j++) {
-			if (
-				(value = matchedRules[j]._rule.style.getPropertyValue(props[i]))
-				&& matchedRules[j]._rule.style.getPropertyPriority(props[i]) === 'important'
-			) {
-				result[props[i]] = value;
-				break;
-			}
+	for (j = 0; j < matchedRules.length; j++) {
+		if (
+			(value = matchedRules[j]._rule.style.getPropertyValue(prop))
+			&& matchedRules[j]._rule.style.getPropertyPriority(prop) === 'important'
+		) {
+			return value;
 		}
 	}
 
 	// Loop through all non-important styles
-	for (i = 0; i < props.length; i++) {
-		// Skip if an !important rule already matched
-		if (result[props[i]]) {
-			continue;
-		}
-		for (j = 0; j < matchedRules.length; j++) {
-			if (
-				(value = matchedRules[j]._rule.style.getPropertyValue(props[i]))
-				&& matchedRules[j]._rule.style.getPropertyPriority(props[i]) !== 'important'
-			) {
-				result[props[i]] = value;
-				break;
-			}
+	for (j = 0; j < matchedRules.length; j++) {
+		if (
+			(value = matchedRules[j]._rule.style.getPropertyValue(prop))
+			&& matchedRules[j]._rule.style.getPropertyPriority(prop) !== 'important'
+		) {
+			return value;
 		}
 	}
 
-	return result;
+	return undefined;
 
 }
 
@@ -892,20 +881,17 @@ function rgbaToHsla(color) {
 /**
  * Filter rules by matching the element and at least one property
  *
- * @param  {CSSRuleList}    rules
- * @param  {Element}        element
- * @param  {Array.<string>} props
+ * @param  {CSSRuleList} rules
+ * @param  {Element}     element
+ * @param  {string}      prop
  * @return {Array.<{_selector: string, _rule: CSSRule}>}
  */
-function filterRulesByElementAndProps(rules, element, props) {
+function filterRulesByElementAndProp(rules, element, prop) {
 	var matchedRules = [];
 	for (var i = 0; i < rules.length; i++) {
-		if (rules[i].cssRules) {
-			matchedRules = matchedRules.concat(filterRulesByElementAndProps(rules[i].cssRules, element, props));
-		}
-		else if (rules[i].type === 1) { // Style rule
+		if (rules[i].type === 1) { // Style rule
 			if (
-				styleHasProperty(rules[i].style, props)
+				rules[i].style.getPropertyValue(prop)
 				&& (
 					!rules[i].parentRule
 					|| rules[i].parentRule.type !== 4 // @media rule
@@ -923,6 +909,9 @@ function filterRulesByElementAndProps(rules, element, props) {
 				});
 			}
 		}
+		else if (rules[i].cssRules) {
+			matchedRules = matchedRules.concat(filterRulesByElementAndProp(rules[i].cssRules, element, prop));
+		}
 	}
 	return matchedRules;
 }
@@ -939,22 +928,6 @@ function elementMatchesSelector(element, selector) {
 		|| element.oMatchesSelector
 		|| element.webkitMatchesSelector;
 	return func.call(element, escapeSelectors(selector));
-}
-
-/**
- * Check if the style object has one of the specified properties
- *
- * @param  {CSSStyleDeclaration} style
- * @param  {Array.<string>}      props
- * @return {boolean}
- */
-function styleHasProperty(style, props) {
-	for (var i = 0; i < props.length; i++) {
-		if (style.getPropertyValue(props[i])) {
-			return true;
-		}
-	}
-	return false;
 }
 
 /**
