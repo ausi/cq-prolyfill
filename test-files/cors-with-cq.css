@@ -1,3 +1,4 @@
 .cors-test:container(width >= 0px) {
 	color: blue;
+	width: 20%;
 }

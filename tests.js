@@ -26,18 +26,18 @@ QUnit.test('CORS', function(assert) {
 	var element;
 
 	load('cors.css', false, true, function() {
-		assert.equal(getOriginalStyle(element, 'color'), 'red', 'Style Stylesheet');
+		assert.equal(getOriginalStyle(element, 'width'), '10%', 'Style Stylesheet');
 	load('cors.css', true, true, function() {
-		assert.equal(getOriginalStyle(element, 'color'), 'red', 'Style Stylesheet with crossOrigin');
+		assert.equal(getOriginalStyle(element, 'width'), '10%', 'Style Stylesheet with crossOrigin');
 	load('cors-with-cq.css', false, true, function() {
-		assert.equal(getOriginalStyle(element, 'color'), 'blue', 'Container Query');
+		assert.equal(getOriginalStyle(element, 'width'), '20%', 'Container Query');
 	load('cors-with-cq.css', true, true, function() {
-		assert.equal(getOriginalStyle(element, 'color'), 'blue', 'Container Query with crossOrigin');
+		assert.equal(getOriginalStyle(element, 'width'), '20%', 'Container Query with crossOrigin');
 	load('cors.css', false, false, function() {
-		assert.ok(getOriginalStyle(element, 'color') === undefined || getOriginalStyle(element, 'color') === 'red', 'Non-CORS Style Stylesheet');
+		assert.ok(getOriginalStyle(element, 'width') === undefined || getOriginalStyle(element, 'width') === '10%', 'Non-CORS Style Stylesheet');
 		assert.equal(getComputedStyle(element).color, 'rgb(255, 0, 0)', 'Non-CORS Style Stylesheet computed style');
 	load('cors.css', true, false, function() {
-		assert.ok(getOriginalStyle(element, 'color') === undefined || getOriginalStyle(element, 'color') === 'red', 'Non-CORS Style Stylesheet with crossOrigin');
+		assert.ok(getOriginalStyle(element, 'width') === undefined || getOriginalStyle(element, 'width') === '10%', 'Non-CORS Style Stylesheet with crossOrigin');
 		if ('crossOrigin' in document.createElement('link')) {
 			assert.equal(getComputedStyle(element).color, 'rgb(0, 0, 0)', 'Non-CORS Style Stylesheet with crossOrigin computed style (crossOrigin supported)');
 		}
@@ -45,9 +45,9 @@ QUnit.test('CORS', function(assert) {
 			assert.equal(getComputedStyle(element).color, 'rgb(255, 0, 0)', 'Non-CORS Style Stylesheet with crossOrigin computed style (crossOrigin not supported)');
 		}
 	load('cors-with-cq.css', false, false, function() {
-		assert.strictEqual(getOriginalStyle(element, 'color'), undefined, 'Non-CORS Container Query');
+		assert.strictEqual(getOriginalStyle(element, 'width'), undefined, 'Non-CORS Container Query');
 	load('cors-with-cq.css', true, false, function() {
-		assert.strictEqual(getOriginalStyle(element, 'color'), undefined, 'Non-CORS Container Query with crossOrigin');
+		assert.strictEqual(getOriginalStyle(element, 'width'), undefined, 'Non-CORS Container Query with crossOrigin');
 	done(); }); }); }); }); }); }); }); });
 
 	function load(file, crossOrigin, cors, callback) {
@@ -520,7 +520,7 @@ QUnit.test('getComputedStyle', function(assert) {
 	assert.equal(getComputedStyle(element).getPropertyValue('font-size'), '10px', 'Correct font-size value via getPropertyValue');
 });
 
-/*global getOriginalStyle*/
+/*global getOriginalStyle, buildStyleCache*/
 QUnit.test('getOriginalStyle', function(assert) {
 
 	var element = document.createElement('div');
@@ -533,9 +533,10 @@ QUnit.test('getOriginalStyle', function(assert) {
 	fixture.appendChild(style);
 	fixture.appendChild(element);
 
+	buildStyleCache();
+
 	assert.equal(getOriginalStyle(element, 'width'), '100%', 'Get width from <style>');
 	assert.equal(getOriginalStyle(element, 'height'), 'auto', 'Get height from <style>');
-	assert.equal(getOriginalStyle(element, 'color'), undefined, 'Get undefined property');
 	element.style.width = '100px';
 	assert.equal(getOriginalStyle(element, 'width'), '100px', 'Get width from style attribute');
 	element.style.width = '';
@@ -564,7 +565,7 @@ QUnit.test('rgbaToHsla', function(assert) {
 	assert.deepEqual(rgbaToHsla([204, 255, 204, 0.5]), [120, 100, 90, 0.5], 'Light semitransparent green');
 });
 
-/*global filterRulesByElementAndProp*/
+/*global filterRulesByElementAndProp, buildStyleCache, styleCache*/
 QUnit.test('filterRulesByElementAndProp', function(assert) {
 
 	var element = document.createElement('div');
@@ -580,7 +581,9 @@ QUnit.test('filterRulesByElementAndProp', function(assert) {
 	fixture.appendChild(style);
 	fixture.appendChild(element);
 
-	var rules = filterRulesByElementAndProp(style.sheet.cssRules, element, 'width');
+	buildStyleCache();
+
+	var rules = filterRulesByElementAndProp(styleCache.width, element, 'width');
 	assert.equal(rules.length, 2, 'Two rules');
 	assert.equal(rules[0]._selector, '.myel', 'First selector');
 	assert.equal(rules[0]._rule.style.width, '1px', 'Property');
@@ -603,26 +606,36 @@ QUnit.test('elementMatchesSelector', function(assert) {
 
 });
 
-/*global sortRulesBySpecificity*/
+/*global sortRulesBySpecificity, getSpecificity*/
 QUnit.test('sortRulesBySpecificity', function(assert) {
 	var unsorted = [
-		{_selector: 'tag1'},
-		{_selector: 'tag2'},
-		{_selector: '.class'},
-		{_selector: '#id'},
-		{_selector: 'tag tag'},
-		{_selector: '.class.class'},
-		{_selector: '#id#id'},
-	];
+		'tag1',
+		'tag2',
+		'.class',
+		'#id',
+		'tag tag',
+		'.class.class',
+		'#id#id',
+	].map(function(selector) {
+		return {
+			_selector: selector,
+			_specificity: getSpecificity(selector),
+		};
+	});
 	var sorted = [
-		{_selector: '#id#id'},
-		{_selector: '#id'},
-		{_selector: '.class.class'},
-		{_selector: '.class'},
-		{_selector: 'tag tag'},
-		{_selector: 'tag2'},
-		{_selector: 'tag1'},
-	];
+		'#id#id',
+		'#id',
+		'.class.class',
+		'.class',
+		'tag tag',
+		'tag2',
+		'tag1',
+	].map(function(selector) {
+		return {
+			_selector: selector,
+			_specificity: getSpecificity(selector),
+		};
+	});
 	assert.deepEqual(sortRulesBySpecificity(unsorted), sorted, 'Correct sort order');
 });
 

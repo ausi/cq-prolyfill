@@ -54,6 +54,7 @@ var FIXED_UNIT_MAP = {
 
 var queries;
 var containerCache;
+var styleCache;
 var processed = false;
 var parsed = false;
 var documentElement = document.documentElement;
@@ -78,6 +79,7 @@ function reparse(callback) {
 		return reprocess(callback);
 	}
 	parseRules();
+	buildStyleCache();
 	parsed = true;
 	reevaluate(true, callback);
 }
@@ -364,6 +366,88 @@ function unescape(string) {
 function splitSelectors(selectors) {
 	// TODO: Fix complex selectors like fo\,o[attr="val,u\"e"]
 	return selectors.split(/\s*,\s*/);
+}
+
+/**
+ * Builds the styleCache needed by getOriginalStyle
+ */
+function buildStyleCache() {
+	styleCache = {
+		width: {},
+		height: {},
+	};
+	var rules;
+	for (var i = 0; i < styleSheets.length; i++) {
+		if (styleSheets[i].disabled) {
+			continue;
+		}
+		try {
+			rules = styleSheets[i].cssRules;
+			if (!rules || !rules.length) {
+				continue;
+			}
+		}
+		catch(e) {
+			continue;
+		}
+		buildStyleCacheFromRules(rules);
+	}
+}
+
+/**
+ * @param {CSSRuleList} rules
+ */
+function buildStyleCacheFromRules(rules) {
+	for (var i = 0; i < rules.length; i++) {
+		if (rules[i].type === 1) { // Style rule
+			if (
+				rules[i].style.getPropertyValue('width')
+				|| rules[i].style.getPropertyValue('height')
+			) {
+				splitSelectors(rules[i].selectorText).forEach(function(selector) {
+					var rule = {
+						_selector: selector,
+						_rule: rules[i],
+						_specificity: getSpecificity(selector),
+					};
+					var rightMostSelector = selector
+						.replace(/:[a-z-]+\([^)]*\)/i, '')
+						.replace(/^.*[^\\][\s>+~]\s*/, '');
+					if (
+						rightMostSelector.match(PSEUDO_ELEMENT_REGEXP)
+						|| rightMostSelector.match(/:(?:before|after)/i)
+					) {
+						return;
+					}
+					['width', 'height'].forEach(function(prop) {
+						if (!rules[i].style.getPropertyValue(prop)) {
+							return;
+						}
+						var match = rightMostSelector.match(ID_REGEXP);
+						if (!match) {
+							match = rightMostSelector.match(CLASS_REGEXP);
+						}
+						if (!match) {
+							match = rightMostSelector.match(ELEMENT_REGEXP);
+							if (match) {
+								match = [match[0].toLowerCase()];
+							}
+						}
+						if (!match) {
+							match = '*';
+						}
+						if (!styleCache[prop][match[0]]) {
+							styleCache[prop][match[0]] = [];
+						}
+						styleCache[prop][match[0]].push(rule);
+					});
+				});
+			}
+		}
+		else if (rules[i].cssRules) {
+			buildStyleCacheFromRules(rules[i].cssRules);
+		}
+	}
 }
 
 /**
@@ -771,27 +855,12 @@ function getComputedStyle(element) {
 function getOriginalStyle(element, prop) {
 
 	var matchedRules = [];
-	var rules;
 	var value;
-	var i, j;
+	var j;
 
-	for (i = 0; i < styleSheets.length; i++) {
-		if (styleSheets[i].disabled) {
-			continue;
-		}
-		try {
-			rules = styleSheets[i].cssRules;
-			if (!rules || !rules.length) {
-				continue;
-			}
-		}
-		catch(e) {
-			continue;
-		}
-		matchedRules = matchedRules.concat(filterRulesByElementAndProp(rules, element, prop));
-	}
-
-	matchedRules = sortRulesBySpecificity(matchedRules);
+	matchedRules = sortRulesBySpecificity(
+		filterRulesByElementAndProp(styleCache[prop], element, prop)
+	);
 
 	// Add style attribute
 	matchedRules.unshift({
@@ -881,39 +950,31 @@ function rgbaToHsla(color) {
 /**
  * Filter rules by matching the element and at least one property
  *
- * @param  {CSSRuleList} rules
- * @param  {Element}     element
- * @param  {string}      prop
+ * @param  {{<string>: Array.<{_selector: string, _rule: CSSRule}>}} rules
+ * @param  {Element}                                                 element
+ * @param  {string}                                                  prop
  * @return {Array.<{_selector: string, _rule: CSSRule}>}
  */
 function filterRulesByElementAndProp(rules, element, prop) {
-	var matchedRules = [];
-	for (var i = 0; i < rules.length; i++) {
-		if (rules[i].type === 1) { // Style rule
-			if (
-				rules[i].style.getPropertyValue(prop)
-				&& (
-					!rules[i].parentRule
-					|| rules[i].parentRule.type !== 4 // @media rule
-					|| matchesMedia(rules[i].parentRule.media.mediaText)
-				)
-				&& elementMatchesSelector(element, rules[i].selectorText)
-			) {
-				splitSelectors(rules[i].selectorText).forEach(function(selector) {
-					if (elementMatchesSelector(element, selector)) {
-						matchedRules.push({
-							_selector: selector,
-							_rule: rules[i],
-						});
-					}
-				});
-			}
-		}
-		else if (rules[i].cssRules) {
-			matchedRules = matchedRules.concat(filterRulesByElementAndProp(rules[i].cssRules, element, prop));
-		}
+	var foundRules = [];
+	if (element.id) {
+		foundRules = foundRules.concat(rules['#' + element.id] || []);
 	}
-	return matchedRules;
+	element.className.split(/\s+/).forEach(function(className) {
+		foundRules = foundRules.concat(rules['.' + className] || []);
+	});
+	foundRules = foundRules
+		.concat(rules[element.tagName.toLowerCase()] || [])
+		.concat(rules['*'] || []);
+	return foundRules.filter(function(rule) {
+		return rule._rule.style.getPropertyValue(prop)
+			&& (
+				!rule._rule.parentRule
+				|| rule._rule.parentRule.type !== 4 // @media rule
+				|| matchesMedia(rule._rule.parentRule.media.mediaText)
+			)
+			&& elementMatchesSelector(element, rule._selector);
+	});
 }
 
 /**
@@ -931,14 +992,14 @@ function elementMatchesSelector(element, selector) {
 }
 
 /**
- * @param  {Array.<{_selector: string}>} rules
- * @return {Array.<{_selector: string}>}
+ * @param  {Array.<{_specificity: number}>} rules
+ * @return {Array.<{_specificity: number}>}
  */
 function sortRulesBySpecificity(rules) {
 	return rules.map(function(rule, i) {
 		return [rule, i];
 	}).sort(function(a, b) {
-		return (getSpecificity(b[0]._selector) - getSpecificity(a[0]._selector)) || b[1] - a[1];
+		return (b[0]._specificity - a[0]._specificity) || b[1] - a[1];
 	}).map(function(rule) {
 		return rule[0];
 	});
