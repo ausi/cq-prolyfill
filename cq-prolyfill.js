@@ -328,7 +328,7 @@ function parseRule(rule) {
 			var precedingSelector =
 				(
 					selector.substr(0, offset)
-					+ selector.substr(offset + match.length).replace(/(^|[^\\])[\s>+~].*$/, '$1')
+					+ selector.substr(offset + match.length).replace(/^((?:\([^)]*\)|[^\s>+~])*).*$/, '$1')
 				)
 				.replace(SELECTOR_ESCAPED_REGEXP, '')
 				.replace(/:(?:active|hover|focus|checked)/gi, '');
