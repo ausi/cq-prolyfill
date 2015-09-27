@@ -161,7 +161,7 @@ QUnit.test('parseRules', function(assert) {
 		+ '.combined-selector:container(width > 100px):container(height > 100px) { display: block }'
 		+ '.double-comparison:container(width > 100px < 200px) { display: block }'
 		+ '.filter:container(color lightness < 10%) { display: block }'
-		+ '.nth-selector:nth-of-type(2n+1):container(width > 100px) { display: block }'
+		+ ':nth-of-type(2n+1):container(width > 100px) { display: block }'
 		+ '@media screen { .inside-media-query:container(height < 10em) { display: block } }';
 	fixture.appendChild(style);
 	var done = assert.async();
@@ -216,8 +216,8 @@ QUnit.test('parseRules', function(assert) {
 		assert.deepEqual(queries[Object.keys(queries)[5]]._values, ['10%'], 'Value');
 		assert.equal(queries[Object.keys(queries)[5]]._className, ':container(color|lightness<10%)', 'Class name');
 
-		assert.equal(Object.keys(queries)[6], '.nth-selector:nth-of-type(2n+1).\\:container\\(width\\>100px\\)', 'Correct key');
-		assert.equal(queries[Object.keys(queries)[6]]._selector, '.nth-selector:nth-of-type(2n+1)', 'Preceding selector');
+		assert.equal(Object.keys(queries)[6], ':nth-of-type(2n+1).\\:container\\(width\\>100px\\)', 'Correct key');
+		assert.equal(queries[Object.keys(queries)[6]]._selector, ':nth-of-type(2n+1)', 'Preceding selector');
 		assert.equal(queries[Object.keys(queries)[6]]._prop, 'width', 'Property');
 		assert.deepEqual(queries[Object.keys(queries)[6]]._types, ['>'], 'Mode');
 		assert.deepEqual(queries[Object.keys(queries)[6]]._values, ['100px'], 'Value');
