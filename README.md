@@ -2,9 +2,9 @@
 
 [![Build Status](https://travis-ci.org/ausi/cq-prolyfill.svg?branch=master)](https://travis-ci.org/ausi/cq-prolyfill/branches) [![Coverage Status](https://coveralls.io/repos/ausi/cq-prolyfill/badge.svg?branch=master&service=github)](https://coveralls.io/github/ausi/cq-prolyfill?branch=master)
 
-This is a [prolyfill](https://youtu.be/UpVj5azI-iI?t=24m54s) for a special version of [container queries](https://github.com/ResponsiveImagesCG/container-queries). You can read more about the syntax and how they work in [this article](https://au.si/css-container-queries).
+This is a [prolyfill](https://youtu.be/UpVj5azI-iI?t=24m54s) for a special version of [container queries](https://github.com/ResponsiveImagesCG/container-queries) (aka element queries). You can read more about the idea and how they work internally in [this article](https://au.si/css-container-queries).
 
-Use with caution! This is **not** a [polyfill](https://en.wikipedia.org/wiki/Polyfill). The syntax may change frequently.
+A quick demo of the container queries in action can be found here: <https://ausi.github.io/cq-prolyfill/demo/>.
 
 ## Download
 
@@ -12,7 +12,7 @@ The source version can be found in the same directory as this readme file. For t
 
 ## Usage
 
-You can load the script in any way you like, I would recommend to load it asynchronously in the head.
+One goal of this prolyfill is to be ease to use. Elements with container queries don’t have to be modified in the markup, you don’t have to predefine “element break-points” or the like, everything is done via CSS. All you need is to load the script on your page and you are ready to use container queries in your CSS. You can load the script in any way you like, I would recommend to load it asynchronously in the head:
 
 ```html
 <script src="cq-prolyfill.min.js" async></script>
@@ -24,9 +24,33 @@ Now you can use container queries in the following form:
 .element:container(width >= 100px) {
 	/* Styles for .element if it’s container is at least 100px wide */
 }
+.element:container(height > 100px < 200px) {
+	/* Styles for .element if it’s container is between 100px and 200px high */
+}
+.element:container(text-align = right) {
+	/* Styles for .element if it’s container has a right text-align */
+}
 ```
 
-Supported properties are `width` and `height`. Available comparison operators are `<`, `>`, `<=`, `>=`, `=` and `!=`.
+All CSS properties are supported, most important `width` and `height`. Available comparison operators are `<`, `>`, `<=`, `>=`, `=` and `!=`.
+
+### Color filters
+
+It’s also possible to query color properties, for this purpose the color filters `hue`, `saturation`, `lightness` and `alpha` are available.
+
+```css
+.element:container(background-color lightness > 20%) {
+	/* Styles for .element if it’s containers background-color is brighter than 20% */
+}
+.element:container(background-color hue > 60deg < 180deg) {
+	/* Styles for .element if it’s containers background-color is greenish */
+}
+.element:container(background-color alpha < 10%) {
+	/* Styles for .element if it’s containers background-color is nearly transparent */
+}
+```
+
+## JavaScript API
 
 The script triggers itself on load, on DOM ready and if the browser window resizes. If you want to trigger it manually you can call `reprocess` (step 1), `reparse` (step 2) or `reevaluate` (step 3) on the `window.containerQueries` object. Most of the time `reevaluate` should do the job if you didn’t add, remove or change stylesheets. E.g.
 
