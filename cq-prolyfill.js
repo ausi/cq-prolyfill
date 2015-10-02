@@ -15,11 +15,13 @@
 'use strict';
 
 // Public API
-window.containerQueries = {
-	reprocess: reprocess,
-	reparse: reparse,
-	reevaluate: reevaluate,
+/*eslint-disable dot-notation*/
+window['containerQueries'] = {
+	'reprocess': reprocess,
+	'reparse': reparse,
+	'reevaluate': reevaluate,
 };
+/*eslint-enable dot-notation*/
 
 // Reevaluate now
 setTimeout(reevaluate);
@@ -44,12 +46,12 @@ var PSEUDO_ELEMENT_REGEXP = /::[^\s\[#+,.:>~]+/g;
 var PSEUDO_CLASS_REGEXP = /:[^\s\[#+,.:>~]+/g;
 var ELEMENT_REGEXP = /[a-z-]+/gi;
 var FIXED_UNIT_MAP = {
-	px: 1,
-	pt: 16 / 12,
-	pc: 16,
-	in: 96,
-	cm: 96 / 2.54,
-	mm: 96 / 25.4,
+	'px': 1,
+	'pt': 16 / 12,
+	'pc': 16,
+	'in': 96,
+	'cm': 96 / 2.54,
+	'mm': 96 / 25.4,
 };
 
 var queries;
