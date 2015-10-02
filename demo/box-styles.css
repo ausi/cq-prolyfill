@@ -1,0 +1,96 @@
+.box {
+	border: 0.25em solid green;
+	padding: 1em;
+}
+/* Clearfix */
+.box:after {
+	content: "";
+	display: table;
+	clear: both;
+}
+/* Display the boxes in two columns */
+.box:container(width > 40em) {
+	display: inline-block;
+	width: 50%;
+	margin-right: -0.3em;
+}
+/* Switch directions for right aligned text */
+.box:container(width > 40em):container(text-align = right) {
+	margin-right: 0;
+	margin-left: -0.3em;
+}
+/* Display the last box at 100% width if it’s alone in the last row */
+.box:nth-of-type(odd):last-child:container(width > 40em <= 70em) {
+	width: 100%;
+}
+/* Display the boxes in three columns */
+.box:container(width > 70em) {
+	width: 33.333%;
+}
+/* Flip colors on dark backgrounds */
+.box:container(background-color lightness < 30%) {
+	color: white;
+}
+/* Change border color on green backgrounds */
+.box:container(background-color hue > 60deg < 180deg):container(background-color lightness > 10% < 80%):container(background-color saturation > 50%) {
+	border-color: darkred;
+}
+/* Improve readability for small font sizes */
+.box:container(font-size < 11px) {
+	border-width: 2px;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	line-height: 1.5;
+}
+.box-image {
+	background: rgba(0, 0, 0, 0.15);
+}
+/* Flip colors on dark backgrounds */
+.box-image:container(background-color lightness < 30%) {
+	background: rgba(255, 255, 255, 0.15);
+}
+/* Increase the image size for very small boxes */
+.box-image:container(width < 10em) {
+	margin: -1em -1em 0;
+}
+/* Create two columns inside the box */
+.box-image:container(width > 25em) {
+	float: left;
+	width: 12em;
+}
+/* Switch directions for right aligned text */
+.box-image:container(width > 25em):container(text-align = right) {
+	float: right;
+}
+.box-image > img {
+	display: block;
+	width: 100%;
+	max-width: 14em;
+	height: auto;
+	margin: 0 auto;
+	background: grey;
+}
+/* Create two columns inside the box */
+.box-text:container(width > 25em) {
+	margin-left: 13em;
+}
+/* Switch directions for right aligned text */
+.box-text:container(width > 25em):container(text-align = right) {
+	margin-right: 13em;
+	margin-left: 0;
+}
+.box-text-price,
+.box-text-buy {
+	display: block;
+	margin: 0.5em 0;
+	font-size: 1.2em;
+	text-align: center;
+}
+/* Display price and buy button side by side */
+.box-text-price:container(width > 17em) {
+	float: left;
+}
+.box-text-buy:container(width > 17em) {
+	float: right;
+	color: inherit;
+}

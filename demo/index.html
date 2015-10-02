@@ -1,0 +1,85 @@
+<!doctype html>
+<title>Container Queries Demo</title>
+<link rel="stylesheet" href="demo-styles.css">
+<link rel="stylesheet" href="box-styles.css">
+<script src="demo.js"></script>
+<script src="https://cdn.rawgit.com/ausi/cq-prolyfill/598c31e/cq-prolyfill.js"></script>
+
+<h1>Container Queries Demo</h1>
+
+<nav>
+	<ul>
+		<li><a href="box-styles.css">View CSS source code</a></li>
+		<li><a href="https://github.com/ausi/cq-prolyfill">Visit project page</a></li>
+	</ul>
+</nav>
+
+<fieldset>
+	<legend>Settings</legend>
+</fieldset>
+
+<div class="wrap">
+	<div class="box">
+		<div class="box-image">
+			<img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="">
+		</div>
+		<div class="box-text">
+			<h3>Simple Box Element</h3>
+			<p>
+				Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do
+				eiusmod tempor incididunt quam labore et dolore magna aliqua. Ut
+				enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+			</p>
+			<div class="box-text-price">$199.99 per Month</div>
+			<a class="box-text-buy" href="">Buy it now!</a>
+		</div>
+	</div>
+	<div class="box">
+		<div class="box-image">
+			<img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="">
+		</div>
+		<div class="box-text">
+			<h3>Simple Box Element</h3>
+			<p>
+				Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do
+				eiusmod tempor incididunt quam labore et dolore magna aliqua. Ut
+				enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+			</p>
+			<div class="box-text-price">$199.99 per Month</div>
+			<a class="box-text-buy" href="">Buy it now!</a>
+		</div>
+	</div>
+	<div class="box">
+		<div class="box-image">
+			<img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="">
+		</div>
+		<div class="box-text">
+			<h3>Simple Box Element</h3>
+			<p>
+				Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do
+				eiusmod tempor incididunt quam labore et dolore magna aliqua. Ut
+				enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+			</p>
+			<div class="box-text-price">$199.99 per Month</div>
+			<a class="box-text-buy" href="">Buy it now!</a>
+		</div>
+	</div>
+</div>
+
+<h2>Width queries</h2>
+<pre><code>.box:container(width > 40em) { ... }
+.box:container(width > 40em <= 70em)</code></pre>
+
+<h2>Background color queries</h2>
+<pre><code>.box:container(background-color lightness < 20%) { ... }
+.box:container(background-color saturation > 50%) { ... }
+.box:container(background-color hue > 60deg < 180deg) { ... }</code></pre>
+
+<h2>Text align queries</h2>
+<pre><code>.box:container(text-align = right) { ... }</code></pre>
+
+<h2>Font size queries</h2>
+<pre><code>.box:container(font-size < 10px) { ... }</code></pre>
+
+<h2>Any CSS property you want!</h2>
+<pre><code>.box:container(any-css-property = any-value) { ... }</code></pre>

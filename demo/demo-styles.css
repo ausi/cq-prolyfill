@@ -1,0 +1,56 @@
+html {
+	font-family: sans-serif;
+	-ms-text-size-adjust: 100%;
+	-webkit-text-size-adjust: 100%;
+}
+* {
+	box-sizing: border-box;
+}
+fieldset > div {
+	margin: 0.5em;
+}
+pre {
+	padding: 0.5em 1em;
+	line-height: 1.5;
+	background: lightgrey;
+}
+.wrap {
+	position: relative;
+	min-width: 12em;
+	margin: 1em 0 4em;
+	padding: 1em 3em 1em 1em;
+	background: white;
+}
+.wrap-resize-handle {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 2em;
+	height: 100%;
+	background: black;
+	cursor: col-resize;
+	color: white;
+}
+.wrap-resize-handle:before {
+	content: "<";
+	position: absolute;
+	top: 50%;
+	left: 0;
+	width: 100%;
+	margin-top: -0.6em;
+	text-align: center;
+}
+.wrap-resize-handle:after {
+	content: "resize me";
+	position: absolute;
+	top: 0;
+	right: 100%;
+	padding: 0.45em;
+	white-space: nowrap;
+	-webkit-transform: rotate(-90deg);
+	-moz-transform: rotate(-90deg);
+	transform: rotate(-90deg);
+	-webkit-transform-origin: right top;
+	-moz-transform-origin: right top;
+	transform-origin: right top;
+}
