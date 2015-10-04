@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/ausi/cq-prolyfill.svg?branch=master)](https://travis-ci.org/ausi/cq-prolyfill/branches) [![Coverage Status](https://coveralls.io/repos/ausi/cq-prolyfill/badge.svg?branch=master&service=github)](https://coveralls.io/github/ausi/cq-prolyfill?branch=master)
 
-This is a [prolyfill](https://youtu.be/UpVj5azI-iI?t=24m54s) for a special version of [container queries](https://github.com/ResponsiveImagesCG/container-queries) (aka element queries). You can read more about the idea and how they work internally in [this article](https://au.si/css-container-queries).
+This is a [prolyfill](https://au.si/what-is-a-prolyfill) for a special version of [container queries](https://github.com/ResponsiveImagesCG/container-queries) (aka element queries). You can read more about the idea and how they work internally in [this article](https://au.si/css-container-element-queries).
 
 A quick demo of the container queries in action can be found here: <https://ausi.github.io/cq-prolyfill/demo/>.
 
