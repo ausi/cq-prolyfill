@@ -1,0 +1,16 @@
+* text=auto whitespace=indent-with-non-tab,tabwidth=4
+
+*.js text
+*.json text
+*.md text
+*.css text
+*.txt text
+
+Makefile text
+
+.editorconfig text
+.eslintrc text
+.gitattributes text
+.gitignore text
+.tern-project text
+.travis.yml text
