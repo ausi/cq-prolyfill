@@ -13,4 +13,4 @@ Makefile text
 .gitattributes text
 .gitignore text
 .tern-project text
-.travis.yml text
+.travis.yml text whitespace=-indent-with-non-tab,tab-in-indent
