@@ -309,6 +309,11 @@ QUnit.test('resolveRelativeUrl', function(assert) {
 QUnit.test('splitSelectors', function(assert) {
 	assert.deepEqual(splitSelectors('foo'), ['foo'], 'Simple selector doesn’t get split');
 	assert.deepEqual(splitSelectors('foo,foo\t\n ,\t\n foo'), ['foo', 'foo', 'foo'], 'Simple selectors do get split');
+	assert.deepEqual(splitSelectors('foo:matches(foo, foo), bar'), ['foo:matches(foo, foo)', 'bar'], 'Simple selectors with :matches()');
+	assert.deepEqual(splitSelectors('.fo\\,o[attr="val,u\\",e"],bar'), ['.fo\\,o[attr="val,u\\",e"]', 'bar'], 'Escaped commas don’t split a selector');
+	assert.deepEqual(splitSelectors('.\\:container\\(font-family\\=f\\,oo\\),bar'), ['.\\:container\\(font-family\\=f\\,oo\\)', 'bar'], 'Container query with comma');
+	assert.deepEqual(splitSelectors('.:container(font-family=f,oo),bar'), ['.:container(font-family=f,oo)', 'bar'], 'Unescaped container query with comma');
+	assert.deepEqual(splitSelectors(''), [], 'Empty string');
 });
 
 /*global evaluateQuery*/

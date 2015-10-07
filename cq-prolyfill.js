@@ -366,8 +366,10 @@ function unescape(string) {
  * @return {Array.<string>}
  */
 function splitSelectors(selectors) {
-	// TODO: Fix complex selectors like fo\,o[attr="val,u\"e"]
-	return selectors.split(/\s*,\s*/);
+	return (selectors.match(/(?:\\.|"(?:\\.|[^"])*"|\([^)]*\)|[^,])+/g) || [])
+		.map(function(selector) {
+			return selector.trim();
+		});
 }
 
 /**
