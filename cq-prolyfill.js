@@ -477,7 +477,7 @@ function updateClasses(clearContainerCache) {
 	}
 	write(elementsTree);
 
-	function read(treeNodes) {
+	function read(treeNodes, dontMarkAsDone) {
 		var hasChanges = false;
 		treeNodes.forEach(function(node) {
 			if (!node._done) {
@@ -487,14 +487,11 @@ function updateClasses(clearContainerCache) {
 						node._changes.push([queryMatches, query]);
 					}
 				});
-				node._done = true;
+				node._done = !dontMarkAsDone;
 			}
-			if (node._changes.length) {
-				hasChanges = true;
-			}
-			else {
-				hasChanges = read(node._children);
-			}
+			hasChanges = read(node._children, dontMarkAsDone || node._changes.length)
+				|| node._changes.length
+				|| hasChanges;
 		});
 		return hasChanges;
 	}
