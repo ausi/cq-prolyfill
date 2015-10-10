@@ -17,6 +17,7 @@ QUNIT_CSS = $(QUNIT)/qunit.css
 TEST_HTML_ALL = tests/all.html
 TEST_HTML_COVERAGE = tests/coverage.html
 TEST_HTML_FUNCTIONAL = tests/functional.html
+TEST_POSTCSS = postcss-tests.js
 SLIMERJS = $(BIN)/slimerjs
 PHANTOMJS_RUNNER = $(MODULES)/qunit-phantomjs-runner/runner.js
 TEST_RUNNER = tests/slimerjs-runner.js
@@ -66,8 +67,9 @@ $(BROWSERSTACK_RUNNER): $(MODULES)
 	touch $@
 
 .PHONY: test
-test: $(ESLINT) $(SOURCE) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HTML_ALL) $(TEST_HTML_COVERAGE) $(TEST_HTML_FUNCTIONAL) $(MODULES)
+test: $(ESLINT) $(SOURCE) $(TEST_POSTCSS) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HTML_ALL) $(TEST_HTML_COVERAGE) $(TEST_HTML_FUNCTIONAL) $(MODULES)
 	$(ESLINT) $(SOURCE)
+	node $(TEST_POSTCSS)
 	node -e "require('connect')().use(require('serve-static')(__dirname)).listen(8888)" & echo "$$!" > server.pid
 	$(SLIMERJS) $(TEST_RUNNER) http://localhost:8888/$(TEST_HTML_ALL) 20 | tee tests/slimerjs.log
 	kill `cat server.pid` && rm server.pid
