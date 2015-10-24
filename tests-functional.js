@@ -406,6 +406,52 @@ QUnit.test('Opacity Query', function(assert) {
 
 });
 
+QUnit.test('PostCSS skip step 1', function(assert) {
+
+	var style = document.createElement('style');
+	style.type = 'text/css';
+	style.innerHTML = '@font-face { font-family: no-query; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: query; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '.test { font-family: no-query }'
+		+ '.test.\\:container\\(width\\>100px\\) { font-family: query }';
+	fixture.appendChild(style);
+
+	var element = document.createElement('div');
+	element.innerHTML = '<div class="test">';
+	fixture.appendChild(element);
+	var test = element.firstChild;
+
+	var reevaluate = window.containerQueries.reevaluate;
+
+	window.containerQueriesConfig = {
+		postcss: true,
+	};
+
+	var done = false;
+	window.containerQueries.reprocess(function () {
+
+		var font = function(node) {
+			return window.getComputedStyle(node).fontFamily;
+		};
+
+		element.style.cssText = 'width: 100px';
+		reevaluate(true);
+		assert.equal(font(test), 'no-query', 'Width 100px');
+
+		element.style.cssText = 'width: 101px';
+		reevaluate();
+		assert.equal(font(test), 'query', 'Width 101px');
+
+		done = true;
+
+	});
+
+	assert.ok(done, 'Reprocess callback synchronous');
+
+	delete window.containerQueriesConfig;
+
+});
+
 QUnit.test('Performance of many elements on the same level', function(assert) {
 
 	var style = document.createElement('style');

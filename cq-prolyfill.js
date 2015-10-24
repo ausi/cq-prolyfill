@@ -133,6 +133,20 @@ function preprocessSheet(sheet, callback) {
 		callback();
 		return;
 	}
+	if (window.containerQueriesConfig && window.containerQueriesConfig.postcss) {
+		var rulesLength = -1;
+		try {
+			rulesLength = sheet.cssRules.length;
+		}
+		catch(e) {
+			// Do nothing
+		}
+		// Check if cssRules is accessible
+		if (rulesLength !== -1) {
+			callback();
+			return;
+		}
+	}
 	var ownerNode = sheet.ownerNode;
 	var tag = ownerNode && ownerNode.tagName;
 	if (tag === 'LINK') {
