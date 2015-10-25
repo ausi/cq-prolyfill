@@ -1,10 +1,15 @@
 {
+	"name": "cq-prolyfill",
+	"version": "0.2.0",
+	"description": "Prolyfill for CSS Container Queries",
+	"license": "MIT",
 	"keywords": [
 		"postcss-plugin"
 	],
 	"scripts": {
 		"test": "make test"
 	},
+	"main": "cq-prolyfill.js",
 	"dependencies": {
 		"postcss": "^5.0.2"
 	},
