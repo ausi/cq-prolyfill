@@ -1,6 +1,6 @@
 {
 	"name": "cq-prolyfill",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "Prolyfill for CSS Container Queries",
 	"license": "MIT",
 	"keywords": [
