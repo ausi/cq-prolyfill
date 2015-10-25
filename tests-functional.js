@@ -423,9 +423,7 @@ QUnit.test('PostCSS skip step 1', function(assert) {
 
 	var reevaluate = window.containerQueries.reevaluate;
 
-	window.containerQueriesConfig = {
-		postcss: true,
-	};
+	window.containerQueries.config.postcss = true;
 
 	var done = false;
 	window.containerQueries.reprocess(function () {
@@ -448,7 +446,7 @@ QUnit.test('PostCSS skip step 1', function(assert) {
 
 	assert.ok(done, 'Reprocess callback synchronous');
 
-	delete window.containerQueriesConfig;
+	delete window.containerQueries.config.postcss;
 
 });
 

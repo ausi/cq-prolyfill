@@ -14,12 +14,33 @@
 ) {
 'use strict';
 
+(function (factory) {
+	/*global define*/
+	if (typeof define === 'function' && define.amd) {
+		define([], function() {
+			return factory;
+		});
+	}
+	/*global module*/
+	else if (typeof module === 'object' && module.exports) {
+		module.exports = factory;
+	}
+	else {
+		/*eslint-disable dot-notation*/
+		window['containerQueries'] = factory(window['containerQueriesConfig']);
+		/*eslint-enable dot-notation*/
+	}
+}(function(config) {
+
+config = config || {};
+
 // Public API
 /*eslint-disable dot-notation*/
-window['containerQueries'] = {
+var api = {
 	'reprocess': reprocess,
 	'reparse': reparse,
 	'reevaluate': reevaluate,
+	'config': config,
 };
 /*eslint-enable dot-notation*/
 
@@ -133,7 +154,7 @@ function preprocessSheet(sheet, callback) {
 		callback();
 		return;
 	}
-	if (window.containerQueriesConfig && window.containerQueriesConfig.postcss) {
+	if (config.postcss) {
 		var rulesLength = -1;
 		try {
 			rulesLength = sheet.cssRules.length;
@@ -1185,5 +1206,9 @@ function arrayFrom(arrayLike) {
 	}
 	return array;
 }
+
+return api;
+
+}));
 
 })(window, document);

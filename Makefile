@@ -96,10 +96,10 @@ $(TEST_HTML_ALL): $(TESTS) $(TESTS_FUNCTIONAL) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS
 	echo '<div id="qunit-fixture"></div>' >> $@
 	echo '<script src="../$(QUNIT_JS)"></script>' >> $@
 	echo '<script>' >> $@
-	cat $(SOURCE) | replace '})(window, document);' '' >> $@
+	node -e "console.log(require('fs').readFileSync('$(SOURCE)', 'utf-8').replace('return api;\n\n}));\n\n})(window, document);', ''))" >> $@
 	cat $< >> $@
 	cat $(TESTS_FUNCTIONAL) >> $@
-	echo '})(window, document);' >> $@
+	echo 'return api;\n\n}));\n\n})(window, document);' >> $@
 	echo '</script>' >> $@
 	echo '</body></html>' >> $@
 	rm -rf tests/test-files
@@ -116,10 +116,10 @@ $(TEST_HTML_COVERAGE): $(TESTS) $(TESTS_FUNCTIONAL) $(SOURCE) $(QUNIT_JS) $(QUNI
 	echo '<div id="qunit-fixture"></div>' >> $@
 	echo '<script src="../$(QUNIT_JS)"></script>' >> $@
 	echo '<script>' >> $@
-	$(ISTANBUL) instrument $(SOURCE) | replace '}(window,document));' '' >> $@
+	$(ISTANBUL) instrument $(SOURCE) | replace 'return api;}));}(window,document));' '' >> $@
 	cat $< >> $@
 	cat $(TESTS_FUNCTIONAL) >> $@
-	echo '}(window,document));' >> $@
+	echo 'return api;}));}(window,document));' >> $@
 	echo '</script>' >> $@
 	echo '</body></html>' >> $@
 	rm -rf tests/test-files
