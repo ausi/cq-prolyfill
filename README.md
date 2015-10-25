@@ -10,6 +10,16 @@ A quick demo of the container queries in action can be found here: <https://ausi
 
 The source version can be found in the same directory as this readme file. For the minified version take a look at the [releases section on GitHub](https://github.com/ausi/cq-prolyfill/releases).
 
+### Via npm
+
+To install it via [npm](https://www.npmjs.com/) execute the following command in your project directory:
+
+```bash
+npm install --save cq-prolyfill
+```
+
+The script gets installed to *node_modules/cq-prolyfill/cq-prolyfill.min.js*.
+
 ## Usage
 
 One goal of this prolyfill is to be ease to use. Elements with container queries don’t have to be modified in the markup, you don’t have to predefine “element break-points” or the like, everything is done via CSS. All you need is to load the script on your page and you are ready to use container queries in your CSS. You can load the script in any way you like, I would recommend to load it asynchronously in the head:
@@ -58,10 +68,49 @@ The script triggers itself on load, on DOM ready and if the browser window resiz
 document.querySelector('.element').addEventListener('click', function() {
 	// Do something that changes the size of container elements
 	// ...
-	window.containerQueries.reevaluate(function() {
+	window.containerQueries.reevaluate(false, function() {
 		// Do something after all elements were updated
 	});
 });
+```
+
+* `reprocess(fn callback)`
+* `reparse(fn callback)`
+* `reevaluate(bool clearContainerCache, fn callback)`
+
+### Usage with browserify or webpack
+
+If you want to use it with [browserify](http://browserify.org/) or [webpack](https://webpack.github.io/) you can do so by `require`ing the module as usual. The configuration can be passed into the required function and the API gets returned:
+
+```js
+var cq = require('cq-prolyfill')({ /* configuration */ });
+cq.reevaluate(false, function() {
+	// Do something after all elements were updated
+});
+```
+
+## PostCSS plugin
+
+To improve the performance of the prolyfill, you can use [PostCSS](https://github.com/postcss/postcss) to prepare the stylesheet on the server side:
+
+```js
+var fs = require('fs');
+var cqPostcss = require('cq-prolyfill/postcss-plugin');
+
+fs.writeFileSync(
+	'dist.css',
+	cqPostcss.process(fs.readFileSync('source.css', 'utf-8')).css
+);
+```
+
+Now we need to tell the prolyfill that the postcss plugin was used:
+
+```js
+// Set this variable before the script gets loaded
+window.containerQueriesConfig = { postcss: true };
+
+// Or pass the configuration as a parameter if you use browserify or webpack
+var cq = require('cq-prolyfill')({ postcss: true });
 ```
 
 ## How it works
