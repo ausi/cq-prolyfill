@@ -1,15 +1,35 @@
 {
 	"name": "cq-prolyfill",
 	"version": "0.2.1",
-	"description": "Prolyfill for CSS Container Queries",
+	"description": "Prolyfill for CSS Container Queries (aka Element Queries)",
 	"license": "MIT",
 	"keywords": [
+		"CSS",
+		"Container Queries",
+		"Container Query",
+		"Element Queries",
+		"Element Query",
+		"Prolyfill",
+		"Prollyfill",
+		"Polyfill",
 		"postcss-plugin"
 	],
 	"scripts": {
 		"test": "make test"
 	},
 	"main": "cq-prolyfill.js",
+	"browser": "cq-prolyfill.js",
+	"files": [
+		"cq-prolyfill.js",
+		"cq-prolyfill.min.js",
+		"cq-prolyfill.min.js.gz",
+		"postcss-plugin.js"
+	],
+	"homepage": "https://github.com/ausi/cq-prolyfill",
+	"repository": "ausi/cq-prolyfill",
+	"bugs": {
+		"url": "https://github.com/ausi/cq-prolyfill/issues"
+	},
 	"dependencies": {
 		"postcss": "^5.0.2"
 	},
