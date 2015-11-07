@@ -666,6 +666,7 @@ QUnit.test('getSpecificity', function(assert) {
 		['[foo="bar"]', 256, 'attribute'],
 		['.\\:container\\(width\\<\\=1px\\)', 256, 'escaped container query'],
 		['.:container(width<=1px)', 256, 'unescaped container query'],
+		['foo:not(bar)', 2, 'negation pseudo-class'],
 	];
 
 	data.forEach(function(item) {

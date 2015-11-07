@@ -1064,7 +1064,7 @@ function getSpecificity(selector) {
 			classScore++;
 			return '';
 		})
-		.replace(PSEUDO_NOT_REGEXP, '')
+		.replace(PSEUDO_NOT_REGEXP, ' ')
 		.replace(ID_REGEXP, function() {
 			idScore++;
 			return '';
