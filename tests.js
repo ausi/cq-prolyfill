@@ -341,7 +341,6 @@ QUnit.test('buildStyleCacheFromRules', function(assert) {
 
 	document.head.appendChild(style);
 	var rules = style.sheet.cssRules;
-	document.head.removeChild(style);
 
 	buildStyleCacheFromRules(rules);
 
@@ -357,6 +356,8 @@ QUnit.test('buildStyleCacheFromRules', function(assert) {
 	assert.equal(styleCache.width.element.length, 1, 'One rule for `element`');
 	assert.equal(styleCache.width['*'].length, 2, 'Two rules for `*`');
 	assert.equal(styleCache.width['.inside-media-query'].length, 1, 'One rule for `.inside-media-query`');
+
+	document.head.removeChild(style);
 
 	// Reset cache
 	buildStyleCache();
