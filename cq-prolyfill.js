@@ -16,6 +16,7 @@
 
 (function (factory) {
 	/*global define*/
+	/* istanbul ignore next: don’t cover module definition */
 	if (typeof define === 'function' && define.amd) {
 		define([], function() {
 			return factory;
