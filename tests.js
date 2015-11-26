@@ -316,6 +316,53 @@ QUnit.test('splitSelectors', function(assert) {
 	assert.deepEqual(splitSelectors(''), [], 'Empty string');
 });
 
+/*global buildStyleCacheFromRules, styleCache: true*/
+QUnit.test('buildStyleCacheFromRules', function(assert) {
+
+	// Clean cache
+	styleCache = {
+		width: {},
+		height: {},
+	};
+
+	var style = document.createElement('style');
+	style.textContent = '.width { width: 100% }'
+		+ '.height { height: 100% }'
+		+ '.no-relevant-prop { color: red }'
+		+ '.pseudo-element::foo { width: 100% }'
+		+ '.pseudo-element:after { width: 100% }'
+		+ '.not-selector:not(foo) { width: 100% }'
+		+ 'foo > bar ~ baz element.class#id { width: 100% }'
+		+ 'foo > bar ~ baz element.class { width: 100% }'
+		+ 'foo > bar ~ baz element { width: 100% }'
+		+ '.star-selector * { width: 100% }'
+		+ '.implicit-star-selector :hover { width: 100% }'
+		+ '@media screen { .inside-media-query { width: 100% } }';
+
+	document.head.appendChild(style);
+	var rules = style.sheet.cssRules;
+	document.head.removeChild(style);
+
+	buildStyleCacheFromRules(rules);
+
+	assert.equal(Object.keys(styleCache.height).length, 1, 'One height rule');
+	assert.equal(styleCache.height['.height'].length, 1, 'One rule for `.height`');
+	assert.equal(styleCache.height['.height'][0]._rule.style.height, '100%', 'Correct rule value');
+
+	assert.equal(Object.keys(styleCache.width).length, 7, 'Seven width rules');
+	assert.equal(styleCache.width['.width'].length, 1, 'One rule for `.width`');
+	assert.equal(styleCache.width['.not-selector'].length, 1, 'One rule for `.not-selector`');
+	assert.equal(styleCache.width['#id'].length, 1, 'One rule for `#id`');
+	assert.equal(styleCache.width['.class'].length, 1, 'One rule for `.class`');
+	assert.equal(styleCache.width.element.length, 1, 'One rule for `element`');
+	assert.equal(styleCache.width['*'].length, 2, 'Two rules for `*`');
+	assert.equal(styleCache.width['.inside-media-query'].length, 1, 'One rule for `.inside-media-query`');
+
+	// Reset cache
+	buildStyleCache();
+
+});
+
 /*global evaluateQuery*/
 QUnit.test('evaluateQuery', function(assert) {
 
@@ -578,7 +625,7 @@ QUnit.test('rgbaToHsla', function(assert) {
 	assert.deepEqual(rgbaToHsla([204, 255, 204, 0.5]), [120, 100, 90, 0.5], 'Light semitransparent green');
 });
 
-/*global filterRulesByElementAndProp, buildStyleCache, styleCache*/
+/*global filterRulesByElementAndProp, buildStyleCache, styleCache: true*/
 QUnit.test('filterRulesByElementAndProp', function(assert) {
 
 	var element = document.createElement('div');
