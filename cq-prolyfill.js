@@ -458,6 +458,9 @@ function buildStyleCacheFromRules(rules) {
 					) {
 						return;
 					}
+					rightMostSelector = rightMostSelector
+						.replace(PSEUDO_CLASS_REGEXP, '')
+						.trim();
 					['width', 'height'].forEach(function(prop) {
 						if (!rules[i].style.getPropertyValue(prop)) {
 							return;
