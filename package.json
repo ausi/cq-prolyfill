@@ -36,7 +36,8 @@
 		"cq-prolyfill.js",
 		"cq-prolyfill.min.js",
 		"cq-prolyfill.min.js.gz",
-		"postcss-plugin.js"
+		"postcss-plugin.js",
+		"docs"
 	],
 	"homepage": "https://github.com/ausi/cq-prolyfill",
 	"repository": "ausi/cq-prolyfill",
