@@ -46,6 +46,11 @@ For more information take a look at the [usage documentation](docs/usage.md).
 
 Thanks to [BrowserStack](https://www.browserstack.com/automate) for sponsoring automated cross browser testing for this project.
 
+## Contribute
+
+* Create a [new issue on GitHub](https://github.com/ausi/cq-prolyfill/issues/new) if you have a question, a suggestion or found a bug.
+* Talk about it on IRC: Join `#cq-prolyfill` on Freenode or [connect with the browser](https://webchat.freenode.net?randomnick=1&channels=%23cq-prolyfill&prompt=1).
+
 ## License
 
 MIT
