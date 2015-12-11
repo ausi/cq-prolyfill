@@ -150,6 +150,7 @@ QUnit.test('escapeSelectors', function(assert) {
 	assert.equal(escapeSelectors(':container( WIDTH > 100px )'), '.\\:container\\(width\\>100px\\)', 'Simple query');
 	assert.equal(escapeSelectors(':container(width > 100px < 200px)'), '.\\:container\\(width\\>100px\\<200px\\)', 'Double comparison');
 	assert.equal(escapeSelectors(':container(color lightness < 10%)'), '.\\:container\\(color\\|lightness\\<10\\%\\)', 'Filter parameter');
+	assert.equal(escapeSelectors(':container( " width <= 100.00px")'), '.\\:container\\(width\\<\\=100\\.00px\\)', 'Query with quotes');
 });
 
 /*global parseRules, queries*/

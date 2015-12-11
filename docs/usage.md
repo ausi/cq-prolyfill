@@ -24,6 +24,16 @@ Now you can use container queries in the following form:
 
 A container query begins with `:container(` and ends with `)`. It contains one CSS property followed by an [optional filter](#color-filters) followed by up to two comparisons. The container query is attatched to the element you want to style. So instead of writing `.parent:media(min-with: 100px) .child` like in other element query scripts, you append the query to the child itself `.child:container(width > 100px)`.
 
+### Sass, Less and other preprocessors
+
+If your CSS preprocessor has problems with the container query syntax, you can put quotes around the comparison like so:
+
+```css
+.element:container("width >= 100px") {
+	/* Styles for .element if its container is at least 100px wide */
+}
+```
+
 ## Supported CSS properties
 
 Technically all CSS properties are supported, but that doesn’t mean you should use them all. The following properties are most useful and tested: `width`, `height`, `background-color`, `color`, `text-align`, `font-size` and [custom properties](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_variables).

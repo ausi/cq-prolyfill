@@ -24,7 +24,7 @@ QUnit.test('Simple width and height Query', function(assert) {
 		+ '.minW:container( width >= 200px ) { font-family: min-width-200 }'
 		+ '.minH:container( height >= 100px ) { font-family: min-height-100 }'
 		+ '.minH:container( height >= 200px ) { font-family: min-height-200 }'
-		+ '.maxW:container( width <= 200px ) { font-family: max-width-200 }'
+		+ '.maxW:container( " WIDTH <= 200px") { font-family: max-width-200 }'
 		+ '.maxW:container( width <= 100px ) { font-family: max-width-100 }'
 		+ '.maxH:container( height <= 200px ) { font-family: max-height-200 }'
 		+ '.maxH:container( height <= 100px ) { font-family: max-height-100 }';

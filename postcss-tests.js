@@ -8,6 +8,7 @@ var data = {
 	':container( background-color lightness > 10% < 90% )': '.\\:container\\(background-color\\|lightness\\>10\\%\\<90\\%\\)',
 	'.before:container(height > 100px).after': '.before.\\:container\\(height\\>100px\\).after',
 	'.combined-selector:container(width > 100px):container(height > 100px)': '.combined-selector.\\:container\\(width\\>100px\\).\\:container\\(height\\>100px\\)',
+	':container( " width <= 100.00px")': '.\\:container\\(width\\<\\=100\\.00px\\)',
 };
 
 var failed = [];

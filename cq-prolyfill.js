@@ -53,7 +53,7 @@ window.addEventListener('load', reprocess.bind(undefined, undefined));
 window.addEventListener('resize', reevaluate.bind(undefined, true, undefined));
 
 var REGEXP_ESCAPE_REGEXP = /[.?*+^$[\]\\(){}|-]/g;
-var SELECTOR_REGEXP = /\.?:container\(\s*[a-z-]+(?:(?:\s+|\|)[a-z-]+)?\s*(?:[<>!=]=?)\s*[^)]+\s*\)/gi;
+var SELECTOR_REGEXP = /\.?:container\(\s*"?\s*[a-z-]+(?:(?:\s+|\|)[a-z-]+)?\s*(?:[<>!=]=?)\s*[^)]+\s*\)/gi;
 var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(([a-z-]+)(\\\|[a-z-]+)?(\\[<>!=](?:\\=)?)([^)]+?)(?:(\\[<>!=](?:\\=)?)([^)]+?))?\\\)/gi;
 var ESCAPE_REGEXP = /[.:()<>!=%]/g;
 var SPACE_REGEXP = / /g;
@@ -317,7 +317,12 @@ function preprocessStyle(node, cssText) {
  */
 function escapeSelectors(cssText) {
 	return cssText.replace(SELECTOR_REGEXP, function(selector) {
-		return '.' + selector.substr(selector[0] === '.' ? 1 : 0).replace(/([a-z])(?:\s+|\|)([a-z])/gi, '$1\\|$2').replace(SPACE_REGEXP, '').replace(ESCAPE_REGEXP, '\\$&').toLowerCase();
+		return '.' + selector.substr(selector[0] === '.' ? 1 : 0)
+			.replace(/([a-z])(?:\s+|\|)([a-z])/gi, '$1\\|$2')
+			.replace(SPACE_REGEXP, '')
+			.replace(/"/g, '')
+			.replace(ESCAPE_REGEXP, '\\$&')
+			.toLowerCase();
 	});
 }
 

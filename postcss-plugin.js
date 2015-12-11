@@ -10,6 +10,7 @@ module.exports = postcss.plugin('cq-prolyfill', function () {
 					return '.' + match
 						.replace(/([a-z])\s+([a-z])/gi, '$1|$2')
 						.replace(/\s+/g, '')
+						.replace(/^:container\("([^)]*)"\)$/i, ':container($1)')
 						.replace(/[[\]!"#$%&'()*+,./:;<=>?@^`{|}~]/g, '\\$&')
 						.toLowerCase();
 				});
