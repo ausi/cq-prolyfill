@@ -12,6 +12,18 @@ fs.writeFileSync(
 );
 ```
 
+This converts container queries like:
+
+```css
+.element:container(width >= 100px) { /* ... */ }
+```
+
+Into valid CSS selectors:
+
+```css
+.element.\:container\(width\>\=100px\) { /* ... */ }
+```
+
 To tell the prolyfill that the PostCSS plugin was used activate the `postcss` option in the [configuration](config.md).
 
 Don’t forget to [enable CORS](cors.md) if the stylesheet is loaded from a different domain.
