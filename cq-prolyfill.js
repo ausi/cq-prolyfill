@@ -374,7 +374,8 @@ function parseRule(rule) {
 					+ selector.substr(offset + match.length).replace(/^((?:\([^)]*\)|[^\s>+~])*).*$/, '$1')
 				)
 				.replace(SELECTOR_ESCAPED_REGEXP, '')
-				.replace(/:(?:active|hover|focus|checked)/gi, '');
+				.replace(PSEUDO_ELEMENT_REGEXP, '')
+				.replace(/:(?:active|hover|focus|checked|before|after)/gi, '');
 			if (!precedingSelector.substr(-1).trim()) {
 				precedingSelector += '*';
 			}

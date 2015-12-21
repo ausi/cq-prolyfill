@@ -163,13 +163,15 @@ QUnit.test('parseRules', function(assert) {
 		+ '.double-comparison:container(width > 100px < 200px) { display: block }'
 		+ '.filter:container(color lightness < 10%) { display: block }'
 		+ ':nth-of-type(2n+1):container(width > 100px) { display: block }'
+		+ '.pseudo-before:container(width > 100px):before { display: block }'
+		+ '.pseudo-after:container(width > 100px)::after { display: block }'
 		+ '@media screen { .inside-media-query:container(height < 10em) { display: block } }';
 	fixture.appendChild(style);
 	var done = assert.async();
 	preprocess(function () {
 
 		parseRules();
-		assert.equal(Object.keys(queries).length, 8, 'Eight queries');
+		assert.equal(Object.keys(queries).length, 10, 'Ten queries');
 
 		assert.ok(Object.keys(queries)[0].match(/^\.foo (?:\.before|\.after){2}\.\\:container\\\(width\\>\\=100\\\.00px\\\)$/), 'Correct key');
 		assert.ok(queries[Object.keys(queries)[0]]._selector.match(/^\.foo (?:\.before|\.after){2}$/), 'Preceding selector');
@@ -224,7 +226,21 @@ QUnit.test('parseRules', function(assert) {
 		assert.deepEqual(queries[Object.keys(queries)[6]]._values, ['100px'], 'Value');
 		assert.equal(queries[Object.keys(queries)[6]]._className, ':container(width>100px)', 'Class name');
 
-		assert.equal(Object.keys(queries)[7], '.inside-media-query.\\:container\\(height\\<10em\\)', 'Correct key');
+		assert.equal(Object.keys(queries)[7], '.pseudo-before.\\:container\\(width\\>100px\\)', 'Correct key');
+		assert.equal(queries[Object.keys(queries)[7]]._selector, '.pseudo-before', 'Preceding selector');
+		assert.equal(queries[Object.keys(queries)[7]]._prop, 'width', 'Property');
+		assert.deepEqual(queries[Object.keys(queries)[7]]._types, ['>'], 'Mode');
+		assert.deepEqual(queries[Object.keys(queries)[7]]._values, ['100px'], 'Value');
+		assert.equal(queries[Object.keys(queries)[7]]._className, ':container(width>100px)', 'Class name');
+
+		assert.equal(Object.keys(queries)[8], '.pseudo-after.\\:container\\(width\\>100px\\)', 'Correct key');
+		assert.equal(queries[Object.keys(queries)[8]]._selector, '.pseudo-after', 'Preceding selector');
+		assert.equal(queries[Object.keys(queries)[8]]._prop, 'width', 'Property');
+		assert.deepEqual(queries[Object.keys(queries)[8]]._types, ['>'], 'Mode');
+		assert.deepEqual(queries[Object.keys(queries)[8]]._values, ['100px'], 'Value');
+		assert.equal(queries[Object.keys(queries)[8]]._className, ':container(width>100px)', 'Class name');
+
+		assert.equal(Object.keys(queries)[9], '.inside-media-query.\\:container\\(height\\<10em\\)', 'Correct key');
 
 		done();
 	});
