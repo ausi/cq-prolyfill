@@ -22,7 +22,7 @@ Now you can use container queries in the following form:
 
 ## Syntax
 
-A container query begins with `:container(` and ends with `)`. It contains one CSS property followed by an [optional filter](#color-filters) followed by up to two comparisons. The container query is attatched to the element you want to style. So instead of writing `.parent:media(min-with: 100px) .child` like in other element query scripts, you append the query to the child itself `.child:container(width > 100px)`.
+A container query begins with `:container(` and ends with `)`. It contains one CSS property followed by an [optional filter](#color-filters) followed by up to two comparisons. The container query is attached to the element you want to style. So instead of writing `.parent:media(min-with: 100px) .child` like in other element query scripts, you append the query to the child itself `.child:container(width > 100px)`.
 
 ### Sass, Less and other preprocessors
 
