@@ -773,6 +773,32 @@ QUnit.test('createCacheMap', function(assert) {
 	assert.strictEqual(map.has(el1), true, 'Has element1');
 	assert.strictEqual(map.get(el1), 'el1-new', 'New value element1');
 
+	var forEached = [];
+	map.forEach(function(value, key) {
+		forEached.push([value, key]);
+	});
+	assert.deepEqual(forEached, [['el1-new', el1], ['el2', el2]]);
+
+	map.delete(el1);
+	assert.strictEqual(map.has(el1), false, 'Hasn’t element1');
+	assert.strictEqual(map.get(el1), undefined, 'Value undefined');
+
+	forEached = [];
+	map.forEach(function(value, key) {
+		forEached.push([value, key]);
+	});
+	assert.deepEqual(forEached, [['el2', el2]]);
+
+	map.delete(el2);
+	assert.strictEqual(map.has(el2), false, 'Hasn’t element2');
+	assert.strictEqual(map.get(el2), undefined, 'Value undefined');
+
+	forEached = [];
+	map.forEach(function(value, key) {
+		forEached.push([value, key]);
+	});
+	assert.deepEqual(forEached, []);
+
 });
 
 /*global addClass, removeClass*/

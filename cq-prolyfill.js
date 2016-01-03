@@ -1118,26 +1118,50 @@ function createCacheMap() {
 	var keys = [];
 	var values = [];
 
+	function getIndex(key) {
+		return keys.indexOf(key);
+	}
+
 	function get(key) {
-		return values[keys.indexOf(key)];
+		return values[getIndex(key)];
 	}
 
 	function has(key) {
-		return keys.indexOf(key) !== -1;
+		return getIndex(key) !== -1;
 	}
 
 	function set(key, value) {
-		var index = keys.indexOf(key);
+		var index = getIndex(key);
 		if (index === -1) {
 			index = keys.push(key) - 1;
 		}
 		values[index] = value;
 	}
 
+	function deleteFunc(key) {
+		var index = getIndex(key);
+		if (index === -1) {
+			return false;
+		}
+		delete keys[index];
+		delete values[index];
+		return true;
+	}
+
+	function forEach(callback) {
+		keys.forEach(function(key, index) {
+			if (key !== undefined) {
+				callback(values[index], key);
+			}
+		});
+	}
+
 	return {
 		set: set,
 		get: get,
 		has: has,
+		delete: deleteFunc,
+		forEach: forEach,
 	};
 }
 
