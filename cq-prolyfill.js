@@ -45,12 +45,27 @@ var api = {
 };
 /*eslint-enable dot-notation*/
 
-// Reevaluate now
-setTimeout(reevaluate);
+var observer;
 
-window.addEventListener('DOMContentLoaded', reprocess.bind(undefined, undefined));
-window.addEventListener('load', reprocess.bind(undefined, undefined));
-window.addEventListener('resize', reevaluate.bind(undefined, true, undefined));
+if (!config.skipObserving) {
+
+	// Reevaluate now
+	setTimeout(reevaluate);
+
+	window.addEventListener('DOMContentLoaded', reprocess.bind(undefined, undefined));
+	window.addEventListener('load', reprocess.bind(undefined, undefined));
+	window.addEventListener('resize', reevaluate.bind(undefined, true, undefined, undefined));
+
+	var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+	if (MutationObserver) {
+		observer = new MutationObserver(checkMutations);
+		observer.observe(document.documentElement, {
+			childList: true,
+			subtree: true,
+		});
+	}
+
+}
 
 var REGEXP_ESCAPE_REGEXP = /[.?*+^$[\]\\(){}|-]/g;
 var SELECTOR_REGEXP = /\.?:container\(\s*"?\s*[a-z-]+(?:(?:\s+|\|)[a-z-]+)?\s*(?:[<>!=]=?)\s*[^)]+\s*\)/gi;
@@ -79,6 +94,7 @@ var FIXED_UNIT_MAP = {
 var queries;
 var containerCache;
 var styleCache;
+var processedSheets = createCacheMap();
 var processed = false;
 var parsed = false;
 var documentElement = document.documentElement;
@@ -109,17 +125,66 @@ function reparse(callback) {
 }
 
 /**
- * @param {boolean}    clearContainerCache
- * @param {function()} callback
+ * @param {boolean}         clearContainerCache
+ * @param {function()}      callback
+ * @param {Array.<Element>} contexts
  */
-function reevaluate(clearContainerCache, callback) {
+function reevaluate(clearContainerCache, callback, contexts) {
 	if (!parsed) {
 		return reparse(callback);
 	}
-	updateClasses(clearContainerCache);
+	updateClasses(clearContainerCache, contexts);
 	if (callback) {
 		callback();
 	}
+}
+
+/**
+ * Check DOM mutations and reprocess or reevaluate
+ *
+ * @param  {Array.<MutationRecord>} mutations
+ */
+function checkMutations(mutations) {
+
+	var addedNodes = [];
+	var stylesChanged = false;
+
+	var replacedSheets = [];
+	processedSheets.forEach(function(newNode) {
+		replacedSheets.push(newNode);
+	});
+
+	arrayFrom(mutations).forEach(function(mutation) {
+
+		addedNodes.push.apply(addedNodes, arrayFrom(mutation.addedNodes).filter(function(node) {
+			return node.nodeType === 1;
+		}));
+
+		arrayFrom(mutation.removedNodes).forEach(function(node) {
+			var index = addedNodes.indexOf(node);
+			if (index !== -1) {
+				addedNodes.splice(index, 1);
+			}
+			else if (node.sheet && replacedSheets.indexOf(node) === -1) {
+				stylesChanged = true;
+			}
+		});
+
+	});
+
+	addedNodes.forEach(function(node) {
+		if (node.sheet && replacedSheets.indexOf(node) === -1) {
+			stylesChanged = true;
+		}
+	});
+
+	if (stylesChanged) {
+		reprocess();
+	}
+	else if (addedNodes.length) {
+		reevaluate(false, undefined, addedNodes);
+	}
+
 }
 
 /**
@@ -132,7 +197,17 @@ function reevaluate(clearContainerCache, callback) {
  * @param {function()} callback
  */
 function preprocess(callback) {
+
 	var sheets = arrayFrom(styleSheets);
+
+	// Check removed stylesheets
+	processedSheets.forEach(function(newNode, node) {
+		if (sheets.indexOf(node.sheet) === -1 && sheets.indexOf(newNode.sheet) !== -1 && newNode.parentNode) {
+			sheets.splice(sheets.indexOf(newNode.sheet), 1);
+			newNode.parentNode.removeChild(newNode);
+		}
+	});
+
 	var done = -1;
 	function step() {
 		done++;
@@ -144,6 +219,7 @@ function preprocess(callback) {
 		preprocessSheet(sheet, step);
 	});
 	step();
+
 }
 
 /**
@@ -171,7 +247,7 @@ function preprocessSheet(sheet, callback) {
 	}
 	var ownerNode = sheet.ownerNode;
 	var tag = ownerNode && ownerNode.tagName;
-	if (tag === 'LINK') {
+	if (tag === 'LINK' && !processedSheets.has(ownerNode)) {
 		loadExternal(ownerNode.href, function(cssText) {
 			// Check again because loadExternal is async
 			if (sheet.disabled || !cssText) {
@@ -290,6 +366,7 @@ function resolveRelativeUrl(url, base) {
  * @param {string} cssText
  */
 function preprocessStyle(node, cssText) {
+	processedSheets.set(node, false);
 	var escapedText = escapeSelectors(cssText);
 	var rulesLength = -1;
 	if (escapedText === cssText) {
@@ -309,6 +386,7 @@ function preprocessStyle(node, cssText) {
 	style.media = node.media || 'all';
 	node.parentNode.insertBefore(style, node);
 	node.sheet.disabled = true;
+	processedSheets.set(node, style);
 }
 
 /**
@@ -503,9 +581,10 @@ function buildStyleCacheFromRules(rules) {
  * Step 3: Loop through the `queries` and add or remove the CSS classes of all
  * matching elements
  *
- * @param {boolean} clearContainerCache
+ * @param {boolean}         clearContainerCache
+ * @param {Array.<Element>} contexts
  */
-function updateClasses(clearContainerCache) {
+function updateClasses(clearContainerCache, contexts) {
 
 	if (clearContainerCache || !containerCache) {
 		containerCache = createCacheMap();
@@ -515,7 +594,7 @@ function updateClasses(clearContainerCache) {
 		return;
 	}
 
-	var elementsTree = buildElementsTree(queries);
+	var elementsTree = buildElementsTree(contexts);
 
 	while(read(elementsTree)) {
 		write(elementsTree);
@@ -556,20 +635,37 @@ function updateClasses(clearContainerCache) {
 /**
  * Build tree of all query elements
  *
+ * @param  {Array.<Element>} contexts
  * @return {Array.<{_element: Element, _children: array, _queries: array, _changes: array, _done: boolean}>}
  */
-function buildElementsTree() {
-	var elements = document.querySelectorAll(
-		Object.keys(queries).map(function(key) {
-			return queries[key]._selector;
-		}).join(',')
-	);
+function buildElementsTree(contexts) {
+
+	contexts = contexts || [document];
+
+	var selector = Object.keys(queries).map(function(key) {
+		return queries[key]._selector;
+	}).join(',');
+
+	var elements = [];
+	contexts.forEach(function(context) {
+		for (var node = context.parentNode; node; node = node.parentNode) {
+			// Skip nested contexts
+			if (contexts.indexOf(node) !== -1) {
+				return;
+			}
+		}
+		elements.push.apply(elements, arrayFrom(context.querySelectorAll(selector)));
+	});
+
 	var tree = [];
 	var treeCache = createCacheMap();
-	arrayFrom(elements).forEach(function(element) {
+
+	elements.forEach(function(element) {
+
 		if (element === documentElement) {
 			return;
 		}
+
 		var treeNode = {
 			_element: element,
 			_children: [],
@@ -577,6 +673,7 @@ function buildElementsTree() {
 			_changes: [],
 			_done: false,
 		};
+
 		var children = tree;
 		for (var node = element.parentNode; node; node = node.parentNode) {
 			if (treeCache.get(node)) {
@@ -584,15 +681,21 @@ function buildElementsTree() {
 				break;
 			}
 		}
+
 		treeCache.set(element, treeNode);
+
 		children.push(treeNode);
+
 		Object.keys(queries).forEach(function(key) {
 			if (elementMatchesSelector(element, queries[key]._selector)) {
 				treeNode._queries.push(queries[key]);
 			}
 		});
+
 	});
+
 	return tree;
+
 }
 
 /**

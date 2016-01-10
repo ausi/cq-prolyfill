@@ -22,6 +22,6 @@ Reprocess all stylesheets on the page. Call this method if you added a styleshee
 
 Reparse all stylesheets on the page and look for new container queries. Call this method if you added a stylesheet via JavaScript which doesn’t contain a container query. The `callback` gets called after all stylesheets are parsed and evaluated.
 
-## `reevaluate(bool clearCache, fn callback)`
+## `reevaluate(bool clearCache, fn callback, array contexts)`
 
-Reevaluate all container queries. Call this method if you added new elements or changed styles that affect a container query. The boolean parameter `clearCache` specifies if the container cache should be cleared before the evaluation. The `callback` gets called after all container queries are evaluated.
+Reevaluate all container queries. Call this method if you added new elements or changed styles that affect a container query. The boolean parameter `clearCache` specifies if the container cache should be cleared before the evaluation. The `callback` gets called after all container queries are evaluated. You can optionally pass an array of DOM elements as `contexts` if you only want to reevaluate some parts of the page.

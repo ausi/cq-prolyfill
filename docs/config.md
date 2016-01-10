@@ -1,6 +1,7 @@
 # Configuration
 
-Currently the only available configuration option is `postcss` which is described in [PostCSS plugin](postcss.md).
+* `postcss` should be set to `true` if PostCSS is used as described in [PostCSS plugin](postcss.md).
+* `skipObserving` set this to `true` if the prolyfill shouldn’t listen to browser events and DOM modifications and you want to manage it yourself via the [API methods](api.md).
 
 ## Normal script
 
