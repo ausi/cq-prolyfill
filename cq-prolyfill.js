@@ -28,7 +28,7 @@
 	}
 	else {
 		/*eslint-disable dot-notation*/
-		window['containerQueries'] = factory(window['containerQueriesConfig']);
+		window['cqApi'] = factory(window['cqConfig']);
 		/*eslint-enable dot-notation*/
 	}
 }(function(config) {

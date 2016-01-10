@@ -5,12 +5,12 @@
 
 ## Normal script
 
-If you installed the prolyfill as a normal script, the configuration can be set via `window.containerQueriesConfig`:
+If you installed the prolyfill as a normal script, the configuration can be set via `window.cqConfig`:
 
 ```html
 <script>
 	// Set this variable before the script gets loaded
-	window.containerQueriesConfig = {
+	window.cqConfig = {
 		postcss: true
 	};
 </script>

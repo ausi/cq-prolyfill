@@ -42,10 +42,10 @@ QUnit.test('Simple width and height Query', function(assert) {
 	var minH = element.querySelector('.minH');
 	var maxH = element.querySelector('.maxH');
 
-	var reevaluate = window.containerQueries.reevaluate;
+	var reevaluate = window.cqApi.reevaluate;
 
 	var done = assert.async();
-	window.containerQueries.reprocess(function () {
+	window.cqApi.reprocess(function () {
 
 		var font = function(node) {
 			return window.getComputedStyle(node).fontFamily;
@@ -106,10 +106,10 @@ QUnit.test('Combined Queries', function(assert) {
 	fixture.appendChild(element);
 	var test = element.firstChild;
 
-	var reevaluate = window.containerQueries.reevaluate;
+	var reevaluate = window.cqApi.reevaluate;
 
 	var done = assert.async();
-	window.containerQueries.reprocess(function () {
+	window.cqApi.reprocess(function () {
 
 		var font = function(node) {
 			return window.getComputedStyle(node).fontFamily;
@@ -165,10 +165,10 @@ QUnit.test('Double comparison Query', function(assert) {
 	fixture.appendChild(element);
 	var test = element.firstChild;
 
-	var reevaluate = window.containerQueries.reevaluate;
+	var reevaluate = window.cqApi.reevaluate;
 
 	var done = assert.async();
-	window.containerQueries.reprocess(function () {
+	window.cqApi.reprocess(function () {
 
 		var font = function(node) {
 			return window.getComputedStyle(node).fontFamily;
@@ -210,10 +210,10 @@ QUnit.test('Visibility Query', function(assert) {
 	fixture.appendChild(element);
 	var test = element.firstChild;
 
-	var reevaluate = window.containerQueries.reevaluate;
+	var reevaluate = window.cqApi.reevaluate;
 
 	var done = assert.async();
-	window.containerQueries.reprocess(function () {
+	window.cqApi.reprocess(function () {
 
 		var font = function(node) {
 			return window.getComputedStyle(node).fontFamily;
@@ -256,10 +256,10 @@ QUnit.test('Background Color Query', function(assert) {
 	fixture.appendChild(element);
 	var test = element.firstChild.firstChild;
 
-	var reevaluate = window.containerQueries.reevaluate;
+	var reevaluate = window.cqApi.reevaluate;
 
 	var done = assert.async();
-	window.containerQueries.reprocess(function () {
+	window.cqApi.reprocess(function () {
 
 		var font = function(node) {
 			return window.getComputedStyle(node).fontFamily;
@@ -329,10 +329,10 @@ QUnit[window.CSS && CSS.supports && CSS.supports('--foo', 0)
 	fixture.appendChild(element);
 	var test = element.firstChild;
 
-	var reevaluate = window.containerQueries.reevaluate;
+	var reevaluate = window.cqApi.reevaluate;
 
 	var done = assert.async();
-	window.containerQueries.reprocess(function () {
+	window.cqApi.reprocess(function () {
 
 		var font = function(node) {
 			return window.getComputedStyle(node).fontFamily;
@@ -373,10 +373,10 @@ QUnit.test('Opacity Query', function(assert) {
 	fixture.appendChild(element);
 	var test = element.firstChild;
 
-	var reevaluate = window.containerQueries.reevaluate;
+	var reevaluate = window.cqApi.reevaluate;
 
 	var done = assert.async();
-	window.containerQueries.reprocess(function () {
+	window.cqApi.reprocess(function () {
 
 		var font = function(node) {
 			return window.getComputedStyle(node).fontFamily;
@@ -421,12 +421,12 @@ QUnit.test('PostCSS skip step 1', function(assert) {
 	fixture.appendChild(element);
 	var test = element.firstChild;
 
-	var reevaluate = window.containerQueries.reevaluate;
+	var reevaluate = window.cqApi.reevaluate;
 
-	window.containerQueries.config.postcss = true;
+	window.cqApi.config.postcss = true;
 
 	var done = false;
-	window.containerQueries.reprocess(function () {
+	window.cqApi.reprocess(function () {
 
 		var font = function(node) {
 			return window.getComputedStyle(node).fontFamily;
@@ -446,7 +446,7 @@ QUnit.test('PostCSS skip step 1', function(assert) {
 
 	assert.ok(done, 'Reprocess callback synchronous');
 
-	delete window.containerQueries.config.postcss;
+	delete window.cqApi.config.postcss;
 
 });
 
@@ -465,10 +465,10 @@ QUnit.test('Performance of many elements on the same level', function(assert) {
 	element.style.cssText = 'width: 0';
 	fixture.appendChild(element);
 
-	var reevaluate = window.containerQueries.reevaluate;
+	var reevaluate = window.cqApi.reevaluate;
 
 	var done = assert.async();
-	window.containerQueries.reprocess(function () {
+	window.cqApi.reprocess(function () {
 
 		var font = function(node) {
 			return window.getComputedStyle(node).fontFamily;
@@ -523,10 +523,10 @@ QUnit.test('Performance of many nested elements', function(assert) {
 	var first = element.firstChild;
 	var nestedLast = element.lastChild.querySelector('.test:empty');
 
-	var reevaluate = window.containerQueries.reevaluate;
+	var reevaluate = window.cqApi.reevaluate;
 
 	var done = assert.async();
-	window.containerQueries.reprocess(function () {
+	window.cqApi.reprocess(function () {
 
 		var font = function(node) {
 			return window.getComputedStyle(node).fontFamily;
