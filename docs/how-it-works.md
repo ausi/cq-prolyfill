@@ -22,7 +22,7 @@ gets converted to this:
 }
 ```
 
-So this step could (theoretically) be done by a preprocessor on the server side to speed up the script.
+This step could be done by the [PostCSS plugin](postcss.md) on the server side to speed up the script.
 
 ## Step 2
 
