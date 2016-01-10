@@ -47,25 +47,7 @@ var api = {
 
 var observer;
 
-if (!config.skipObserving) {
-
-	// Reevaluate now
-	setTimeout(reevaluate);
-
-	window.addEventListener('DOMContentLoaded', reprocess.bind(undefined, undefined));
-	window.addEventListener('load', reprocess.bind(undefined, undefined));
-	window.addEventListener('resize', reevaluate.bind(undefined, true, undefined, undefined));
-
-	var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
-	if (MutationObserver) {
-		observer = new MutationObserver(checkMutations);
-		observer.observe(document.documentElement, {
-			childList: true,
-			subtree: true,
-		});
-	}
-
-}
+startObserving();
 
 var REGEXP_ESCAPE_REGEXP = /[.?*+^$[\]\\(){}|-]/g;
 var SELECTOR_REGEXP = /\.?:container\(\s*"?\s*[a-z-]+(?:(?:\s+|\|)[a-z-]+)?\s*(?:[<>!=]=?)\s*[^)]+\s*\)/gi;
@@ -95,6 +77,7 @@ var queries;
 var containerCache;
 var styleCache;
 var processedSheets = createCacheMap();
+var domMutations = [];
 var processed = false;
 var parsed = false;
 var documentElement = document.documentElement;
@@ -140,6 +123,37 @@ function reevaluate(clearContainerCache, callback, contexts) {
 }
 
 /**
+ * Starts observing DOM events and mutations
+ */
+function startObserving() {
+
+	if (config.skipObserving) {
+		return;
+	}
+
+	// Reevaluate now
+	setTimeout(reevaluate);
+
+	window.addEventListener('DOMContentLoaded', reprocess.bind(undefined, undefined));
+	window.addEventListener('load', reprocess.bind(undefined, undefined));
+	window.addEventListener('resize', reevaluate.bind(undefined, true, undefined, undefined));
+
+	var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+	if (MutationObserver) {
+		observer = new MutationObserver(checkMutations);
+		observer.observe(document.documentElement, {
+			childList: true,
+			subtree: true,
+		});
+	}
+	else {
+		window.addEventListener('DOMNodeInserted', onDomMutate);
+		window.addEventListener('DOMNodeRemoved', onDomMutate);
+	}
+
+}
+
+/**
  * Check DOM mutations and reprocess or reevaluate
  *
  * @param  {Array.<MutationRecord>} mutations
@@ -165,7 +179,10 @@ function checkMutations(mutations) {
 			if (index !== -1) {
 				addedNodes.splice(index, 1);
 			}
-			else if (node.sheet && replacedSheets.indexOf(node) === -1) {
+			else if (
+				(node.tagName === 'LINK' || node.tagName === 'STYLE')
+				&& replacedSheets.indexOf(node) === -1
+			) {
 				stylesChanged = true;
 			}
 		});
@@ -184,6 +201,31 @@ function checkMutations(mutations) {
 	else if (addedNodes.length) {
 		reevaluate(false, undefined, addedNodes);
 	}
+
+}
+
+/**
+ * Event handler for DOMNodeInserted and DOMNodeRemoved
+ *
+ * @param  {MutationEvent} event
+ */
+function onDomMutate(event) {
+
+	var mutation = {
+		addedNodes: [],
+		removedNodes: [],
+	};
+	mutation[
+		(event.type === 'DOMNodeInserted' ? 'added' : 'removed') + 'Nodes'
+	] = [event.target];
+
+	domMutations.push(mutation);
+
+	// Delay the call to checkMutations()
+	setTimeout(function() {
+		checkMutations(domMutations);
+		domMutations = [];
+	});
 
 }
 
@@ -653,6 +695,9 @@ function buildElementsTree(contexts) {
 			if (contexts.indexOf(node) !== -1) {
 				return;
 			}
+		}
+		if (context !== document && elementMatchesSelector(context, selector)) {
+			elements.push(context);
 		}
 		elements.push.apply(elements, arrayFrom(context.querySelectorAll(selector)));
 	});

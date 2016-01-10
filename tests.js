@@ -77,6 +77,68 @@ QUnit.test('CORS', function(assert) {
 
 });
 
+/*global reprocess, config, startObserving, observer: true, onDomMutate*/
+QUnit.test('DOM Mutations', function(assert) {
+
+	var element = document.createElement('div');
+	element.className = 'mutations-test';
+	fixture.appendChild(element);
+
+	var done = assert.async();
+
+	reprocess(function() {
+
+		delete config.skipObserving;
+		startObserving();
+
+		assert.equal(getComputedStyle(element).display, 'block', 'Display block');
+
+		var style = document.createElement('style');
+		style.type = 'text/css';
+		style.innerHTML = '.mutations-test:container(width > 0) { display: none }';
+		fixture.appendChild(style);
+
+		setTimeout(function() {
+
+			assert.equal(getComputedStyle(element).display, 'none', 'Display none');
+
+			var element2 = document.createElement('div');
+			element2.className = 'mutations-test';
+			fixture.appendChild(element2);
+
+			setTimeout(function() {
+
+				assert.equal(getComputedStyle(element2).display, 'none', 'Display none');
+
+				fixture.removeChild(style);
+
+				setTimeout(function() {
+
+					assert.equal(getComputedStyle(element).display, 'block', 'Display block');
+					assert.equal(getComputedStyle(element2).display, 'block', 'Display block');
+
+					// Cleanup
+					if (observer) {
+						observer.disconnect();
+						observer = undefined;
+					}
+					else {
+						window.removeEventListener('DOMNodeInserted', onDomMutate);
+						window.removeEventListener('DOMNodeRemoved', onDomMutate);
+					}
+					config.skipObserving = true;
+					done();
+
+				});
+
+			});
+
+		});
+
+	});
+
+});
+
 /*global preprocess, SELECTOR_ESCAPED_REGEXP, SELECTOR_REGEXP*/
 QUnit.test('preprocess', function(assert) {
 	var style = document.createElement('style');
