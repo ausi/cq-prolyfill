@@ -59,10 +59,10 @@ var NUMBER_REGEXP = /^-?(?:\d*\.)?\d+$/i;
 var URL_VALUE_REGEXP = /url\(\s*(?:(["'])(.*?)\1|([^)\s]*))\s*\)/gi;
 var ATTR_REGEXP = /\[.+?\]/g;
 var PSEUDO_NOT_REGEXP = /:not\(/g;
-var ID_REGEXP = /#[^\s\[#+,.:>~]+/g;
-var CLASS_REGEXP = /\.[^\s\[#+,.:>~]+/g;
-var PSEUDO_ELEMENT_REGEXP = /::[^\s\[#+,.:>~]+/g;
-var PSEUDO_CLASS_REGEXP = /:[^\s\[#+,.:>~]+/g;
+var ID_REGEXP = /#[^\s\[\\#+,.:>~]+/g;
+var CLASS_REGEXP = /\.[^\s\[\\#+,.:>~]+/g;
+var PSEUDO_ELEMENT_REGEXP = /::[^\s\[\\#+,.:>~]+/g;
+var PSEUDO_CLASS_REGEXP = /:[^\s\[\\#+,.:>~]+/g;
 var ELEMENT_REGEXP = /[a-z-]+/gi;
 var FIXED_UNIT_MAP = {
 	'px': 1,
