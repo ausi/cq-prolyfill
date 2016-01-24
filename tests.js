@@ -221,7 +221,7 @@ QUnit.test('parseRules', function(assert) {
 	style.type = 'text/css';
 	style.innerHTML = '.foo:active:hover:focus:checked .before:container( WIDTH >= 100.00px ).after>child { display: block }'
 		+ ':container(height < 10em) .general-selector { display: block }'
-		+ '.combined-selector:container(width > 100px):container(height > 100px) { display: block }'
+		+ '.combined-selector:container(text-align = right):container(height > 100px) { display: block }'
 		+ '.double-comparison:container(width > 100px < 200px) { display: block }'
 		+ '.filter:container(color lightness < 10%) { display: block }'
 		+ ':nth-of-type(2n+1):container(width > 100px) { display: block }'
@@ -240,6 +240,7 @@ QUnit.test('parseRules', function(assert) {
 		assert.equal(queries[Object.keys(queries)[0]]._prop, 'width', 'Property');
 		assert.deepEqual(queries[Object.keys(queries)[0]]._types, ['>='], 'Mode');
 		assert.deepEqual(queries[Object.keys(queries)[0]]._values, ['100.00px'], 'Value');
+		assert.deepEqual(queries[Object.keys(queries)[0]]._valueType, 'l', 'Value type');
 		assert.equal(queries[Object.keys(queries)[0]]._className, ':container(width>=100.00px)', 'Class name');
 
 		assert.equal(Object.keys(queries)[1], '*.\\:container\\(height\\<10em\\)', 'Correct key');
@@ -247,23 +248,26 @@ QUnit.test('parseRules', function(assert) {
 		assert.equal(queries[Object.keys(queries)[1]]._prop, 'height', 'Property');
 		assert.deepEqual(queries[Object.keys(queries)[1]]._types, ['<'], 'Mode');
 		assert.deepEqual(queries[Object.keys(queries)[1]]._values, ['10em'], 'Value');
+		assert.deepEqual(queries[Object.keys(queries)[1]]._valueType, 'l', 'Value type');
 		assert.equal(queries[Object.keys(queries)[1]]._className, ':container(height<10em)', 'Class name');
 
 		// Fix CSS class sorting for IE/Edge
 		var combinedKeys = [Object.keys(queries)[2], Object.keys(queries)[3]].sort().reverse();
 
-		assert.equal(combinedKeys[0], '.combined-selector.\\:container\\(width\\>100px\\)', 'Correct key');
+		assert.equal(combinedKeys[0], '.combined-selector.\\:container\\(text-align\\=right\\)', 'Correct key');
 		assert.equal(queries[combinedKeys[0]]._selector, '.combined-selector', 'Preceding selector');
-		assert.equal(queries[combinedKeys[0]]._prop, 'width', 'Property');
-		assert.deepEqual(queries[combinedKeys[0]]._types, ['>'], 'Mode');
-		assert.deepEqual(queries[combinedKeys[0]]._values, ['100px'], 'Value');
-		assert.equal(queries[combinedKeys[0]]._className, ':container(width>100px)', 'Class name');
+		assert.equal(queries[combinedKeys[0]]._prop, 'text-align', 'Property');
+		assert.deepEqual(queries[combinedKeys[0]]._types, ['='], 'Mode');
+		assert.deepEqual(queries[combinedKeys[0]]._values, ['right'], 'Value');
+		assert.deepEqual(queries[combinedKeys[0]]._valueType, 's', 'Value type');
+		assert.equal(queries[combinedKeys[0]]._className, ':container(text-align=right)', 'Class name');
 
 		assert.equal(combinedKeys[1], '.combined-selector.\\:container\\(height\\>100px\\)', 'Correct key');
 		assert.equal(queries[combinedKeys[1]]._selector, '.combined-selector', 'Preceding selector');
 		assert.equal(queries[combinedKeys[1]]._prop, 'height', 'Property');
 		assert.deepEqual(queries[combinedKeys[1]]._types, ['>'], 'Mode');
 		assert.deepEqual(queries[combinedKeys[1]]._values, ['100px'], 'Value');
+		assert.deepEqual(queries[combinedKeys[1]]._valueType, 'l', 'Value type');
 		assert.equal(queries[combinedKeys[1]]._className, ':container(height>100px)', 'Class name');
 
 		assert.equal(Object.keys(queries)[4], '.double-comparison.\\:container\\(width\\>100px\\<200px\\)', 'Correct key');
@@ -271,6 +275,7 @@ QUnit.test('parseRules', function(assert) {
 		assert.equal(queries[Object.keys(queries)[4]]._prop, 'width', 'Property');
 		assert.deepEqual(queries[Object.keys(queries)[4]]._types, ['>', '<'], 'Mode');
 		assert.deepEqual(queries[Object.keys(queries)[4]]._values, ['100px', '200px'], 'Value');
+		assert.deepEqual(queries[Object.keys(queries)[4]]._valueType, 'l', 'Value type');
 		assert.equal(queries[Object.keys(queries)[4]]._className, ':container(width>100px<200px)', 'Class name');
 
 		assert.equal(Object.keys(queries)[5], '.filter.\\:container\\(color\\|lightness\\<10\\%\\)', 'Correct key');
@@ -278,7 +283,8 @@ QUnit.test('parseRules', function(assert) {
 		assert.equal(queries[Object.keys(queries)[5]]._prop, 'color', 'Property');
 		assert.deepEqual(queries[Object.keys(queries)[5]]._filter, 'lightness', 'Filter');
 		assert.deepEqual(queries[Object.keys(queries)[5]]._types, ['<'], 'Mode');
-		assert.deepEqual(queries[Object.keys(queries)[5]]._values, ['10%'], 'Value');
+		assert.deepEqual(queries[Object.keys(queries)[5]]._values, [10], 'Value');
+		assert.deepEqual(queries[Object.keys(queries)[5]]._valueType, 'n', 'Value type');
 		assert.equal(queries[Object.keys(queries)[5]]._className, ':container(color|lightness<10%)', 'Class name');
 
 		assert.equal(Object.keys(queries)[6], ':nth-of-type(2n+1).\\:container\\(width\\>100px\\)', 'Correct key');
@@ -286,6 +292,7 @@ QUnit.test('parseRules', function(assert) {
 		assert.equal(queries[Object.keys(queries)[6]]._prop, 'width', 'Property');
 		assert.deepEqual(queries[Object.keys(queries)[6]]._types, ['>'], 'Mode');
 		assert.deepEqual(queries[Object.keys(queries)[6]]._values, ['100px'], 'Value');
+		assert.deepEqual(queries[Object.keys(queries)[6]]._valueType, 'l', 'Value type');
 		assert.equal(queries[Object.keys(queries)[6]]._className, ':container(width>100px)', 'Class name');
 
 		assert.equal(Object.keys(queries)[7], '.pseudo-before.\\:container\\(width\\>100px\\)', 'Correct key');
@@ -293,6 +300,7 @@ QUnit.test('parseRules', function(assert) {
 		assert.equal(queries[Object.keys(queries)[7]]._prop, 'width', 'Property');
 		assert.deepEqual(queries[Object.keys(queries)[7]]._types, ['>'], 'Mode');
 		assert.deepEqual(queries[Object.keys(queries)[7]]._values, ['100px'], 'Value');
+		assert.deepEqual(queries[Object.keys(queries)[7]]._valueType, 'l', 'Value type');
 		assert.equal(queries[Object.keys(queries)[7]]._className, ':container(width>100px)', 'Class name');
 
 		assert.equal(Object.keys(queries)[8], '.pseudo-after.\\:container\\(width\\>100px\\)', 'Correct key');
@@ -300,6 +308,7 @@ QUnit.test('parseRules', function(assert) {
 		assert.equal(queries[Object.keys(queries)[8]]._prop, 'width', 'Property');
 		assert.deepEqual(queries[Object.keys(queries)[8]]._types, ['>'], 'Mode');
 		assert.deepEqual(queries[Object.keys(queries)[8]]._values, ['100px'], 'Value');
+		assert.deepEqual(queries[Object.keys(queries)[8]]._valueType, 'l', 'Value type');
 		assert.equal(queries[Object.keys(queries)[8]]._className, ':container(width>100px)', 'Class name');
 
 		assert.equal(Object.keys(queries)[9], '.inside-media-query.\\:container\\(height\\<10em\\)', 'Correct key');
@@ -459,45 +468,45 @@ QUnit.test('evaluateQuery', function(assert) {
 		['!=', 50, 100],
 	];
 	data.forEach(function(item) {
-		assert.strictEqual(evaluateQuery(element, {_prop: 'width', _types: [item[0]], _values: [item[1] + 'px']}), true, 'Width 100 ' + item[0] + ' ' + item[1]);
-		assert.strictEqual(evaluateQuery(element, {_prop: 'width', _types: [item[0]], _values: [item[2] + 'px']}), false, 'Width 100 not ' + item[0] + ' ' + item[2]);
-		assert.strictEqual(evaluateQuery(element, {_prop: 'height', _types: [item[0]], _values: [item[1] + 'px']}), true, 'Height 100 ' + item[0] + ' ' + item[1]);
-		assert.strictEqual(evaluateQuery(element, {_prop: 'height', _types: [item[0]], _values: [item[2] + 'px']}), false, 'Height 100 not ' + item[0] + ' ' + item[2]);
+		assert.strictEqual(evaluateQuery(element, {_prop: 'width', _types: [item[0]], _values: [item[1] + 'px'], _valueType: 'l'}), true, 'Width 100 ' + item[0] + ' ' + item[1]);
+		assert.strictEqual(evaluateQuery(element, {_prop: 'width', _types: [item[0]], _values: [item[2] + 'px'], _valueType: 'l'}), false, 'Width 100 not ' + item[0] + ' ' + item[2]);
+		assert.strictEqual(evaluateQuery(element, {_prop: 'height', _types: [item[0]], _values: [item[1] + 'px'], _valueType: 'l'}), true, 'Height 100 ' + item[0] + ' ' + item[1]);
+		assert.strictEqual(evaluateQuery(element, {_prop: 'height', _types: [item[0]], _values: [item[2] + 'px'], _valueType: 'l'}), false, 'Height 100 not ' + item[0] + ' ' + item[2]);
 	});
 
 	data = [
-		['width', '=', '10em', '9.9em'],
-		['display', '=', 'block', 'inline'],
-		['display', '!=', 'inline', 'block'],
-		['visibility', '=', 'visible', 'hidden'],
-		['opacity', '=', '0.500', '1'],
-		['opacity', '>', '0.49', '0.5'],
-		['font-size', '=', '7.50pt', '10em'],
+		['width', '=', 'l', '10em', '9.9em'],
+		['display', '=', 's', 'block', 'inline'],
+		['display', '!=', 's', 'inline', 'block'],
+		['visibility', '=', 's', 'visible', 'hidden'],
+		['opacity', '=', 'n', 0.500, 1],
+		['opacity', '>', 'n', 0.49, 0.5],
+		['font-size', '=', 'l', '7.50pt', '10em'],
 	];
 	data.forEach(function(item) {
-		assert.strictEqual(evaluateQuery(element, {_prop: item[0], _types: [item[1]], _values: [item[2]]}), true, item[0] + ' ' + item[1] + ' ' + item[2]);
-		assert.strictEqual(evaluateQuery(element, {_prop: item[0], _types: [item[1]], _values: [item[3]]}), false, item[0] + ' not ' + item[1] + ' ' + item[3]);
+		assert.strictEqual(evaluateQuery(element, {_prop: item[0], _types: [item[1]], _values: [item[3]], _valueType: item[2]}), true, item[0] + ' ' + item[1] + ' ' + item[3]);
+		assert.strictEqual(evaluateQuery(element, {_prop: item[0], _types: [item[1]], _values: [item[4]], _valueType: item[2]}), false, item[0] + ' not ' + item[1] + ' ' + item[4]);
 	});
 
-	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'hue', _types: ['='], _values: ['0deg']}), true, 'Red Hue = 0deg');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'hue', _types: ['>'], _values: ['10deg']}), false, 'Red Hue not > 10deg');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'saturation', _types: ['='], _values: ['100%']}), true, 'Red Saturation = 100%');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'saturation', _types: ['<'], _values: ['90%']}), false, 'Red Saturation not < 90%');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'lightness', _types: ['>'], _values: ['10%']}), true, 'Red Lightness > 10%');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'lightness', _types: ['<'], _values: ['10%']}), false, 'Red Lightness not < 10%');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'alpha', _types: ['='], _values: ['1']}), true, 'Red Alpha = 1');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'alpha', _types: ['<'], _values: ['0.99']}), false, 'Red Alpha not < 0.99');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'hue', _types: ['='], _values: [parseFloat('0deg')], _valueType: 'n'}), true, 'Red Hue = 0deg');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'hue', _types: ['>'], _values: [parseFloat('10deg')], _valueType: 'n'}), false, 'Red Hue not > 10deg');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'saturation', _types: ['='], _values: [parseFloat('100%')], _valueType: 'n'}), true, 'Red Saturation = 100%');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'saturation', _types: ['<'], _values: [parseFloat('90%')], _valueType: 'n'}), false, 'Red Saturation not < 90%');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'lightness', _types: ['>'], _values: [parseFloat('10%')], _valueType: 'n'}), true, 'Red Lightness > 10%');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'lightness', _types: ['<'], _values: [parseFloat('10%')], _valueType: 'n'}), false, 'Red Lightness not < 10%');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'alpha', _types: ['='], _values: [parseFloat('1')], _valueType: 'n'}), true, 'Red Alpha = 1');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'alpha', _types: ['<'], _values: [parseFloat('0.99')], _valueType: 'n'}), false, 'Red Alpha not < 0.99');
 
-	assert.strictEqual(evaluateQuery(element, {_prop: 'display', _types: ['<'], _values: ['10px']}), false, 'Invalid block < 10px');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'display', _types: ['>'], _values: ['10px']}), false, 'Invalid block > 10px');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'invalid', _types: ['<'], _values: ['10px']}), false, 'Invalid undefined < 10px');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'invalid', _types: ['>'], _values: ['10px']}), false, 'Invalid undefined > 10px');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _types: ['<'], _values: ['foo']}), false, 'Invalid 10px < foo');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _types: ['>'], _values: ['foo']}), false, 'Invalid 10px > foo');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _types: ['<'], _values: ['']}), false, 'Invalid 10px < ""');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _types: ['>'], _values: ['']}), false, 'Invalid 10px > ""');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'width', _filter: 'invalid', _types: ['>'], _values: ['0px']}), false, 'Invalid filter');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'width', _types: ['='], _values: ['auto']}), false, 'Invalid width = auto');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'display', _types: ['<'], _values: ['10px'], _valueType: 'l'}), false, 'Invalid block < 10px');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'display', _types: ['>'], _values: ['10px'], _valueType: 'l'}), false, 'Invalid block > 10px');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'invalid', _types: ['<'], _values: ['10px'], _valueType: 'l'}), false, 'Invalid undefined < 10px');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'invalid', _types: ['>'], _values: ['10px'], _valueType: 'l'}), false, 'Invalid undefined > 10px');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _types: ['<'], _values: ['foo'], _valueType: 's'}), false, 'Invalid 10px < foo');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _types: ['>'], _values: ['foo'], _valueType: 's'}), false, 'Invalid 10px > foo');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _types: ['<'], _values: [''], _valueType: 's'}), false, 'Invalid 10px < ""');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'font-size', _types: ['>'], _values: [''], _valueType: 's'}), false, 'Invalid 10px > ""');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'width', _filter: 'invalid', _types: ['>'], _values: ['0px'], _valueType: 'l'}), false, 'Invalid filter');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'width', _types: ['='], _values: ['auto'], _valueType: 's'}), false, 'Invalid width = auto');
 
 });
 
@@ -741,8 +750,6 @@ QUnit.test('elementMatchesSelector', function(assert) {
 
 	assert.ok(elementMatchesSelector(element, 'div'), 'Simple selector');
 	assert.ok(elementMatchesSelector(element, '.\\:container\\(width\\>\\=100px\\)'), 'Escaped query');
-	assert.ok(elementMatchesSelector(element, ':container( width >= 100px )'), 'Unescaped query');
-	assert.ok(elementMatchesSelector(element, '\.:container(width>=100px)'), 'Unescaped query with leading dot');
 
 });
 

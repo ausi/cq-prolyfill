@@ -499,12 +499,21 @@ function parseRule(rule) {
 			if (!precedingSelector.substr(-1).trim()) {
 				precedingSelector += '*';
 			}
+			var values = [unescape(value1), unescape(value2)].filter(Boolean);
+			var valueType =
+				(filter || values[0].match(NUMBER_REGEXP)) ? 'n' :
+				values[0].match(LENGTH_REGEXP) ? 'l' :
+				's';
+			if (valueType === 'n') {
+				values = values.map(parseFloat);
+			}
 			queries[precedingSelector + match] = {
 				_selector: precedingSelector,
 				_prop: unescape(prop),
 				_filter: filter && filter.substr(2),
 				_types: [unescape(type1), unescape(type2)].filter(Boolean),
-				_values: [unescape(value1), unescape(value2)].filter(Boolean),
+				_values: values,
+				_valueType: valueType,
 				_className: unescape(match.substr(1)),
 			};
 		});
@@ -570,7 +579,7 @@ function buildStyleCacheFromRules(rules) {
 				rules[i].style.getPropertyValue('width')
 				|| rules[i].style.getPropertyValue('height')
 			) {
-				splitSelectors(rules[i].selectorText).forEach(function(selector) {
+				splitSelectors(escapeSelectors(rules[i].selectorText)).forEach(function(selector) {
 					var rule = {
 						_selector: selector,
 						_rule: rules[i],
@@ -638,40 +647,57 @@ function updateClasses(clearContainerCache, contexts) {
 
 	var elementsTree = buildElementsTree(contexts);
 
-	while(read(elementsTree)) {
-		write(elementsTree);
+	while(updateClassesRead(elementsTree)) {
+		updateClassesWrite(elementsTree);
 	}
-	write(elementsTree);
+	updateClassesWrite(elementsTree);
 
-	function read(treeNodes, dontMarkAsDone) {
-		var hasChanges = false;
-		treeNodes.forEach(function(node) {
-			if (!node._done) {
-				node._queries.forEach(function(query) {
-					var queryMatches = evaluateQuery(node._element.parentNode, query);
-					if (queryMatches !== hasClass(node._element, query._className)) {
-						node._changes.push([queryMatches, query]);
-					}
-				});
-				node._done = !dontMarkAsDone;
+}
+
+/**
+ * Update classes read step
+ *
+ * @param  {Array.<{_element: Element, _children: array, _queries: array, _changes: array, _done: boolean}>} treeNodes
+ * @param  {boolean}                                                                                         dontMarkAsDone
+ * @return {boolean} True if changes were found
+ */
+function updateClassesRead(treeNodes, dontMarkAsDone) {
+	var hasChanges = false;
+	var i, node, j, query;
+	for (i = 0; i < treeNodes.length; i++) {
+		node = treeNodes[i];
+		if (!node._done) {
+			for (j = 0; j < node._queries.length; j++) {
+				query = node._queries[j];
+				var queryMatches = evaluateQuery(node._element.parentNode, query);
+				if (queryMatches !== hasClass(node._element, query._className)) {
+					node._changes.push([queryMatches, query]);
+				}
 			}
-			hasChanges = read(node._children, dontMarkAsDone || node._changes.length)
-				|| node._changes.length
-				|| hasChanges;
-		});
-		return hasChanges;
+			node._done = !dontMarkAsDone;
+		}
+		hasChanges = updateClassesRead(node._children, dontMarkAsDone || node._changes.length)
+			|| node._changes.length
+			|| hasChanges;
 	}
+	return hasChanges;
+}
 
-	function write(treeNodes) {
-		treeNodes.forEach(function(node) {
-			node._changes.forEach(function(change) {
-				(change[0] ? addClass : removeClass)(node._element, change[1]._className);
-			});
-			node._changes = [];
-			write(node._children);
-		});
+/**
+ * Update classes write step
+ *
+ * @param  {Array.<{_element: Element, _children: array, _queries: array, _changes: array, _done: boolean}>} treeNodes
+ */
+function updateClassesWrite(treeNodes) {
+	var node, j;
+	for (var i = 0; i < treeNodes.length; i++) {
+		node = treeNodes[i];
+		for (j = 0; j < node._changes.length; j++) {
+			(node._changes[j][0] ? addClass : removeClass)(node._element, node._changes[j][1]._className);
+		}
+		node._changes = [];
+		updateClassesWrite(node._children);
 	}
-
 }
 
 /**
@@ -684,8 +710,12 @@ function buildElementsTree(contexts) {
 
 	contexts = contexts || [document];
 
-	var selector = Object.keys(queries).map(function(key) {
-		return queries[key]._selector;
+	var queriesArray = Object.keys(queries).map(function(key) {
+		return queries[key];
+	});
+
+	var selector = queriesArray.map(function(query) {
+		return query._selector;
 	}).join(',');
 
 	var elements = [];
@@ -731,9 +761,9 @@ function buildElementsTree(contexts) {
 
 		children.push(treeNode);
 
-		Object.keys(queries).forEach(function(key) {
-			if (elementMatchesSelector(element, queries[key]._selector)) {
-				treeNode._queries.push(queries[key]);
+		queriesArray.forEach(function(query) {
+			if (elementMatchesSelector(element, query._selector)) {
+				treeNode._queries.push(query);
 			}
 		});
 
@@ -753,7 +783,8 @@ function buildElementsTree(contexts) {
 function evaluateQuery(parent, query) {
 
 	var container = getContainer(parent, query._prop);
-	var qValues = query._values;
+	var qValues = query._values.slice(0);
+	var i;
 
 	var cValue;
 	if (query._prop === 'width' || query._prop === 'height') {
@@ -780,41 +811,46 @@ function evaluateQuery(parent, query) {
 		else {
 			return false;
 		}
-		qValues = qValues.map(parseFloat);
 	}
-	else if (qValues[0].match(LENGTH_REGEXP)) {
-		qValues = qValues.map(function(value) {
-			return getComputedLength(value, parent);
-		});
+	else if (query._valueType === 'l') {
+		for (i = 0; i < qValues.length; i++) {
+			qValues[i] = getComputedLength(qValues[i], parent);
+		}
 		if (typeof cValue === 'string') {
 			cValue = getComputedLength(cValue, parent);
 		}
 	}
-	else if (qValues[0].match(NUMBER_REGEXP)) {
-		qValues = qValues.map(parseFloat);
+	else if (query._valueType === 'n') {
 		cValue = parseFloat(cValue);
 	}
 	else if (typeof cValue === 'string') {
 		cValue = cValue.trim();
 	}
 
-	if (['>', '<'].indexOf(query._types[0][0]) !== -1 && (
+	if ((
+		query._types[0][0] === '>'
+		|| query._types[0][0] === '<'
+	) && (
 		typeof cValue !== 'number'
 		|| typeof qValues[0] !== 'number'
 	)) {
 		return false;
 	}
 
-	return qValues.reduce(function(result, qValue, index) {
-		return result && (
-			(query._types[index] === '>=' && cValue >= qValue)
-			|| (query._types[index] === '<=' && cValue <= qValue)
-			|| (query._types[index] === '>' && cValue > qValue)
-			|| (query._types[index] === '<' && cValue < qValue)
-			|| (query._types[index] === '=' && cValue === qValue)
-			|| (query._types[index] === '!=' && cValue !== qValue)
-		);
-	}, true);
+	for (i = 0; i < qValues.length; i++) {
+		if (!(
+			(query._types[i] === '>=' && cValue >= qValues[i])
+			|| (query._types[i] === '<=' && cValue <= qValues[i])
+			|| (query._types[i] === '>' && cValue > qValues[i])
+			|| (query._types[i] === '<' && cValue < qValues[i])
+			|| (query._types[i] === '=' && cValue === qValues[i])
+			|| (query._types[i] === '!=' && cValue !== qValues[i])
+		)) {
+			return false;
+		}
+	}
+
+	return true;
 
 }
 
@@ -1182,7 +1218,7 @@ function elementMatchesSelector(element, selector) {
 		|| element.msMatchesSelector
 		|| element.oMatchesSelector
 		|| element.webkitMatchesSelector;
-	return func.call(element, escapeSelectors(selector));
+	return func.call(element, selector);
 }
 
 /**
