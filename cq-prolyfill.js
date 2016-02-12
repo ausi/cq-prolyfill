@@ -925,7 +925,10 @@ function getContainer(element, prop) {
  */
 function isFixedSize(element, prop) {
 	var originalStyle = getOriginalStyle(element, prop);
-	if (originalStyle && originalStyle.match(LENGTH_REGEXP)) {
+	if (originalStyle && (
+		originalStyle.match(LENGTH_REGEXP)
+		|| originalStyle.match(/^calc\([^%]*\)$/i)
+	)) {
 		return true;
 	}
 	return false;
@@ -970,6 +973,11 @@ function isIntrinsicSize(element, prop) {
 
 	// Percentage size
 	if (originalStyle && originalStyle.substr(-1) === '%') {
+		return false;
+	}
+
+	// Calc expression
+	if (originalStyle && originalStyle.substr(0, 5) === 'calc(') {
 		return false;
 	}
 

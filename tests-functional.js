@@ -88,6 +88,14 @@ QUnit.test('Simple width and height Query', function(assert) {
 		assert.equal(font(maxW), 'no-query', 'max-width at 201px');
 		assert.equal(font(maxH), 'no-query', 'max-height at 201px');
 
+		element.style.cssText = 'width: 400px; height: 400px';
+		element.firstChild.firstChild.firstChild.style.cssText = 'float: left; width: 51.29%; width: calc(100% / 2 + 5px); height: 51.29%; height: calc(100% / 2 + 5px)';
+		reevaluate(true);
+		assert.equal(font(maxW), 'max-width-200', 'max-width at 200px');
+		assert.equal(font(maxH), 'max-height-200', 'max-height at 200px');
+		assert.equal(font(minW), 'min-width-200', 'min-width at 200px');
+		assert.equal(font(minH), 'min-height-200', 'min-height at 200px');
+
 		done();
 
 	});

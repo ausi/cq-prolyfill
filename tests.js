@@ -557,6 +557,14 @@ QUnit.test('isFixedSize', function(assert) {
 	assert.equal(isFixedSize(element, 'width'), true, 'Fixed width');
 	assert.equal(isFixedSize(element, 'height'), true, 'Fixed height');
 
+	element.style.cssText = 'width: 50%; width: calc(100% / 2 + 100px); height: 50%; height: calc(100% / 2 + 100px)';
+	assert.equal(isFixedSize(element, 'width'), false, 'Percentage calc expression width');
+	assert.equal(isFixedSize(element, 'height'), false, 'Percentage calc expression height');
+
+	element.style.cssText = 'width: 50px; width: calc(100px + 10em / 2); height: 50px; height: calc(100px + 10em / 2)';
+	assert.equal(isFixedSize(element, 'width'), true, 'Fixed calc expression width');
+	assert.equal(isFixedSize(element, 'height'), true, 'Fixed calc expression height');
+
 });
 
 /*global isIntrinsicSize*/
@@ -603,6 +611,14 @@ QUnit.test('isIntrinsicSize', function(assert) {
 	element.style.cssText = 'display: inline; float: left; width: 100px; height: 100px';
 	assert.equal(isIntrinsicSize(element, 'width'), false, 'Display inline float left pixel width');
 	assert.equal(isIntrinsicSize(element, 'height'), false, 'Display inline float left pixel height');
+
+	element.style.cssText = 'display: inline; float: left; width: 50px; width: calc(100px / 2); height: 50px; height: calc(100px / 2)';
+	assert.equal(isIntrinsicSize(element, 'width'), false, 'Calc pixel width');
+	assert.equal(isIntrinsicSize(element, 'height'), false, 'Calc pixel height');
+
+	element.style.cssText = 'display: inline; float: left; width: 50%; width: calc(100% / 2); height: 50%; height: calc(100% / 2)';
+	assert.equal(isIntrinsicSize(element, 'width'), false, 'Calc percentage width');
+	assert.equal(isIntrinsicSize(element, 'height'), false, 'Calc percentage height');
 
 });
 
