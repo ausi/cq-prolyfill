@@ -1,0 +1,51 @@
+@mixin cq-prolyfill($query) {
+	&#{cq-prolyfill($query)} {
+		@content;
+	}
+}
+
+@function cq-prolyfill($query) {
+	@return unquote(".\\:container\\(" + cq-prolyfill-escape(cq-prolyfill-strip-spaces(to-lower-case($query))) + "\\)");
+}
+
+@function cq-prolyfill-add-backslash($string, $search) {
+	$index: str-index($string, $search);
+	@while $index {
+		$string: str-insert($string, '\\', $index);
+		$newIndex: if(
+			str-length($string) < $index + 2,
+			null,
+			str-index(str-slice($string, $index + 2), $search)
+		);
+		$index: if($newIndex, $index + 1 + $newIndex, null);
+	}
+	@return $string;
+}
+
+@function cq-prolyfill-remove($string, $search) {
+	$index: str-index($string, $search);
+	@while $index {
+		$string: str-slice($string, 1, $index - 1) + str-slice($string, $index + 1);
+		$index: str-index($string, $search);
+	}
+	@return $string;
+}
+
+@function cq-prolyfill-escape($string) {
+	@each $char in '[' ']' '!' '"' '#' '$' '%' '&' "'" '(' ')' '*' '+' ',' '.' '/' ':' ';' '<' '=' '>' '?' '@' '^' '`' '{' '|' '}' '~' {
+		$string: cq-prolyfill-add-backslash($string, $char);
+	}
+	@return $string;
+}
+
+@function cq-prolyfill-strip-spaces($string) {
+	// tab, line feed, carriage return and space
+	$chars: "\9\a\d\20";
+	@for $i from 1 through str-length($chars) {
+		$string: cq-prolyfill-remove(
+			$string,
+			str-slice($chars, $i, $i)
+		);
+	}
+	@return $string;
+}
