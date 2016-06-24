@@ -1215,18 +1215,26 @@ function filterRulesByElementAndProp(rules, element, prop) {
 	});
 }
 
+var elementMatchesSelectorMethod = (function(element) {
+	return element.matches
+		|| element.mozMatchesSelector
+		|| element.msMatchesSelector
+		|| element.oMatchesSelector
+		|| element.webkitMatchesSelector;
+})(document.createElement('div'));
+
 /**
  * @param  {Element} element
  * @param  {string}  selector
  * @return {boolean}
  */
 function elementMatchesSelector(element, selector) {
-	var func = element.matches
-		|| element.mozMatchesSelector
-		|| element.msMatchesSelector
-		|| element.oMatchesSelector
-		|| element.webkitMatchesSelector;
-	return func.call(element, selector);
+	try {
+		return !!elementMatchesSelectorMethod.call(element, selector);
+	}
+	catch(e) {
+		return false;
+	}
 }
 
 /**

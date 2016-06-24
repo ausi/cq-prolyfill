@@ -766,6 +766,9 @@ QUnit.test('elementMatchesSelector', function(assert) {
 
 	assert.ok(elementMatchesSelector(element, 'div'), 'Simple selector');
 	assert.ok(elementMatchesSelector(element, '.\\:container\\(width\\>\\=100px\\)'), 'Escaped query');
+	assert.notOk(elementMatchesSelector(element, ''), 'Empty selector');
+	assert.notOk(elementMatchesSelector(element, '#1'), 'Invalid selector');
+	assert.notOk(elementMatchesSelector(element, '::-webkit- *'), 'Safari bug with special semivalid selector'); // Issue #26
 
 });
 
