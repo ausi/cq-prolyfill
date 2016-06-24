@@ -57,7 +57,7 @@
 		"qunit-phantomjs-runner": "^2.1.0",
 		"qunitjs": "^1.18.0",
 		"serve-static": "^1.10.0",
-		"slimerjs": "^0.9.6",
+		"slimerjs": "^0.906.2",
 		"uglify-js": "^2.4.24"
 	}
 }
