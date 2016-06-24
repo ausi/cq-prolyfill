@@ -7,11 +7,12 @@
 		"firefox_36",
 		"firefox_latest",
 		"safari_7_1",
+		"safari_8",
 		"safari_latest",
 		"ie_9",
 		"ie_10",
 		"ie_11",
-		"ie_latest",
+		"edge_12",
 		"edge_latest",
 		"opera_12_16",
 		"opera_30",
@@ -19,7 +20,23 @@
 		"yandex_latest",
 		{
 			"os": "ios",
+			"os_version": "7.0"
+		},
+		{
+			"os": "ios",
 			"os_version": "8.3"
+		}
+		{
+			"os": "ios",
+			"os_version": "9.3"
+		},
+		{
+			"os":"winphone",
+			"os_version":"8.1"
+		},
+		{
+			"os": "android",
+			"os_version": "4.4"
 		}
 	]
 }
