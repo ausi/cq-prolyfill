@@ -1,5 +1,11 @@
 language: node_js
 node_js: "node"
+addons:
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+        packages:
+            - g++-4.8
 before_script:
     - "export DISPLAY=:99.0"
     - "sh -e /etc/init.d/xvfb start"
@@ -7,6 +13,7 @@ script:
     - make test && make browserstack && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls
 env:
     global:
+        - CXX=g++-4.8
         - secure: bUyIN5cHVHRnihJw4z84nKhpp8LRy1WwqdI1n134HHZ1UnS52t0XfNRiO0iwmJmyT5TeHXqNEKN6IpvWUAdM8his2bvoAurNdoH3BELFXWz66esw/dNpl9pUy/mEgTsLnzCIIUcvIdVz6iSeH4aiBzImbuKS9JT2zzLZaSCpoKeNitRTHpuYd1wSaNmaNkdB6u5oy+YV1snzJuFQ4JetezmfZy4pEYrPYdxwh7YTigqQhRchoBvhHVRtyIxRjp9GNl5cITtYOejfMa2zuj6ISoDg04QslS3XQVX6MEUmTzlQBwZYBWFIbfOzkgdxk3wVXwi1QsgQEKN4781VJ3PrYpgxzCSRRpHfftCoWnhlunS953KGjqcf85MhcF/jZpKpM6LT5j2b52c2VJvSR2H2G/5NTGCBEdM+NUlQblHzqfGl/Iz0fYAhHuEDq3KiOPt7WCCfcu4YeLcih2MGsllnRJx4lrTisVtMTk1EZMaqnH0ChHbPX/Yo34VWoD0ByfGBhEFtgR5QbOYOTXldjq2BZKKEi1uA/bKA0Ey4Q9Q0xCfPc1VfD/8cAQooHTA5ta8C3w1/sxr7jNRX72c9C/JBL532BI0Gdng8PAl9Qvgj6xSmmPcXK5KWfmtAo/BIVwUtswk6WsmnHI7kfvAQv5CnpH9Azup9fO0jlCLCcjbhIH8=
         - secure: smI7rQrcoYErPOTruGINXzo8BHzlcevTY9GXdq7cbvfSkXmGYVqAQ/Vy2KjAe36iIlifsOKuvMlFQNQgghGHaZkO2Ol4hSfVu8UMKmQ8mEi+E5LSSwIY4NEPDrwVADXuzZjow329riutvuauEifJn+WNLDey/bFbBdKKIW4hYK9kiXvMwOlDmRwDMgZzw/IJgPCrmT2XKqDGofSnP75NMRj71HrctsxH2INHKFbGRvwIcCEUH6T3ifhBXdQaRPkcxfgvrvsUjxW8PiUlQI+TswgbTVsT/1UtejHcr1y5DYOj8e6BEbSOC+/KPrsj/YuCSgRiV4Qy+Ab2pM32kCKYpJJMPRUhzNnd9uauV2NXqLSRyPmCn41VFZnQlgSNc6DhWxDOuEg+cokcS5p0i1PpMxiaRZVtEYjgKUi0ETKotr+c+WJWSFQN3SWySGjQ0NiUvTWhrChEBbWQNVgRhF9jMNQQoEYWSlppo4ek5S7VyLPRRl0cz88zPdcKKKpmuktZxY7CQ/Bk3zcEz6EhaDaWE1YBuLeZAKtdlgEZ9zFhMFU6YZso5x1FhpX1xbwWuulG/HycZD44KhB2kDDCgTJ8BGDxkneOsTLMUAsXZbs8iYMLwRfwuSlmrQNKrlrfcSIpEVqDd2y8j3PSfXk+pjaLtJ2wfvT542FpHqxcvVwF8Ig=
 before_deploy:
