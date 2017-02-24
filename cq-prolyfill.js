@@ -83,6 +83,9 @@ var parsed = false;
 var documentElement = document.documentElement;
 var styleSheets = document.styleSheets;
 var createElement = document.createElement.bind(document);
+var CACHE_MAX_AGE = 120000;
+var CACHE = {};
+var IN_FLIGHT = {};
 
 /**
  * @param {function()} callback
@@ -317,10 +320,22 @@ function preprocessSheet(sheet, callback) {
  *                                    success or empty string on failure
  */
 function loadExternal(href, callback) {
+	if (CACHE[href]) {
+		callback(CACHE[href]);
+		return;
+	}
+	if (IN_FLIGHT[href] && IN_FLIGHT[href].length) {
+		IN_FLIGHT[href].push(callback);
+		return;
+	}
 	var isDone = false;
 	var done = function(response) {
 		if (!isDone) {
-			callback(response || '');
+			CACHE[href] = response || '';
+			setTimeout(function() { delete CACHE[href]; }, CACHE_MAX_AGE);
+
+			IN_FLIGHT[href].forEach((cb) => cb(CACHE[href]));
+			delete IN_FLIGHT[href];
 		}
 		isDone = true;
 	};
@@ -334,6 +349,7 @@ function loadExternal(href, callback) {
 	try {
 		xhr.open('GET', href);
 		xhr.send();
+		IN_FLIGHT[href] = [ callback ];
 	}
 	catch(e) {
 		if (window.XDomainRequest) {
@@ -347,6 +363,7 @@ function loadExternal(href, callback) {
 			try {
 				xhr.open('GET', href);
 				xhr.send();
+				IN_FLIGHT[href] = [ callback ];
 			}
 			catch(e2) {
 				done();
