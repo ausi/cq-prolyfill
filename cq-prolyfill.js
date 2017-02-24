@@ -334,7 +334,7 @@ function loadExternal(href, callback) {
 			CACHE[href] = response || '';
 			setTimeout(function() { delete CACHE[href]; }, CACHE_MAX_AGE);
 
-			IN_FLIGHT[href].forEach((cb) => cb(CACHE[href]));
+			IN_FLIGHT[href].forEach(function(cb) { cb(CACHE[href]); });
 			delete IN_FLIGHT[href];
 		}
 		isDone = true;
