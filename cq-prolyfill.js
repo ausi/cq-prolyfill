@@ -77,15 +77,14 @@ var queries;
 var containerCache;
 var styleCache;
 var processedSheets = createCacheMap();
+var requestCache = {};
+var requestCacheTime = 120000;
 var domMutations = [];
 var processed = false;
 var parsed = false;
 var documentElement = document.documentElement;
 var styleSheets = document.styleSheets;
 var createElement = document.createElement.bind(document);
-var CACHE_MAX_AGE = 120000;
-var CACHE = {};
-var IN_FLIGHT = {};
 
 /**
  * @param {function()} callback
@@ -320,23 +319,29 @@ function preprocessSheet(sheet, callback) {
  *                                    success or empty string on failure
  */
 function loadExternal(href, callback) {
-	if (CACHE[href]) {
-		callback(CACHE[href]);
+	var cacheEntryType = typeof requestCache[href];
+	if (cacheEntryType === 'string') {
+		callback(requestCache[href]);
 		return;
 	}
-	if (IN_FLIGHT[href]) {
-		IN_FLIGHT[href].push(callback);
+	else if (cacheEntryType === 'object') {
+		requestCache[href].push(callback);
 		return;
 	}
-	IN_FLIGHT[href] = [callback];
+	requestCache[href] = [callback]
 	var isDone = false;
 	var done = function(response) {
 		if (!isDone) {
-			CACHE[href] = response || '';
-			setTimeout(function() { delete CACHE[href]; }, CACHE_MAX_AGE);
-
-			IN_FLIGHT[href].forEach(function(cb) { cb(CACHE[href]); });
-			delete IN_FLIGHT[href];
+			response = response || '';
+			requestCache[href].forEach(function(cachedCallback) {
+				setTimeout(function() {
+					cachedCallback(response);
+				});
+			});
+			requestCache[href] = response;
+			setTimeout(function() {
+				delete requestCache[href];
+			}, requestCacheTime);
 		}
 		isDone = true;
 	};
