@@ -324,10 +324,11 @@ function loadExternal(href, callback) {
 		callback(CACHE[href]);
 		return;
 	}
-	if (IN_FLIGHT[href] && IN_FLIGHT[href].length) {
+	if (IN_FLIGHT[href]) {
 		IN_FLIGHT[href].push(callback);
 		return;
 	}
+	IN_FLIGHT[href] = [callback];
 	var isDone = false;
 	var done = function(response) {
 		if (!isDone) {
@@ -349,7 +350,6 @@ function loadExternal(href, callback) {
 	try {
 		xhr.open('GET', href);
 		xhr.send();
-		IN_FLIGHT[href] = [ callback ];
 	}
 	catch(e) {
 		if (window.XDomainRequest) {
@@ -363,7 +363,6 @@ function loadExternal(href, callback) {
 			try {
 				xhr.open('GET', href);
 				xhr.send();
-				IN_FLIGHT[href] = [ callback ];
 			}
 			catch(e2) {
 				done();
