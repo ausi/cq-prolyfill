@@ -78,7 +78,6 @@ var containerCache;
 var styleCache;
 var processedSheets = createCacheMap();
 var requestCache = {};
-var requestCacheTime = 120000;
 var domMutations = [];
 var processed = false;
 var parsed = false;
@@ -339,9 +338,6 @@ function loadExternal(href, callback) {
 				});
 			});
 			requestCache[href] = response;
-			setTimeout(function() {
-				delete requestCache[href];
-			}, requestCacheTime);
 		}
 		isDone = true;
 	};
