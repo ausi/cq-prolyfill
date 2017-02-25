@@ -14,7 +14,8 @@ QUnit.module('All', {
 });
 
 var fixture = document.getElementById('qunit-fixture');
-var TEST_FILES_URL_CORS = 'http://cdn.rawgit.com/ausi/cq-prolyfill/542e526/test-files/';
+var TEST_FILES_URL_TIME = 'http://127.0.0.1.xip.io:8888/time';
+var TEST_FILES_URL_CORS = 'http://127.0.0.1.xip.io:8888/cors/test-files/';
 var TEST_FILES_URL_CROSS_ORIGIN = 'http://127.0.0.1.xip.io:8888/test-files/';
 var TEST_FILES_PATH = 'test-files/';
 
@@ -324,7 +325,7 @@ QUnit.test('loadExternal', function(assert) {
 	var doneCount = 0;
 	var done = function() {
 		doneCount++;
-		if (doneCount >= 6) {
+		if (doneCount >= 9) {
 			allDone();
 		}
 	};
@@ -358,6 +359,24 @@ QUnit.test('loadExternal', function(assert) {
 		assert.strictEqual(response, '', 'Invalid protocol request');
 		done();
 	});
+
+	var firstResponse;
+	for (var i = 0; i < 3; i++) {
+		loadExternal(TEST_FILES_URL_TIME, function(response1) {
+			if (!firstResponse) {
+				firstResponse = response1;
+			}
+			else {
+				assert.strictEqual(response1, firstResponse, 'Cached response');
+			}
+			setTimeout(function() {
+				loadExternal(TEST_FILES_URL_TIME, function(response2) {
+					assert.strictEqual(response2, firstResponse, 'Cached response');
+					done();
+				});
+			});
+		});
+	}
 
 });
 
