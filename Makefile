@@ -70,9 +70,11 @@ $(BROWSERSTACK_RUNNER): $(MODULES)
 test: $(ESLINT) $(SOURCE) $(TEST_POSTCSS) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HTML_ALL) $(TEST_HTML_COVERAGE) $(TEST_HTML_FUNCTIONAL) $(MODULES)
 	$(ESLINT) $(SOURCE)
 	node $(TEST_POSTCSS)
-	node -e "require('connect')().use('/cors', require('serve-static')(__dirname, {setHeaders: corsHeaders})).use('/time', function(req, res){corsHeaders(res);res.end((new Date()).getTime()+'')}).use(require('serve-static')(__dirname)).listen(8888);function corsHeaders(res) {res.setHeader('Access-Control-Allow-Origin', '*')}" & echo "$$!" > server.pid
+	node -e "require('connect')().use(require('serve-static')(__dirname)).listen(8888)" & echo "$$!" > server.pid
+	node -e "require('connect')().use('/cors', require('serve-static')(__dirname, {setHeaders: corsHeaders})).use('/time', function(req, res){corsHeaders(res);res.end((new Date()).getTime()+'')}).listen(8889);function corsHeaders(res) {res.setHeader('Access-Control-Allow-Origin', '*')}" & echo "$$!" > server2.pid
 	$(SLIMERJS) $(TEST_RUNNER) http://localhost:8888/$(TEST_HTML_ALL) 20 | tee tests/slimerjs.log
 	kill `cat server.pid` && rm server.pid
+	kill `cat server2.pid` && rm server2.pid
 	@ grep ' passed, 0 failed.' tests/slimerjs.log > /dev/null
 	@ rm tests/slimerjs.log
 	node -e "require('connect')().use(require('serve-static')(__dirname)).listen(8888)" & echo "$$!" > server.pid
@@ -160,8 +162,10 @@ clean:
 
 .PHONY: browserstack
 browserstack: $(BROWSERSTACK_RUNNER) $(ISTANBUL) $(TEST_HTML_COVERAGE) $(TEST_HTML_FUNCTIONAL)
-	$(BROWSERSTACK_RUNNER) | tee tests/browserstack.log | grep -v '] coverage: {'
+	node -e "require('connect')().use('/cors', require('serve-static')(__dirname, {setHeaders: corsHeaders})).use('/time', function(req, res){corsHeaders(res);res.end((new Date()).getTime()+'')}).listen(8889);function corsHeaders(res) {res.setHeader('Access-Control-Allow-Origin', '*')}" & echo "$$!" > server.pid
+	$(BROWSERSTACK_RUNNER) | tee tests/browserstack.log | grep -v 'coverage: {'
+	kill `cat server.pid` && rm server.pid
 	@ grep 'All tests done, failures: 0.' tests/browserstack.log > /dev/null
 	rm -f tests/coverage-*
-	cat tests/browserstack.log | grep '] coverage: {' | sed 's/^.*] coverage: //g' | split -l 1 - tests/coverage-
+	cat tests/browserstack.log | grep 'coverage: {' | node -e 'console.log(require("fs").readFileSync("/dev/stdin", "utf8").split("\n").filter(Boolean).map(line => line.split("coverage: ")[1].slice(0, -1).split("\\\"").join("\"")).join("\n"));' | split -l 1 - tests/coverage-
 	$(ISTANBUL) report --include 'tests/coverage-*' text-summary html lcovonly
