@@ -20,7 +20,10 @@ var TEST_FILES_URL_CROSS_ORIGIN = 'http://127.0.0.1.xip.io:8888/test-files/';
 var TEST_FILES_PATH = 'test-files/';
 
 /*global reprocess, getOriginalStyle*/
-QUnit.test('CORS', function(assert) {
+QUnit[/Opera\/9\.80\s.*Version\/12\.16/.test(navigator.userAgent)
+	? 'skip'
+	: 'test'
+]('CORS', function(assert) {
 
 	var done = assert.async();
 
