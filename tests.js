@@ -42,7 +42,7 @@ QUnit[/Opera\/9\.80\s.*Version\/12\.16/.test(navigator.userAgent)
 		assert.equal(getComputedStyle(element).color, 'rgb(255, 0, 0)', 'Non-CORS Style Stylesheet computed style');
 	load('cors.css', true, false, function() {
 		assert.ok(getOriginalStyle(element, 'width') === undefined || getOriginalStyle(element, 'width') === '10%', 'Non-CORS Style Stylesheet with crossOrigin');
-		if ('crossOrigin' in document.createElement('link')) {
+		if ('crossOrigin' in document.createElement('link') && !/Version\/10\.[^\s]+\sSafari\//.test(navigator.userAgent)) {
 			assert.equal(getComputedStyle(element).color, 'rgb(0, 0, 0)', 'Non-CORS Style Stylesheet with crossOrigin computed style (crossOrigin supported)');
 		}
 		else {
