@@ -2,27 +2,19 @@
 	"test_framework" : "qunit",
 	"test_path": ["tests/coverage.html", "tests/functional.html"],
 	"browsers": [
-		"chrome_40",
 		"chrome_latest",
 		"firefox_36",
 		"firefox_latest",
 		"safari_7_1",
 		"safari_8",
-		"safari_9_1",
 		"safari_latest",
 		"ie_9",
 		"ie_10",
 		"ie_11",
 		"edge_13",
 		"edge_latest",
-		"opera_12_16",
 		"opera_30",
 		"opera_latest",
-		"yandex_latest",
-		{
-			"os": "ios",
-			"os_version": "7.0"
-		},
 		{
 			"os": "ios",
 			"os_version": "8.3"
@@ -34,10 +26,6 @@
 		{
 			"os":"winphone",
 			"os_version":"8.1"
-		},
-		{
-			"os": "android",
-			"os_version": "4.4"
 		}
 	]
 }
