@@ -1221,7 +1221,7 @@ function filterRulesByElementAndProp(rules, element, prop) {
 	if (element.id) {
 		foundRules = foundRules.concat(rules['#' + element.id] || []);
 	}
-	element.className.split(/\s+/).forEach(function(className) {
+	(element.getAttribute('class') || '').split(/\s+/).forEach(function(className) {
 		foundRules = foundRules.concat(rules['.' + className] || []);
 	});
 	foundRules = foundRules
