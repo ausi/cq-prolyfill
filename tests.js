@@ -19,7 +19,7 @@ var TEST_FILES_URL_CORS = 'http://127.0.0.1.xip.io:8889/cors/test-files/';
 var TEST_FILES_URL_CROSS_ORIGIN = 'http://127.0.0.1.xip.io:8888/test-files/';
 var TEST_FILES_PATH = 'test-files/';
 
-/*global reprocess, getOriginalStyle*/
+/*global reprocess, reevaluate, getOriginalStyle, processed*/
 QUnit[/Opera\/9\.80\s.*Version\/12\.16/.test(navigator.userAgent)
 	? 'skip'
 	: 'test'
@@ -72,9 +72,7 @@ QUnit[/Opera\/9\.80\s.*Version\/12\.16/.test(navigator.userAgent)
 		fixture.appendChild(element);
 
 		function onLoad() {
-			reprocess(function() {
-				callback();
-			});
+			processed ? reprocess(callback) : reevaluate(true, callback);
 		}
 
 	}
@@ -110,9 +108,17 @@ QUnit.test('DOM Mutations', function(assert) {
 			element2.className = 'mutations-test';
 			fixture.appendChild(element2);
 
+			var element3 = document.createElement('div');
+			element3.className = 'mutations-test';
+			fixture.appendChild(element3);
+			fixture.removeChild(element3);
+
 			setTimeout(function() {
 
 				assert.equal(getComputedStyle(element2).display, 'none', 'Display none');
+
+				fixture.appendChild(element3);
+				assert.equal(getComputedStyle(element3).display, 'block', 'Display block');
 
 				fixture.removeChild(style);
 
@@ -120,6 +126,7 @@ QUnit.test('DOM Mutations', function(assert) {
 
 					assert.equal(getComputedStyle(element).display, 'block', 'Display block');
 					assert.equal(getComputedStyle(element2).display, 'block', 'Display block');
+					assert.equal(getComputedStyle(element3).display, 'block', 'Display block');
 
 					// Cleanup
 					if (observer) {
@@ -906,9 +913,10 @@ QUnit.test('createCacheMap', function(assert) {
 	});
 	assert.deepEqual(forEached, [['el1-new', el1], ['el2', el2]]);
 
-	map.delete(el1);
+	assert.strictEqual(map.delete(el1), true, 'Deleted element1');
 	assert.strictEqual(map.has(el1), false, 'Hasn’t element1');
 	assert.strictEqual(map.get(el1), undefined, 'Value undefined');
+	assert.strictEqual(map.delete(el1), false, 'Didn’t delete element1');
 
 	forEached = [];
 	map.forEach(function(value, key) {
@@ -916,9 +924,10 @@ QUnit.test('createCacheMap', function(assert) {
 	});
 	assert.deepEqual(forEached, [['el2', el2]]);
 
-	map.delete(el2);
+	assert.strictEqual(map.delete(el2), true, 'Deleted element2');
 	assert.strictEqual(map.has(el2), false, 'Hasn’t element2');
 	assert.strictEqual(map.get(el2), undefined, 'Value undefined');
+	assert.strictEqual(map.delete(el2), false, 'Didn’t delete element2');
 
 	forEached = [];
 	map.forEach(function(value, key) {
