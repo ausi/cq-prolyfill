@@ -928,28 +928,34 @@ QUnit.test('createCacheMap', function(assert) {
 
 });
 
-/*global addClass, removeClass*/
+/*global addClass, removeClass, getClassName*/
 QUnit.test('addClass, removeClass', function(assert) {
 
 	var element = document.createElement('div');
+	element.innerHTML = '<svg><g>';
+	var svgElement = element.querySelector('g');
 
-	addClass(element, 'foo');
-	assert.equal(element.className.trim(), 'foo', 'Add class foo');
-	addClass(element, 'bar');
-	assert.equal(element.className.trim(), 'foo bar', 'Add class bar');
-	addClass(element, 'bar');
-	assert.equal(element.className.trim(), 'foo bar', 'Add class bar again');
-	addClass(element, ':container(width>=100px)');
-	assert.equal(element.className.trim(), 'foo bar :container(width>=100px)', 'Add container query class');
-	addClass(element, ':container(width>=100px)');
-	assert.equal(element.className.trim(), 'foo bar :container(width>=100px)', 'Add container query class again');
+	[element, svgElement].forEach(function(element) {
 
-	removeClass(element, 'foo');
-	assert.equal(element.className.trim(), 'bar :container(width>=100px)', 'Remove class foo');
-	removeClass(element, 'bar');
-	assert.equal(element.className.trim(), ':container(width>=100px)', 'Remove class bar');
-	removeClass(element, ':container(width>=100px)');
-	assert.equal(element.className.trim(), '', 'Remove container query class');
+		addClass(element, 'foo');
+		assert.equal(getClassName(element).trim(), 'foo', 'Add class foo');
+		addClass(element, 'bar');
+		assert.equal(getClassName(element).trim(), 'foo bar', 'Add class bar');
+		addClass(element, 'bar');
+		assert.equal(getClassName(element).trim(), 'foo bar', 'Add class bar again');
+		addClass(element, ':container(width>=100px)');
+		assert.equal(getClassName(element).trim(), 'foo bar :container(width>=100px)', 'Add container query class');
+		addClass(element, ':container(width>=100px)');
+		assert.equal(getClassName(element).trim(), 'foo bar :container(width>=100px)', 'Add container query class again');
+
+		removeClass(element, 'foo');
+		assert.equal(getClassName(element).trim(), 'bar :container(width>=100px)', 'Remove class foo');
+		removeClass(element, 'bar');
+		assert.equal(getClassName(element).trim(), ':container(width>=100px)', 'Remove class bar');
+		removeClass(element, ':container(width>=100px)');
+		assert.equal(getClassName(element).trim(), '', 'Remove container query class');
+
+	});
 
 });
 
