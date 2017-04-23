@@ -10,7 +10,7 @@ before_script:
     - "export DISPLAY=:99.0"
     - "sh -e /etc/init.d/xvfb start"
 script:
-    - make test && make browserstack && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls
+    - make test && ( [ "$TRAVIS_SECURE_ENV_VARS" != "true" ] || ( make browserstack && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls ) )
 env:
     global:
         - CXX=g++-4.8
