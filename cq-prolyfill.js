@@ -1221,7 +1221,7 @@ function filterRulesByElementAndProp(rules, element, prop) {
 	if (element.id) {
 		foundRules = foundRules.concat(rules['#' + element.id] || []);
 	}
-	(element.getAttribute('class') || '').split(/\s+/).forEach(function(className) {
+	getClassName(element).split(/\s+/).forEach(function(className) {
 		foundRules = foundRules.concat(rules['.' + className] || []);
 	});
 	foundRules = foundRules
@@ -1389,6 +1389,22 @@ function createCacheMap() {
 }
 
 /**
+ * @param  {Element} element
+ * @return {string}
+ */
+function getClassName(element) {
+	return element.getAttribute('class') || '';
+}
+
+/**
+ * @param {Element} element
+ * @param {string}  className
+ */
+function setClassName(element, className) {
+	element.setAttribute('class', className);
+}
+
+/**
  * @param {Element} element
  * @param {string}  className
  */
@@ -1396,7 +1412,7 @@ function hasClass(element, className) {
 	if (element.classList) {
 		return element.classList.contains(className);
 	}
-	return !!element.className.match(new RegExp(
+	return !!getClassName(element).match(new RegExp(
 		'(?:^|\\s+)'
 		+ className.replace(REGEXP_ESCAPE_REGEXP, '\\$&')
 		+ '($|\\s+)'
@@ -1412,7 +1428,7 @@ function addClass(element, className) {
 		element.classList.add(className);
 	}
 	else if (!hasClass(element, className)) {
-		element.className += ' ' + className;
+		setClassName(element, getClassName(element) + ' ' + className)
 	}
 }
 
@@ -1425,14 +1441,14 @@ function removeClass(element, className) {
 		element.classList.remove(className);
 	}
 	else {
-		element.className = element.className.replace(
+		setClassName(element, getClassName(element).replace(
 			new RegExp(
 				'(?:^|\\s+)'
 				+ className.replace(REGEXP_ESCAPE_REGEXP, '\\$&')
 				+ '($|\\s+)'
 			),
 			'$1'
-		);
+		));
 	}
 }
 
