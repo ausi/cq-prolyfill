@@ -35,7 +35,7 @@ QUnit.test('Simple width and height Query', function(assert) {
 		+ '<div class="maxW"></div>'
 		+ '<div class="minW"></div>'
 		+ '<div class="maxH"></div>'
-		+ '<div class="minH"></div>';
+		+ '<svg><g class="minH"></g></svg>';
 	fixture.appendChild(element);
 	var minW = element.querySelector('.minW');
 	var maxW = element.querySelector('.maxW');
