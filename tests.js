@@ -763,7 +763,8 @@ QUnit.test('filterRulesByElementAndProp', function(assert) {
 	style.innerHTML = '.myel, .notmyel { width: 1px }'
 		+ '.notmyel { width: 2px }'
 		+ '.myel { height: 3px }'
-		+ '@media screen { div.myel { width: 4px } }';
+		+ '@media screen { div.myel { width: 4px } }'
+		+ '@media (min-width: 0) { g.myel { width: 5px } }';
 
 	fixture.appendChild(style);
 	fixture.appendChild(element);
@@ -776,6 +777,16 @@ QUnit.test('filterRulesByElementAndProp', function(assert) {
 	assert.equal(rules[0]._rule.style.width, '1px', 'Property');
 	assert.equal(rules[1]._selector, 'div.myel', 'Second selector');
 	assert.equal(rules[1]._rule.style.width, '4px', 'Property');
+
+	element.className = '';
+	element.innerHTML = '<svg><g class="myel"></g></svg>';
+
+	var rules = filterRulesByElementAndProp(styleCache.width, element.querySelector('.myel'), 'width');
+	assert.equal(rules.length, 2, 'Two rules');
+	assert.equal(rules[0]._selector, '.myel', 'First selector');
+	assert.equal(rules[0]._rule.style.width, '1px', 'Property');
+	assert.equal(rules[1]._selector, 'g.myel', 'Second selector');
+	assert.equal(rules[1]._rule.style.width, '5px', 'Property');
 
 });
 
@@ -791,6 +802,12 @@ QUnit.test('elementMatchesSelector', function(assert) {
 	assert.notOk(elementMatchesSelector(element, ''), 'Empty selector');
 	assert.notOk(elementMatchesSelector(element, '#1'), 'Invalid selector');
 	assert.notOk(elementMatchesSelector(element, '::-webkit- *'), 'Safari bug with special semivalid selector'); // Issue #26
+
+	element.innerHTML = '<svg><g class=":container(width>=100px)"></g></svg>';
+	var svgElement = element.querySelector('g');
+
+	assert.ok(elementMatchesSelector(svgElement, 'g'), 'Simple selector');
+	assert.ok(elementMatchesSelector(svgElement, '.\\:container\\(width\\>\\=100px\\)'), 'Escaped query');
 
 });
 
