@@ -435,8 +435,16 @@ function resolveRelativeUrl(url, base) {
 function preprocessStyle(node, cssText) {
 	processedSheets.set(node, false);
 	var escapedText = escapeSelectors(cssText);
-	if (escapedText === cssText && (!node || !node.sheet || !node.sheet.cssRules)) { // Check if cssRules is accessible
-		return;
+	var cssRules = -1;
+	if (escapedText === cssText) { // Check if cssRules is accessible
+		try {
+			cssRules = node.sheet.cssRules.length;
+		} catch (e) {
+			cssRules = -1;
+		}
+		if (cssRules === -1) {
+			return;
+		}
 	}
 	var style = createElement('style');
 	style.textContent = escapedText;
