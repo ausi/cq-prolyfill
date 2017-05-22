@@ -245,9 +245,13 @@ function preprocess(callback) {
 
 	// Check removed stylesheets
 	processedSheets.forEach(function(newNode, node) {
-		if (sheets.indexOf(node.sheet) === -1 && sheets.indexOf(newNode.sheet) !== -1 && newNode.parentNode) {
-			sheets.splice(sheets.indexOf(newNode.sheet), 1);
-			newNode.parentNode.removeChild(newNode);
+		// Original stylesheet has been deleted
+		if (sheets.indexOf(node.sheet) === -1) {
+			if (newNode && sheets.indexOf(newNode.sheet) !== -1 && newNode.parentNode) {
+				sheets.splice(sheets.indexOf(newNode.sheet), 1);
+				newNode.parentNode.removeChild(newNode);
+			}
+			processedSheets.delete(node);
 		}
 	});
 

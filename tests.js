@@ -150,24 +150,44 @@ QUnit.test('DOM Mutations', function(assert) {
 
 });
 
-/*global preprocess, SELECTOR_ESCAPED_REGEXP, SELECTOR_REGEXP*/
+/*global preprocess, processedSheets, SELECTOR_ESCAPED_REGEXP, SELECTOR_REGEXP*/
 QUnit.test('preprocess', function(assert) {
+
 	var style = document.createElement('style');
 	style.type = 'text/css';
 	style.innerHTML = '.first:container( width >= 100.00px ) { display: block }'
 		+ '.second:container( height <= 10em ) > child { display: block }'
 		+ '.third:container( width <= 100px ), .fourth:container( height >= 100px ) { display: block }';
 	fixture.appendChild(style);
+
+	var style2 = document.createElement('style');
+	style2.type = 'text/css';
+	style2.innerHTML = '.foo { display: block }';
+	fixture.appendChild(style2);
+
 	var done = assert.async();
+
 	preprocess(function () {
+
 		var newStyle = style.previousSibling;
 		var rules = newStyle.sheet.cssRules;
+
 		assert.equal(style.sheet.disabled, true, 'Old stylesheet disabled');
 		assert.equal(newStyle.sheet.disabled, false, 'New stylesheet enabled');
+		assert.equal(style2.sheet.disabled, false, 'Normal stylesheet still enabled');
 		assert.equal(rules.length, 3, 'Three rules');
 		assert.equal(newStyle.innerHTML.match(SELECTOR_ESCAPED_REGEXP).length, 4, 'Four container queries');
 		assert.ok(rules[0].selectorText.match(SELECTOR_ESCAPED_REGEXP) || rules[0].selectorText.match(SELECTOR_REGEXP), 'Query matches either the escaped or unescaped RegExp');
-		done();
+
+		style.parentNode.removeChild(style);
+		style2.parentNode.removeChild(style2);
+
+		preprocess(function () {
+			assert.notOk(newStyle.parentNode, 'New stylesheet removed from the DOM');
+			assert.equal(processedSheets.has(style), false, 'Old stylesheet removed from processedSheets cache map');
+			done();
+		});
+
 	});
 });
 
