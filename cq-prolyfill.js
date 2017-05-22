@@ -242,12 +242,14 @@ function onDomMutate(event) {
 function preprocess(callback) {
 
 	var sheets = arrayFrom(styleSheets);
-
 	// Check removed stylesheets
 	processedSheets.forEach(function(newNode, node) {
-		if (sheets.indexOf(node.sheet) === -1 && sheets.indexOf(newNode.sheet) !== -1 && newNode.parentNode) {
-			sheets.splice(sheets.indexOf(newNode.sheet), 1);
-			newNode.parentNode.removeChild(newNode);
+		if (sheets.indexOf(node.sheet) === -1) { // Node has been deleted
+			if (newNode && sheets.indexOf(newNode.sheet) !== -1 && newNode.parentNode) { // Remove from parent
+                sheets.splice(sheets.indexOf(newNode.sheet), 1);
+                newNode.parentNode.removeChild(newNode);
+			}
+            processedSheets.delete(node);
 		}
 	});
 
@@ -433,18 +435,8 @@ function resolveRelativeUrl(url, base) {
 function preprocessStyle(node, cssText) {
 	processedSheets.set(node, false);
 	var escapedText = escapeSelectors(cssText);
-	var rulesLength = -1;
-	if (escapedText === cssText) {
-		try {
-			rulesLength = node.sheet.cssRules.length;
-		}
-		catch(e) {
-			rulesLength = -1;
-		}
-		// Check if cssRules is accessible
-		if (rulesLength !== -1) {
-			return;
-		}
+	if (escapedText === cssText && (!node || !node.sheet || !node.sheet.cssRules)) { // Check if cssRules is accessible
+		return;
 	}
 	var style = createElement('style');
 	style.textContent = escapedText;
