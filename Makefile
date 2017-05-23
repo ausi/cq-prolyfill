@@ -167,5 +167,5 @@ browserstack: $(BROWSERSTACK_RUNNER) $(ISTANBUL) $(TEST_HTML_COVERAGE) $(TEST_HT
 	kill `cat server.pid` && rm server.pid
 	@ grep 'All tests done, failures: 0.' tests/browserstack.log > /dev/null
 	rm -f tests/coverage-*
-	cat tests/browserstack.log | grep 'coverage: {' | node -e 'console.log(require("fs").readFileSync("/dev/stdin", "utf8").split("\n").filter(Boolean).map(line => line.split("coverage: ")[1].slice(0, -1).split("\\\"").join("\"")).join("\n"));' | split -l 1 - tests/coverage-
+	cat tests/browserstack.log | grep 'coverage: {' | node -e 'console.log(require("fs").readFileSync("/dev/stdin", "utf8").split("\n").filter(Boolean).map(line => line.split("coverage: ")[1]).join("\n"));' | split -l 1 - tests/coverage-
 	$(ISTANBUL) report --include 'tests/coverage-*' text-summary html lcovonly
