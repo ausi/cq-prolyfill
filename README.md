@@ -50,6 +50,15 @@ Thanks to [BrowserStack](https://www.browserstack.com/automate) for sponsoring a
 
 * Create a [new issue on GitHub](https://github.com/ausi/cq-prolyfill/issues/new) if you have a question, a suggestion or found a bug.
 * Talk about it on IRC: Join `#cq-prolyfill` on Freenode or [connect with the browser](https://webchat.freenode.net?randomnick=1&channels=%23cq-prolyfill&prompt=1).
+* Spread the word about this project.
+* [Support this project on Patreon](https://www.patreon.com/ausi).
+
+## Sponsors
+
+Thanks to all sponsors that help to bring this project forward. You can [become a sponsor now](https://www.patreon.com/ausi) too.
+
+* [Webflow](https://webflow.com/)
+* [BrowserStack](https://www.browserstack.com/)
 
 ## License
 
