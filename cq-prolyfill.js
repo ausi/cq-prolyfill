@@ -343,7 +343,7 @@ function preprocessSheet(sheet, callback) {
 			// Do nothing
 		}
 		// Check if cssRules is accessible
-		if (rulesLength !== -1) {
+		if (rulesLength !== -1 || !sheet.ownerNode.getAttribute('crossorigin')) {
 			callback();
 			return;
 		}
