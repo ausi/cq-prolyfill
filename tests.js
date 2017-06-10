@@ -140,11 +140,11 @@ QUnit.test('DOM Mutations', function(assert) {
 					config.skipObserving = true;
 					done();
 
-				})});
+				}, 100)});
 
-			})});
+			}, 100)});
 
-		})});
+		}, 100)});
 
 	});
 
