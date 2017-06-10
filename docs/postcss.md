@@ -24,7 +24,7 @@ Into valid CSS selectors:
 .element.\:container\(width\>\=100px\) { /* ... */ }
 ```
 
-If you don’t use the PostCSS plugin, activate the `preprocess` option in the [configuration](config.md).
+If you don’t use the PostCSS plugin, you can use the supplied [Sass mixin](usage.md#sass-less-and-other-preprocessors) instead or activate the `preprocess` option in the [configuration](config.md).
 
 Don’t forget to [enable CORS](cors.md) if the stylesheet is loaded from a different domain.
 

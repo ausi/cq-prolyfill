@@ -1,6 +1,6 @@
 # Usage
 
-One goal of this prolyfill is to be ease to use. Elements with container queries don’t have to be modified in the markup, you don’t have to predefine “element break-points” or the like, everything is done via CSS. All you need is to load the script on your page and you are ready to use container queries in your CSS. You can load the script in any way you like, I would recommend to load it asynchronously in the head:
+One goal of this prolyfill is to be ease to use. Elements with container queries don’t have to be modified in the markup, you don’t have to predefine “element break-points” or the like, everything is done via CSS. All you need is to load the script on your page, enable the [PostCSS plugin](postcss.md) or [Sass mixin](#sass-less-and-other-preprocessors) and you are ready to use container queries in your CSS. You can load the script in any way you like, I would recommend to load it asynchronously in the head:
 
 ```html
 <script src="cq-prolyfill.min.js" async></script>
@@ -31,6 +31,17 @@ If your CSS preprocessor has problems with the container query syntax, you can p
 ```css
 .element:container("width >= 100px") {
 	/* Styles for .element if its container is at least 100px wide */
+}
+```
+
+For Sass and SCSS this library includes a [mixins.scss](../mixins.scss) file that can be used as an alternative to the [PostCSS plugin](postcss.md):
+
+```scss
+@import "node_modules/cq-prolyfill/mixins.scss";
+.element {
+	@include cq-prolyfill("width >= 100px") {
+		/* Styles for .element if its container is at least 100px wide */
+	}
 }
 ```
 
