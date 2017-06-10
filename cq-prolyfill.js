@@ -50,8 +50,8 @@ var observer;
 startObserving();
 
 var REGEXP_ESCAPE_REGEXP = /[.?*+^$[\]\\(){}|-]/g;
-var SELECTOR_REGEXP = /\.?:container\(\s*"?\s*[a-z-]+(?:(?:\s+|\|)[a-z-]+)?\s*(?:[<>!=]=?)\s*[^)]+\s*\)/gi;
-var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(([a-z-]+)(\\\|[a-z-]+)?(\\[<>!=](?:\\=)?)([^)]+?)(?:(\\[<>!=](?:\\=)?)([^)]+?))?\\\)/gi;
+var SELECTOR_REGEXP = /\.?:container\(\s*"?\s*[a-z-]+\s*(?:[<>!=]=?)\s*[^)]+\s*\)/gi;
+var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(([a-z-]+?)(?:-(hue|saturation|lightness|alpha))?(\\[<>!=](?:\\=)?)([^)]+?)(?:(\\[<>!=](?:\\=)?)([^)]+?))?\\\)/gi;
 var ESCAPE_REGEXP = /[.:()<>!=%]/g;
 var SPACE_REGEXP = / /g;
 var LENGTH_REGEXP = /^(-?(?:\d*\.)?\d+)(em|ex|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)$/i;
@@ -465,7 +465,6 @@ function preprocessStyle(node, cssText) {
 function escapeSelectors(cssText) {
 	return cssText.replace(SELECTOR_REGEXP, function(selector) {
 		return '.' + selector.substr(selector[0] === '.' ? 1 : 0)
-			.replace(/([a-z])(?:\s+|\|)([a-z])/gi, '$1\\|$2')
 			.replace(SPACE_REGEXP, '')
 			.replace(/"/g, '')
 			.replace(ESCAPE_REGEXP, '\\$&')
@@ -537,7 +536,7 @@ function parseRule(rule) {
 			queries[precedingSelector + match] = {
 				_selector: precedingSelector,
 				_prop: unescape(prop),
-				_filter: filter && filter.substr(2),
+				_filter: filter,
 				_types: [unescape(type1), unescape(type2)].filter(Boolean),
 				_values: values,
 				_valueType: valueType,

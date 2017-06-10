@@ -242,7 +242,7 @@ QUnit.test('preprocessSheet', function(assert) {
 QUnit.test('escapeSelectors', function(assert) {
 	assert.equal(escapeSelectors(':container( WIDTH > 100px )'), '.\\:container\\(width\\>100px\\)', 'Simple query');
 	assert.equal(escapeSelectors(':container(width > 100px < 200px)'), '.\\:container\\(width\\>100px\\<200px\\)', 'Double comparison');
-	assert.equal(escapeSelectors(':container(color lightness < 10%)'), '.\\:container\\(color\\|lightness\\<10\\%\\)', 'Filter parameter');
+	assert.equal(escapeSelectors(':container(color-lightness < 10%)'), '.\\:container\\(color-lightness\\<10\\%\\)', 'Filter parameter');
 	assert.equal(escapeSelectors(':container( " width <= 100.00px")'), '.\\:container\\(width\\<\\=100\\.00px\\)', 'Query with quotes');
 });
 
@@ -254,7 +254,7 @@ QUnit.test('parseRules', function(assert) {
 		+ ':container(height < 10em) .general-selector { display: block }'
 		+ '.combined-selector:container(text-align = right):container(height > 100px) { display: block }'
 		+ '.double-comparison:container(width > 100px < 200px) { display: block }'
-		+ '.filter:container(color lightness < 10%) { display: block }'
+		+ '.filter:container(color-lightness < 10%) { display: block }'
 		+ ':nth-of-type(2n+1):container(width > 100px) { display: block }'
 		+ '.pseudo-before:container(width > 100px):before { display: block }'
 		+ '.pseudo-after:container(width > 100px)::after { display: block }'
@@ -309,14 +309,14 @@ QUnit.test('parseRules', function(assert) {
 		assert.deepEqual(queries[Object.keys(queries)[4]]._valueType, 'l', 'Value type');
 		assert.equal(queries[Object.keys(queries)[4]]._className, ':container(width>100px<200px)', 'Class name');
 
-		assert.equal(Object.keys(queries)[5], '.filter.\\:container\\(color\\|lightness\\<10\\%\\)', 'Correct key');
+		assert.equal(Object.keys(queries)[5], '.filter.\\:container\\(color-lightness\\<10\\%\\)', 'Correct key');
 		assert.equal(queries[Object.keys(queries)[5]]._selector, '.filter', 'Preceding selector');
 		assert.equal(queries[Object.keys(queries)[5]]._prop, 'color', 'Property');
 		assert.deepEqual(queries[Object.keys(queries)[5]]._filter, 'lightness', 'Filter');
 		assert.deepEqual(queries[Object.keys(queries)[5]]._types, ['<'], 'Mode');
 		assert.deepEqual(queries[Object.keys(queries)[5]]._values, [10], 'Value');
 		assert.deepEqual(queries[Object.keys(queries)[5]]._valueType, 'n', 'Value type');
-		assert.equal(queries[Object.keys(queries)[5]]._className, ':container(color|lightness<10%)', 'Class name');
+		assert.equal(queries[Object.keys(queries)[5]]._className, ':container(color-lightness<10%)', 'Class name');
 
 		assert.equal(Object.keys(queries)[6], ':nth-of-type(2n+1).\\:container\\(width\\>100px\\)', 'Correct key');
 		assert.equal(queries[Object.keys(queries)[6]]._selector, ':nth-of-type(2n+1)', 'Preceding selector');

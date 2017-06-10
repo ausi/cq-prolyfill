@@ -254,9 +254,11 @@ QUnit.test('Background Color Query', function(assert) {
 	style.innerHTML = '@font-face { font-family: light; src: local("Times New Roman"), local("Droid Serif") }'
 		+ '@font-face { font-family: dark; src: local("Times New Roman"), local("Droid Serif") }'
 		+ '@font-face { font-family: green; src: local("Times New Roman"), local("Droid Serif") }'
-		+ '.test:container(background-color lightness > 80%) { font-family: light }'
-		+ '.test:container(background-color lightness < 20%) { font-family: dark }'
-		+ '.test:container(background-color hue > 80deg < 160deg) { font-family: green }';
+		+ '@font-face { font-family: transparent; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '.test:container(background-color-lightness > 80%) { font-family: light }'
+		+ '.test:container(background-color-lightness < 20%) { font-family: dark }'
+		+ '.test:container(background-color-hue > 80deg < 160deg) { font-family: green }'
+		+ '.test:container(background-color-alpha < 0.1) { font-family: transparent }';
 	fixture.appendChild(style);
 
 	var element = document.createElement('div');
@@ -304,6 +306,10 @@ QUnit.test('Background Color Query', function(assert) {
 		element.style.cssText = 'color: green; background: currentColor';
 		reevaluate();
 		assert.equal(font(test), 'green', 'Green currentColor');
+
+		element.style.cssText = 'background: transparent';
+		reevaluate();
+		assert.equal(font(test), 'transparent', 'Transparent background');
 
 		if (window.CSS && CSS.supports && CSS.supports('--foo', 0)) {
 			element.style.cssText = '--my-color: green; background: var(--my-color)';

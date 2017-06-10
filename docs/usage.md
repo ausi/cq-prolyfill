@@ -54,13 +54,13 @@ Available comparison operators are:
 It’s also possible to query color properties, for this purpose the color filters `hue`, `saturation`, `lightness` and `alpha` are available.
 
 ```css
-.element:container(background-color lightness > 20%) {
+.element:container(background-color-lightness > 20%) {
 	/* Styles for .element if its containers background-color is brighter than 20% */
 }
-.element:container(background-color hue > 60deg < 180deg) {
+.element:container(background-color-hue > 60deg < 180deg) {
 	/* Styles for .element if its containers background-color is greenish */
 }
-.element:container(background-color alpha < 10%) {
+.element:container(background-color-alpha < 10%) {
 	/* Styles for .element if its containers background-color is nearly transparent */
 }
 ```
