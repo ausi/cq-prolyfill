@@ -14,9 +14,9 @@ QUnit.module('All', {
 });
 
 var fixture = document.getElementById('qunit-fixture');
-var TEST_FILES_URL_TIME = 'http://127.0.0.1.xip.io:8889/time';
-var TEST_FILES_URL_CORS = 'http://127.0.0.1.xip.io:8889/cors/test-files/';
-var TEST_FILES_URL_CROSS_ORIGIN = 'http://127.0.0.1.xip.io:8888/test-files/';
+var TEST_FILES_URL_TIME = 'http://127.0.0.1.nip.io:8889/time';
+var TEST_FILES_URL_CORS = 'http://127.0.0.1.nip.io:8889/cors/test-files/';
+var TEST_FILES_URL_CROSS_ORIGIN = 'http://127.0.0.1.nip.io:8888/test-files/';
 var TEST_FILES_PATH = 'test-files/';
 
 /*global reprocess, reevaluate, getOriginalStyle, processed*/
