@@ -6,7 +6,7 @@ This is a [prolyfill](https://au.si/what-is-a-prolyfill) for a special version o
 
 ## Demo
 
-A quick demo of the container queries in action can be found here:  
+A quick demo of the container queries in action can be found here:
 <https://ausi.github.io/cq-prolyfill/demo/>
 
 ## Usage
@@ -14,10 +14,10 @@ A quick demo of the container queries in action can be found here:
 With this prolyfill you can use container queries in your CSS in the following form:
 
 ```css
-.element:container(width >= 100px) {
+.element:container(min-width: 100px) {
 	/* Styles for .element if its container is at least 100px wide */
 }
-.element:container(height > 100px < 200px) {
+.element:container(100px < height < 200px) {
 	/* Styles for .element if its container is between 100px and 200px high */
 }
 .element:container(text-align = right) {

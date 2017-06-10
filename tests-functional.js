@@ -21,13 +21,13 @@ QUnit.test('Simple width and height Query', function(assert) {
 		+ 'html:container( width >= 1px ) { font-family: invalid-query }'
 		+ '.minW, .maxW, .minH, .maxH { font-family: no-query }'
 		+ '.minW:container( width >= 100px ) { font-family: min-width-100 }'
-		+ '.minW:container( width >= 200px ) { font-family: min-width-200 }'
+		+ '.minW:container( 200px <= width ) { font-family: min-width-200 }'
 		+ '.minH:container( height >= 100px ) { font-family: min-height-100 }'
-		+ '.minH:container( height >= 200px ) { font-family: min-height-200 }'
+		+ '.minH:container( min-height: 200px ) { font-family: min-height-200 }'
 		+ '.maxW:container( " WIDTH <= 200px") { font-family: max-width-200 }'
-		+ '.maxW:container( width <= 100px ) { font-family: max-width-100 }'
+		+ '.maxW:container( " MAX-WIDTH : 100px") { font-family: max-width-100 }'
 		+ '.maxH:container( height <= 200px ) { font-family: max-height-200 }'
-		+ '.maxH:container( height <= 100px ) { font-family: max-height-100 }';
+		+ '.maxH:container( max-height: 100px ) { font-family: max-height-100 }';
 	fixture.appendChild(style);
 
 	var element = document.createElement('div');
@@ -165,7 +165,7 @@ QUnit.test('Double comparison Query', function(assert) {
 	var style = document.createElement('style');
 	style.type = 'text/css';
 	style.innerHTML = '@font-face { font-family: query; src: local("Times New Roman"), local("Droid Serif") }'
-		+ '.test:container(width > 100px < 200px) { font-family: query }';
+		+ '.test:container(200px > width > 100px) { font-family: query }';
 	fixture.appendChild(style);
 
 	var element = document.createElement('div');
@@ -378,7 +378,7 @@ QUnit.test('Opacity Query', function(assert) {
 		+ '@font-face { font-family: semi-transparent; src: local("Times New Roman"), local("Droid Serif") }'
 		+ '@font-face { font-family: transparent; src: local("Times New Roman"), local("Droid Serif") }'
 		+ '.test:container(opacity = 1) { font-family: opaque }'
-		+ '.test:container(opacity < 1 > 0) { font-family: semi-transparent }'
+		+ '.test:container(0 < opacity < 1) { font-family: semi-transparent }'
 		+ '.test:container(opacity = 0) { font-family: transparent }';
 	fixture.appendChild(style);
 

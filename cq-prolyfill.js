@@ -50,8 +50,9 @@ var observer;
 startObserving();
 
 var REGEXP_ESCAPE_REGEXP = /[.?*+^$[\]\\(){}|-]/g;
-var SELECTOR_REGEXP = /\.?:container\(\s*"?\s*[a-z-]+\s*(?:[<>!=]=?)\s*[^)]+\s*\)/gi;
-var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(([a-z-]+?)(?:-(hue|saturation|lightness|alpha))?(\\[<>!=](?:\\=)?)([^)]+?)(?:(\\[<>!=](?:\\=)?)([^)]+?))?\\\)/gi;
+var SELECTOR_REGEXP = /\.?:container\([^)]+\)/gi;
+var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(([^)]+)\\\)/gi;
+var QUERY_REGEXP = /^(?:(.+?)([<>]=?|=))??(?:(min|max)-)?([a-z-]+?)(?:-(hue|saturation|lightness|alpha))?(?:([<>]=?|=|:)(.+))?$/;
 var ESCAPE_REGEXP = /[.:()<>!=%]/g;
 var SPACE_REGEXP = / /g;
 var LENGTH_REGEXP = /^(-?(?:\d*\.)?\d+)(em|ex|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)$/i;
@@ -513,7 +514,7 @@ function parseRule(rule) {
 	}
 	splitSelectors(rule.selectorText).forEach(function(selector) {
 		selector = escapeSelectors(selector);
-		selector.replace(SELECTOR_ESCAPED_REGEXP, function(match, prop, filter, type1, value1, type2, value2, offset) {
+		selector.replace(SELECTOR_ESCAPED_REGEXP, function(match, query, offset) {
 			var precedingSelector =
 				(
 					selector.substr(0, offset)
@@ -525,25 +526,52 @@ function parseRule(rule) {
 			if (!precedingSelector.substr(-1).trim()) {
 				precedingSelector += '*';
 			}
-			var values = [unescape(value1), unescape(value2)].filter(Boolean);
-			var valueType =
-				(filter || values[0].match(NUMBER_REGEXP)) ? 'n' :
-				values[0].match(LENGTH_REGEXP) ? 'l' :
-				's';
-			if (valueType === 'n') {
-				values = values.map(parseFloat);
+			var query = parseQuery(unescape(query));
+			if (query) {
+				query._selector = precedingSelector;
+				query._className = unescape(match.substr(1));
+				queries[precedingSelector + match] = query;
 			}
-			queries[precedingSelector + match] = {
-				_selector: precedingSelector,
-				_prop: unescape(prop),
-				_filter: filter,
-				_types: [unescape(type1), unescape(type2)].filter(Boolean),
-				_values: values,
-				_valueType: valueType,
-				_className: unescape(match.substr(1)),
-			};
 		});
 	});
+}
+
+/**
+ * @param  {string} query
+ * @return {Array.<{_prop: string, _filter: string, _types: array, _values: array, _valueType: string}>}
+ */
+function parseQuery(query) {
+
+	if (!(query = QUERY_REGEXP.exec(query))) {
+		return;
+	}
+
+	var values = [query[7], query[1]].filter(Boolean);
+	var valueType =
+		(query[5] || values[0].match(NUMBER_REGEXP)) ? 'n' :
+		values[0].match(LENGTH_REGEXP) ? 'l' :
+		's';
+	if (valueType === 'n') {
+		values = values.map(parseFloat);
+	}
+
+	return {
+		_prop: query[4],
+		_filter: query[5],
+		_types: [
+			query[6] !== ':' ? query[6]
+				: query[3] === 'min' ? '>='
+				: query[3] ? '<='
+				: '=',
+			query[2] && query[2].replace(/[<>]/, function(match) {
+				// Invert the left side comparison operator
+				return match === '<' ? '>' : '<';
+			}),
+		].filter(Boolean),
+		_values: values,
+		_valueType: valueType,
+	};
+
 }
 
 /**

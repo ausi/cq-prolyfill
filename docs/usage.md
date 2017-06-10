@@ -9,10 +9,10 @@ One goal of this prolyfill is to be ease to use. Elements with container queries
 Now you can use container queries in the following form:
 
 ```css
-.element:container(width >= 100px) {
+.element:container(min-width: 100px) {
 	/* Styles for .element if its container is at least 100px wide */
 }
-.element:container(height > 100px < 200px) {
+.element:container(100px < height < 200px) {
 	/* Styles for .element if its container is between 100px and 200px high */
 }
 .element:container(text-align = right) {
@@ -22,7 +22,7 @@ Now you can use container queries in the following form:
 
 ## Syntax
 
-A container query begins with `:container(` and ends with `)`. It contains one CSS property followed by an [optional filter](#color-filters) followed by up to two comparisons. The container query is attached to the element you want to style. So instead of writing `.parent:media(min-with: 100px) .child` like in other element query scripts, you append the query to the child itself `.child:container(width > 100px)`.
+A container query begins with `:container(` and ends with `)`. It contains a single query against a CSS property and can be suffixed by an [optional filter](#color-filters). The syntax of the query follows the [Media Queries Level 4](https://www.w3.org/TR/2017/WD-mediaqueries-4-20170519/#mq-features) syntax for media features including the range form. The container query is attached to the element you want to style. So instead of writing `.parent:media(min-with: 100px) .child` like in other element query scripts, you append the query to the child itself `.child:container(width > 100px)`.
 
 ### Sass, Less and other preprocessors
 
@@ -47,7 +47,8 @@ Available comparison operators are:
 * `<=` less than or equal
 * `>=` greater than or equal
 * `=` equal
-* `!=` not equal
+
+For more details about the comparison syntax take a look at the [Media Queries Level 4 Specification](https://www.w3.org/TR/2017/WD-mediaqueries-4-20170519/#mq-features).
 
 ## Color filters
 
@@ -57,10 +58,10 @@ It’s also possible to query color properties, for this purpose the color filte
 .element:container(background-color-lightness > 20%) {
 	/* Styles for .element if its containers background-color is brighter than 20% */
 }
-.element:container(background-color-hue > 60deg < 180deg) {
+.element:container(60deg < background-color-hue < 180deg) {
 	/* Styles for .element if its containers background-color is greenish */
 }
-.element:container(background-color-alpha < 10%) {
+.element:container(max-background-color-alpha: 10%) {
 	/* Styles for .element if its containers background-color is nearly transparent */
 }
 ```
