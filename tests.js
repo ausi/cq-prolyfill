@@ -100,7 +100,7 @@ QUnit.test('DOM Mutations', function(assert) {
 		style.innerHTML = '.mutations-test:container(width > 0) { display: none }';
 		fixture.appendChild(style);
 
-		setTimeout(function() {
+		requestAnimationFrame(function() { setTimeout(function() {
 
 			assert.equal(getComputedStyle(element).display, 'none', 'Display none');
 
@@ -113,7 +113,7 @@ QUnit.test('DOM Mutations', function(assert) {
 			fixture.appendChild(element3);
 			fixture.removeChild(element3);
 
-			setTimeout(function() {
+			requestAnimationFrame(function() { setTimeout(function() {
 
 				assert.equal(getComputedStyle(element2).display, 'none', 'Display none');
 
@@ -122,7 +122,7 @@ QUnit.test('DOM Mutations', function(assert) {
 
 				fixture.removeChild(style);
 
-				setTimeout(function() {
+				requestAnimationFrame(function() { setTimeout(function() {
 
 					assert.equal(getComputedStyle(element).display, 'block', 'Display block');
 					assert.equal(getComputedStyle(element2).display, 'block', 'Display block');
@@ -140,11 +140,11 @@ QUnit.test('DOM Mutations', function(assert) {
 					config.skipObserving = true;
 					done();
 
-				});
+				})});
 
-			});
+			})});
 
-		});
+		})});
 
 	});
 

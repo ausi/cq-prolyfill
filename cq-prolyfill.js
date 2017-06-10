@@ -45,10 +45,6 @@ var api = {
 };
 /*eslint-enable dot-notation*/
 
-var observer;
-
-startObserving();
-
 var REGEXP_ESCAPE_REGEXP = /[.?*+^$[\]\\(){}|-]/g;
 var SELECTOR_REGEXP = /\.?:container\([^)]+\)/gi;
 var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(([^)]+)\\\)/gi;
@@ -85,6 +81,9 @@ var parsed = false;
 var documentElement = document.documentElement;
 var styleSheets = document.styleSheets;
 var createElement = document.createElement.bind(document);
+var requestAnimationFrame = window.requestAnimationFrame || setTimeout;
+var observer;
+var scheduledCall;
 
 /**
  * @param {function()} callback
@@ -125,6 +124,68 @@ function reevaluate(clearContainerCache, callback, contexts) {
 }
 
 /**
+ * Schedule the execution of step 1, 2 or 3 for the next animation frame
+ *
+ * @param {number}          step                1: reprocess, 2: reparse, 3: reevaluate
+ * @param {boolean}         clearContainerCache
+ * @param {Array.<Element>} contexts
+ * @param {Function}        callback
+ */
+function scheduleExecution(step, clearContainerCache, contexts, callback) {
+
+	if (!scheduledCall) {
+		scheduledCall = {
+			_step: step,
+			_clearContainerCache: clearContainerCache,
+			_contexts: contexts,
+			_callbacks: [callback],
+		};
+		requestAnimationFrame(executeScheduledCall);
+		return;
+	}
+
+	scheduledCall._callbacks.push(callback);
+	scheduledCall._step = Math.min(scheduledCall._step, step);
+
+	// Merge parameters for reevaluate
+	if (scheduledCall._step === 3) {
+		scheduledCall._clearContainerCache = scheduledCall._clearContainerCache || clearContainerCache;
+		if (scheduledCall._contexts && contexts) {
+			scheduledCall._contexts = scheduledCall._contexts.concat(contexts);
+		}
+	}
+
+}
+
+/**
+ * Executes the scheduled call from scheduleExecution() in an animation frame
+ */
+function executeScheduledCall() {
+
+	var call = scheduledCall;
+	scheduledCall = undefined;
+
+	var callback = function() {
+		call._callbacks.forEach(function(callback) {
+			if (callback) {
+				callback();
+			}
+		});
+	};
+
+	if (call._step === 1) {
+		reprocess(callback);
+	}
+	else if (call._step === 2) {
+		reparse(callback);
+	}
+	else {
+		reevaluate(call._clearContainerCache, callback, call._contexts);
+	}
+
+}
+
+/**
  * Starts observing DOM events and mutations
  */
 function startObserving() {
@@ -133,12 +194,12 @@ function startObserving() {
 		return;
 	}
 
-	// Reevaluate now
-	setTimeout(reevaluate);
+	// Reprocess now
+	scheduleExecution(1);
 
-	window.addEventListener('DOMContentLoaded', reprocess.bind(undefined, undefined));
-	window.addEventListener('load', reprocess.bind(undefined, undefined));
-	window.addEventListener('resize', reevaluate.bind(undefined, true, undefined, undefined));
+	window.addEventListener('DOMContentLoaded', scheduleExecution.bind(undefined, 1, undefined, undefined, undefined));
+	window.addEventListener('load', scheduleExecution.bind(undefined, 1, undefined, undefined, undefined));
+	window.addEventListener('resize', scheduleExecution.bind(undefined, 3, true, undefined, undefined));
 
 	var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
 	if (MutationObserver) {
@@ -161,6 +222,11 @@ function startObserving() {
  * @param  {Array.<MutationRecord>} mutations
  */
 function checkMutations(mutations) {
+
+	// Skip iterating the nodes, if a run is already scheduled, to improve performance
+	if (scheduledCall && (scheduledCall._level < 3 || !scheduledCall._contexts)) {
+		return;
+	}
 
 	var addedNodes = [];
 	var stylesChanged = false;
@@ -198,10 +264,10 @@ function checkMutations(mutations) {
 	});
 
 	if (stylesChanged) {
-		reprocess();
+		scheduleExecution(1);
 	}
 	else if (addedNodes.length) {
-		reevaluate(false, undefined, addedNodes);
+		scheduleExecution(3, false, addedNodes);
 	}
 
 }
@@ -1510,6 +1576,8 @@ function arrayFrom(arrayLike) {
 	}
 	return array;
 }
+
+startObserving();
 
 return api;
 
