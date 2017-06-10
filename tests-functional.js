@@ -437,7 +437,7 @@ QUnit.test('PostCSS skip step 1', function(assert) {
 
 	var reevaluate = window.cqApi.reevaluate;
 
-	window.cqApi.config.postcss = true;
+	window.cqApi.config.preprocess = undefined;
 
 	var done = false;
 	window.cqApi.reprocess(function () {
@@ -460,7 +460,7 @@ QUnit.test('PostCSS skip step 1', function(assert) {
 
 	assert.ok(done, 'Reprocess callback synchronous');
 
-	delete window.cqApi.config.postcss;
+	window.cqApi.config.preprocess = true;
 
 });
 

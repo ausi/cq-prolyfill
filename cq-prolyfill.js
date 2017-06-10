@@ -279,7 +279,7 @@ function preprocessSheet(sheet, callback) {
 		callback();
 		return;
 	}
-	if (config.postcss) {
+	if (!config.preprocess) {
 		var rulesLength = -1;
 		try {
 			rulesLength = sheet.cssRules.length;

@@ -98,7 +98,7 @@ $(TEST_HTML_ALL): $(TESTS) $(TESTS_FUNCTIONAL) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS
 	echo '<div id="qunit-fixture"></div>' >> $@
 	echo '<script src="../$(QUNIT_JS)"></script>' >> $@
 	echo '<script>' >> $@
-	echo 'var cqConfig = {skipObserving: true};' >> $@
+	echo 'var cqConfig = {skipObserving: true, preprocess: true};' >> $@
 	node -e "console.log(require('fs').readFileSync('$(SOURCE)', 'utf-8').replace('return api;\n\n}));\n\n})(window, document);', ''))" >> $@
 	cat $< >> $@
 	cat $(TESTS_FUNCTIONAL) >> $@
@@ -119,7 +119,7 @@ $(TEST_HTML_COVERAGE): $(TESTS) $(TESTS_FUNCTIONAL) $(SOURCE) $(QUNIT_JS) $(QUNI
 	echo '<div id="qunit-fixture"></div>' >> $@
 	echo '<script src="../$(QUNIT_JS)"></script>' >> $@
 	echo '<script>' >> $@
-	echo 'var cqConfig = {skipObserving: true};' >> $@
+	echo 'var cqConfig = {skipObserving: true, preprocess: true};' >> $@
 	$(ISTANBUL) instrument $(SOURCE) | replace 'return api;}));}(window,document));' '' >> $@
 	cat $< >> $@
 	cat $(TESTS_FUNCTIONAL) >> $@
@@ -140,7 +140,7 @@ $(TEST_HTML_FUNCTIONAL): $(TESTS_FUNCTIONAL) $(TARGET_TMP) $(QUNIT_JS) $(QUNIT_C
 	echo '<div id="qunit-fixture"></div>' >> $@
 	echo '<script src="../$(QUNIT_JS)"></script>' >> $@
 	echo '<script>' >> $@
-	echo 'var cqConfig = {skipObserving: true};' >> $@
+	echo 'var cqConfig = {skipObserving: true, preprocess: true};' >> $@
 	echo '</script>' >> $@
 	echo '<script src="../$(TARGET_TMP)"></script>' >> $@
 	echo '<script src="../$(TESTS_FUNCTIONAL)"></script>' >> $@

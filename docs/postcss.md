@@ -1,6 +1,6 @@
 # PostCSS plugin
 
-To improve the performance of the prolyfill, you can use [PostCSS](https://github.com/postcss/postcss) to prepare the stylesheet on the server side:
+To improve the performance of the prolyfill, you should use [PostCSS](https://github.com/postcss/postcss) to prepare the stylesheet on the server side:
 
 ```js
 var fs = require('fs');
@@ -24,7 +24,7 @@ Into valid CSS selectors:
 .element.\:container\(width\>\=100px\) { /* ... */ }
 ```
 
-To tell the prolyfill that the PostCSS plugin was used activate the `postcss` option in the [configuration](config.md).
+If you don’t use the PostCSS plugin, activate the `preprocess` option in the [configuration](config.md).
 
 Don’t forget to [enable CORS](cors.md) if the stylesheet is loaded from a different domain.
 

@@ -4,7 +4,7 @@ It basically runs in three steps:
 
 ## Step 1
 
-Looks for stylesheets that contain container queries and escapes them to be readable by the browser.
+If the `preprocess` configuration is set, it looks for stylesheets that contain container queries and escapes them to be readable by the browser.
 
 E.g. this:
 
@@ -22,7 +22,7 @@ gets converted to this:
 }
 ```
 
-This step could be done by the [PostCSS plugin](postcss.md) on the server side to speed up the script.
+This step should be done by the [PostCSS plugin](postcss.md) on the server side to speed up the script. Client side processing is meant for demonstration purposes.
 
 ## Step 2
 
