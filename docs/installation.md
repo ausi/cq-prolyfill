@@ -8,7 +8,7 @@ Download the file *cq-prolyfill.min.js* from the [latest release on GitHub](http
 
 ## Install via npm
 
-To install it via [npm](https://www.npmjs.com/) execute the following command in your project directory:
+To install it via [npm](https://www.npmjs.com/package/cq-prolyfill) execute the following command in your project directory:
 
 ```bash
 npm install --save cq-prolyfill
