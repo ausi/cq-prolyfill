@@ -129,22 +129,19 @@ function reevaluate(clearContainerCache, callback, contexts) {
  * @param {number}          step                1: reprocess, 2: reparse, 3: reevaluate
  * @param {boolean}         clearContainerCache
  * @param {Array.<Element>} contexts
- * @param {Function}        callback
  */
-function scheduleExecution(step, clearContainerCache, contexts, callback) {
+function scheduleExecution(step, clearContainerCache, contexts) {
 
 	if (!scheduledCall) {
 		scheduledCall = {
 			_step: step,
 			_clearContainerCache: clearContainerCache,
 			_contexts: contexts,
-			_callbacks: [callback],
 		};
 		requestAnimationFrame(executeScheduledCall);
 		return;
 	}
 
-	scheduledCall._callbacks.push(callback);
 	scheduledCall._step = Math.min(scheduledCall._step, step);
 
 	// Merge parameters for reevaluate
@@ -165,22 +162,14 @@ function executeScheduledCall() {
 	var call = scheduledCall;
 	scheduledCall = undefined;
 
-	var callback = function() {
-		call._callbacks.forEach(function(callback) {
-			if (callback) {
-				callback();
-			}
-		});
-	};
-
 	if (call._step === 1) {
-		reprocess(callback);
+		reprocess();
 	}
 	else if (call._step === 2) {
-		reparse(callback);
+		reparse();
 	}
 	else {
-		reevaluate(call._clearContainerCache, callback, call._contexts);
+		reevaluate(call._clearContainerCache, undefined, call._contexts);
 	}
 
 }
@@ -197,9 +186,9 @@ function startObserving() {
 	// Reprocess now
 	scheduleExecution(1);
 
-	window.addEventListener('DOMContentLoaded', scheduleExecution.bind(undefined, 1, undefined, undefined, undefined));
-	window.addEventListener('load', scheduleExecution.bind(undefined, 1, undefined, undefined, undefined));
-	window.addEventListener('resize', scheduleExecution.bind(undefined, 3, true, undefined, undefined));
+	window.addEventListener('DOMContentLoaded', scheduleExecution.bind(undefined, 1, undefined, undefined));
+	window.addEventListener('load', scheduleExecution.bind(undefined, 1, undefined, undefined));
+	window.addEventListener('resize', scheduleExecution.bind(undefined, 3, true, undefined));
 
 	var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
 	if (MutationObserver) {
