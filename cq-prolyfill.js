@@ -46,13 +46,14 @@ var api = {
 /*eslint-enable dot-notation*/
 
 var REGEXP_ESCAPE_REGEXP = /[.?*+^$[\]\\(){}|-]/g;
-var SELECTOR_REGEXP = /\.?:container\([^)]+\)/gi;
-var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(([^)]+)\\\)/gi;
+var SELECTOR_REGEXP = /\.?:container\((?:[^()]+|\([^()]*\))+\)/gi;
+var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(((?:[^()]+|\\\([^()]*\\\))+)\\\)/gi;
 var QUERY_REGEXP = /^(?:(.+?)([<>]=?|=))??(?:(min|max)-)?([a-z-]+?)(?:-(hue|saturation|lightness|alpha))?(?:([<>]=?|=|:)(.+))?$/;
-var ESCAPE_REGEXP = /[.:()<>!=%]/g;
+var ESCAPE_REGEXP = /[.:()<>!=%,]/g;
 var SPACE_REGEXP = / /g;
 var LENGTH_REGEXP = /^(-?(?:\d*\.)?\d+)(em|ex|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)$/i;
 var NUMBER_REGEXP = /^-?(?:\d*\.)?\d+$/i;
+var COLOR_REGEXP = /^rgba?\s*\([0-9.,\s]*\)$/i;
 var URL_VALUE_REGEXP = /url\(\s*(?:(["'])(.*?)\1|([^)\s]*))\s*\)/gi;
 var ATTR_REGEXP = /\[.+?\]/g;
 var PSEUDO_NOT_REGEXP = /:not\(/g;
@@ -605,9 +606,15 @@ function parseQuery(query) {
 	var valueType =
 		(query[5] || values[0].match(NUMBER_REGEXP)) ? 'n' :
 		values[0].match(LENGTH_REGEXP) ? 'l' :
+		values[0].match(COLOR_REGEXP) ? 'c' :
 		's';
 	if (valueType === 'n') {
 		values = values.map(parseFloat);
+	}
+	else if (valueType === 'c') {
+		values = values.map(function(value) {
+			return parseColor(value).join(',');
+		});
 	}
 
 	return {
@@ -920,6 +927,9 @@ function evaluateQuery(parent, query) {
 		else {
 			return false;
 		}
+	}
+	else if (query._valueType === 'c') {
+		cValue = parseColor(cValue).join(',');
 	}
 	else if (query._valueType === 'l') {
 		for (i = 0; i < qValues.length; i++) {

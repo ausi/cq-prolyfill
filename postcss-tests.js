@@ -10,6 +10,7 @@ var data = {
 	'.before:container(height > 100px).after': '.before.\\:container\\(height\\>100px\\).after',
 	'.combined-selector:container(width > 100px):container(height > 100px)': '.combined-selector.\\:container\\(width\\>100px\\).\\:container\\(height\\>100px\\)',
 	':container( " width <= 100.00px")': '.\\:container\\(width\\<\\=100\\.00px\\)',
+	':container(color: rgba(255, 0, 0, 1))': '.\\:container\\(color\\:rgba\\(255\\,0\\,0\\,1\\)\\)',
 };
 
 var dataScss = {
@@ -37,7 +38,7 @@ Object.keys(data).forEach(function(selector) {
 	}
 
 	expected = data[selector] + '{color:red}';
-	selector = '@import "mixins.scss"; ' + selector.replace(/:container\(\s*"*([^)]*?)"*\s*\)/g, '#{cq-prolyfill("$1")}') + '{color:red}';
+	selector = '@import "mixins.scss"; ' + selector.replace(/:container\(\s*"*((?:[^()]+?|\([^()]*\))+?)"*\s*\)/g, '#{cq-prolyfill("$1")}') + '{color:red}';
 	processed = (sass.renderSync({
 		data: selector,
 		outputStyle: 'compressed',
@@ -78,10 +79,14 @@ Object.keys(dataSass).forEach(function(css) {
 });
 
 if (failed.length) {
+	/*eslint-disable no-console*/
 	console.log(failed.join('\n'));
 	console.log('PostCSS tests failed');
+	/*eslint-enable no-console*/
 	process.exit(1);
 }
 else {
+	/*eslint-disable no-console*/
 	console.log('PostCSS tests: ' + Object.keys(data).length + ' passed');
+	/*eslint-enable no-console*/
 }

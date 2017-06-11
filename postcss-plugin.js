@@ -6,10 +6,10 @@ module.exports = postcss.plugin('cq-prolyfill', function () {
 	return function (css) {
 		css.walkRules(/:container\(/i, function (rule) {
 			rule.selectors = rule.selectors.map(function(selector) {
-				return selector.replace(/:container\([^)]*\)/gi, function(match) {
+				return selector.replace(/:container\((?:[^()]+|\([^()]*\))+\)/gi, function(match) {
 					return '.' + match
 						.replace(/\s+/g, '')
-						.replace(/^:container\("([^)]*)"\)$/i, ':container($1)')
+						.replace(/^:container\("((?:[^()]+|\([^()]*\))+)"\)$/i, ':container($1)')
 						.replace(/[[\]!"#$%&'()*+,./:;<=>?@^`{|}~]/g, '\\$&')
 						.toLowerCase();
 				});

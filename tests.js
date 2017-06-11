@@ -246,6 +246,7 @@ QUnit.test('escapeSelectors', function(assert) {
 	assert.equal(escapeSelectors(':container( " width <= 100.00px")'), '.\\:container\\(width\\<\\=100\\.00px\\)', 'Query with quotes');
 	assert.equal(escapeSelectors(':container(min-width: 100.00px)'), '.\\:container\\(min-width\\:100\\.00px\\)', 'Min prefix');
 	assert.equal(escapeSelectors(':container( " MAX-WIDTH : 100.00px")'), '.\\:container\\(max-width\\:100\\.00px\\)', 'Max prefix with quotes');
+	assert.equal(escapeSelectors(':container(color: rgba(255, 0, 0, 1))'), '.\\:container\\(color\\:rgba\\(255\\,0\\,0\\,1\\)\\)', 'Color query rgba()');
 });
 
 /*global parseRules, queries*/
@@ -258,6 +259,7 @@ QUnit.test('parseRules', function(assert) {
 		+ '.double-comparison:container(200px > width > 100px) { display: block }'
 		+ '.filter:container(color-lightness < 10%) { display: block }'
 		+ '.max-filter:container(max-background-color-lightness: 10%) { display: block }'
+		+ '.color:container(background-color: rgba(255, 0, 0)) { display: block }'
 		+ ':nth-of-type(2n+1):container(width > 100px) { display: block }'
 		+ '.pseudo-before:container(width > 100px):before { display: block }'
 		+ '.pseudo-after:container(width > 100px)::after { display: block }'
@@ -267,7 +269,7 @@ QUnit.test('parseRules', function(assert) {
 	preprocess(function () {
 
 		parseRules();
-		assert.equal(Object.keys(queries).length, 11, 'Eleven queries');
+		assert.equal(Object.keys(queries).length, 12, 'Eleven queries');
 
 		assert.ok(Object.keys(queries)[0].match(/^\.foo (?:\.before|\.after){2}\.\\:container\\\(width\\>\\=100\\\.00px\\\)$/), 'Correct key');
 		assert.ok(queries[Object.keys(queries)[0]]._selector.match(/^\.foo (?:\.before|\.after){2}$/), 'Preceding selector');
@@ -330,31 +332,40 @@ QUnit.test('parseRules', function(assert) {
 		assert.deepEqual(queries[Object.keys(queries)[6]]._valueType, 'n', 'Value type');
 		assert.equal(queries[Object.keys(queries)[6]]._className, ':container(max-background-color-lightness:10%)', 'Class name');
 
-		assert.equal(Object.keys(queries)[7], ':nth-of-type(2n+1).\\:container\\(width\\>100px\\)', 'Correct key');
-		assert.equal(queries[Object.keys(queries)[7]]._selector, ':nth-of-type(2n+1)', 'Preceding selector');
-		assert.equal(queries[Object.keys(queries)[7]]._prop, 'width', 'Property');
-		assert.deepEqual(queries[Object.keys(queries)[7]]._types, ['>'], 'Mode');
-		assert.deepEqual(queries[Object.keys(queries)[7]]._values, ['100px'], 'Value');
-		assert.deepEqual(queries[Object.keys(queries)[7]]._valueType, 'l', 'Value type');
-		assert.equal(queries[Object.keys(queries)[7]]._className, ':container(width>100px)', 'Class name');
+		//.color:container(background-color: rgba(255, 0, 0))
+		assert.equal(Object.keys(queries)[7], '.color.\\:container\\(background-color\\:rgba\\(255\\,0\\,0\\)\\)', 'Correct key');
+		assert.equal(queries[Object.keys(queries)[7]]._selector, '.color', 'Preceding selector');
+		assert.equal(queries[Object.keys(queries)[7]]._prop, 'background-color', 'Property');
+		assert.deepEqual(queries[Object.keys(queries)[7]]._types, ['='], 'Mode');
+		assert.deepEqual(queries[Object.keys(queries)[7]]._values, ['0,100,50,1'], 'Value');
+		assert.deepEqual(queries[Object.keys(queries)[7]]._valueType, 'c', 'Value type');
+		assert.equal(queries[Object.keys(queries)[7]]._className, ':container(background-color:rgba(255,0,0))', 'Class name');
 
-		assert.equal(Object.keys(queries)[8], '.pseudo-before.\\:container\\(width\\>100px\\)', 'Correct key');
-		assert.equal(queries[Object.keys(queries)[8]]._selector, '.pseudo-before', 'Preceding selector');
+		assert.equal(Object.keys(queries)[8], ':nth-of-type(2n+1).\\:container\\(width\\>100px\\)', 'Correct key');
+		assert.equal(queries[Object.keys(queries)[8]]._selector, ':nth-of-type(2n+1)', 'Preceding selector');
 		assert.equal(queries[Object.keys(queries)[8]]._prop, 'width', 'Property');
 		assert.deepEqual(queries[Object.keys(queries)[8]]._types, ['>'], 'Mode');
 		assert.deepEqual(queries[Object.keys(queries)[8]]._values, ['100px'], 'Value');
 		assert.deepEqual(queries[Object.keys(queries)[8]]._valueType, 'l', 'Value type');
 		assert.equal(queries[Object.keys(queries)[8]]._className, ':container(width>100px)', 'Class name');
 
-		assert.equal(Object.keys(queries)[9], '.pseudo-after.\\:container\\(width\\>100px\\)', 'Correct key');
-		assert.equal(queries[Object.keys(queries)[9]]._selector, '.pseudo-after', 'Preceding selector');
+		assert.equal(Object.keys(queries)[9], '.pseudo-before.\\:container\\(width\\>100px\\)', 'Correct key');
+		assert.equal(queries[Object.keys(queries)[9]]._selector, '.pseudo-before', 'Preceding selector');
 		assert.equal(queries[Object.keys(queries)[9]]._prop, 'width', 'Property');
 		assert.deepEqual(queries[Object.keys(queries)[9]]._types, ['>'], 'Mode');
 		assert.deepEqual(queries[Object.keys(queries)[9]]._values, ['100px'], 'Value');
 		assert.deepEqual(queries[Object.keys(queries)[9]]._valueType, 'l', 'Value type');
 		assert.equal(queries[Object.keys(queries)[9]]._className, ':container(width>100px)', 'Class name');
 
-		assert.equal(Object.keys(queries)[10], '.inside-media-query.\\:container\\(height\\<10em\\)', 'Correct key');
+		assert.equal(Object.keys(queries)[10], '.pseudo-after.\\:container\\(width\\>100px\\)', 'Correct key');
+		assert.equal(queries[Object.keys(queries)[10]]._selector, '.pseudo-after', 'Preceding selector');
+		assert.equal(queries[Object.keys(queries)[10]]._prop, 'width', 'Property');
+		assert.deepEqual(queries[Object.keys(queries)[10]]._types, ['>'], 'Mode');
+		assert.deepEqual(queries[Object.keys(queries)[10]]._values, ['100px'], 'Value');
+		assert.deepEqual(queries[Object.keys(queries)[10]]._valueType, 'l', 'Value type');
+		assert.equal(queries[Object.keys(queries)[10]]._className, ':container(width>100px)', 'Class name');
+
+		assert.equal(Object.keys(queries)[11], '.inside-media-query.\\:container\\(height\\<10em\\)', 'Correct key');
 
 		done();
 	});
@@ -513,8 +524,15 @@ QUnit.test('buildStyleCacheFromRules', function(assert) {
 
 });
 
-/*global evaluateQuery*/
+/*global evaluateQuery, containerCache: true, styleCache: true*/
 QUnit.test('evaluateQuery', function(assert) {
+
+	// Clean caches
+	styleCache = {
+		width: {},
+		height: {},
+	};
+	containerCache = createCacheMap();
 
 	var element = document.createElement('div');
 	element.style.cssText = 'width: 100px; height: 100px; font-size: 10px; opacity: 0.5; background: red';
@@ -543,6 +561,7 @@ QUnit.test('evaluateQuery', function(assert) {
 		['opacity', '=', 'n', 0.500, 1],
 		['opacity', '>', 'n', 0.49, 0.5],
 		['font-size', '=', 'l', '7.50pt', '10em'],
+		['background-color', '=', 'c', '0,100,50,1', '0,100,49,1'],
 	];
 	data.forEach(function(item) {
 		assert.strictEqual(evaluateQuery(element, {_prop: item[0], _types: [item[1]], _values: [item[3]], _valueType: item[2]}), true, item[0] + ' ' + item[1] + ' ' + item[3]);

@@ -61,7 +61,18 @@ Available comparison operators are:
 
 For more details about the comparison syntax take a look at the [Media Queries Level 4 Specification](https://www.w3.org/TR/2017/WD-mediaqueries-4-20170519/#mq-features).
 
-## Color filters
+## Colors
+
+If you want to query for a specific color you can use the `rgb()` or `rgba()` notation.
+
+```css
+.element:container(color: rgb(0, 0, 0)) {
+	/* Styles for .element if its containers color is black */
+}
+.element:container(background-color = rgba(255, 255, 255, 0.5)) {
+	/* Styles for .element if its containers background-color is 50% transparent white */
+}
+```
 
 It’s also possible to query color properties, for this purpose the color filters `hue`, `saturation`, `lightness` and `alpha` are available.
 

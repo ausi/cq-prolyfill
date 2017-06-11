@@ -255,10 +255,12 @@ QUnit.test('Background Color Query', function(assert) {
 		+ '@font-face { font-family: dark; src: local("Times New Roman"), local("Droid Serif") }'
 		+ '@font-face { font-family: green; src: local("Times New Roman"), local("Droid Serif") }'
 		+ '@font-face { font-family: transparent; src: local("Times New Roman"), local("Droid Serif") }'
+		+ '@font-face { font-family: semi-orange; src: local("Times New Roman"), local("Droid Serif") }'
 		+ '.test:container(background-color-lightness > 80%) { font-family: light }'
 		+ '.test:container(background-color-lightness < 20%) { font-family: dark }'
 		+ '.test:container(background-color-hue > 80deg < 160deg) { font-family: green }'
-		+ '.test:container(background-color-alpha < 0.1) { font-family: transparent }';
+		+ '.test:container(background-color-alpha < 0.1) { font-family: transparent }'
+		+ '.test:container(background-color: rgba(255, 99, 66, 0.5)) { font-family: semi-orange }';
 	fixture.appendChild(style);
 
 	var element = document.createElement('div');
@@ -316,6 +318,10 @@ QUnit.test('Background Color Query', function(assert) {
 			reevaluate();
 			assert.equal(font(test), 'green', 'Green via CSS variable');
 		}
+
+		element.style.cssText = 'background: rgba(255, 99, 66, 0.5)';
+		reevaluate();
+		assert.equal(font(test), 'semi-orange', 'Semi-orange background');
 
 		done();
 
