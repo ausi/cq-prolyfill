@@ -263,13 +263,15 @@ QUnit.test('parseRules', function(assert) {
 		+ ':nth-of-type(2n+1):container(width > 100px) { display: block }'
 		+ '.pseudo-before:container(width > 100px):before { display: block }'
 		+ '.pseudo-after:container(width > 100px)::after { display: block }'
-		+ '@media screen { .inside-media-query:container(height < 10em) { display: block } }';
+		+ '@media screen { .inside-media-query:container(height < 10em) { display: block } }'
+		+ '.attribute[data-cq~="max-width:100.0px"] { display: block }'
+		+ '.attribute-single[data-cq~=\'color-alpha<=10%\'] { display: block }';
 	fixture.appendChild(style);
 	var done = assert.async();
 	preprocess(function () {
 
 		parseRules();
-		assert.equal(Object.keys(queries).length, 12, 'Eleven queries');
+		assert.equal(Object.keys(queries).length, 14, '14 queries');
 
 		assert.ok(Object.keys(queries)[0].match(/^\.foo (?:\.before|\.after){2}\.\\:container\\\(width\\>\\=100\\\.00px\\\)$/), 'Correct key');
 		assert.ok(queries[Object.keys(queries)[0]]._selector.match(/^\.foo (?:\.before|\.after){2}$/), 'Preceding selector');
@@ -366,6 +368,23 @@ QUnit.test('parseRules', function(assert) {
 		assert.equal(queries[Object.keys(queries)[10]]._className, ':container(width>100px)', 'Class name');
 
 		assert.equal(Object.keys(queries)[11], '.inside-media-query.\\:container\\(height\\<10em\\)', 'Correct key');
+
+		assert.ok(Object.keys(queries)[12].match(/^\.attribute\[data-cq~=["']max-width:100\.0px["']\]$/), 'Correct key');
+		assert.equal(queries[Object.keys(queries)[12]]._selector, '.attribute', 'Preceding selector');
+		assert.equal(queries[Object.keys(queries)[12]]._prop, 'width', 'Property');
+		assert.deepEqual(queries[Object.keys(queries)[12]]._types, ['<='], 'Mode');
+		assert.deepEqual(queries[Object.keys(queries)[12]]._values, ['100.0px'], 'Value');
+		assert.deepEqual(queries[Object.keys(queries)[12]]._valueType, 'l', 'Value type');
+		assert.equal(queries[Object.keys(queries)[12]]._attribute, 'max-width:100.0px', 'Attribute name');
+
+		assert.ok(Object.keys(queries)[13].match(/^\.attribute-single\[data-cq~=["']color-alpha<=10%["']\]$/), 'Correct key');
+		assert.equal(queries[Object.keys(queries)[13]]._selector, '.attribute-single', 'Preceding selector');
+		assert.equal(queries[Object.keys(queries)[13]]._prop, 'color', 'Property');
+		assert.equal(queries[Object.keys(queries)[13]]._filter, 'alpha', 'Filter');
+		assert.deepEqual(queries[Object.keys(queries)[13]]._types, ['<='], 'Mode');
+		assert.deepEqual(queries[Object.keys(queries)[13]]._values, [10], 'Value');
+		assert.deepEqual(queries[Object.keys(queries)[13]]._valueType, 'n', 'Value type');
+		assert.equal(queries[Object.keys(queries)[13]]._attribute, 'color-alpha<=10%', 'Attribute name');
 
 		done();
 	});
@@ -1029,7 +1048,7 @@ QUnit.test('createCacheMap', function(assert) {
 
 });
 
-/*global addClass, removeClass, hasClass, getClassName*/
+/*global addClass, removeClass, hasClass*/
 QUnit.test('addClass, removeClass, hasClass', function(assert) {
 
 	var element = document.createElement('div');
@@ -1039,27 +1058,27 @@ QUnit.test('addClass, removeClass, hasClass', function(assert) {
 	[element, svgElement].forEach(function(element) {
 
 		addClass(element, 'foo');
-		assert.equal(getClassName(element).trim(), 'foo', 'Add class foo');
+		assert.equal((element.getAttribute('class') || '').trim(), 'foo', 'Add class foo');
 		assert.ok(hasClass(element, 'foo'), 'Has class foo');
 		addClass(element, 'bar');
-		assert.equal(getClassName(element).trim(), 'foo bar', 'Add class bar');
+		assert.equal((element.getAttribute('class') || '').trim(), 'foo bar', 'Add class bar');
 		assert.ok(hasClass(element, 'foo') && hasClass(element, 'bar'), 'Has class foo and bar');
 		addClass(element, 'bar');
-		assert.equal(getClassName(element).trim(), 'foo bar', 'Add class bar again');
+		assert.equal((element.getAttribute('class') || '').trim(), 'foo bar', 'Add class bar again');
 		addClass(element, ':container(width>=100px)');
-		assert.equal(getClassName(element).trim(), 'foo bar :container(width>=100px)', 'Add container query class');
+		assert.equal((element.getAttribute('class') || '').trim(), 'foo bar :container(width>=100px)', 'Add container query class');
 		assert.ok(hasClass(element, ':container(width>=100px)'), 'Has container query class');
 		addClass(element, ':container(width>=100px)');
-		assert.equal(getClassName(element).trim(), 'foo bar :container(width>=100px)', 'Add container query class again');
+		assert.equal((element.getAttribute('class') || '').trim(), 'foo bar :container(width>=100px)', 'Add container query class again');
 
 		removeClass(element, 'foo');
-		assert.equal(getClassName(element).trim(), 'bar :container(width>=100px)', 'Remove class foo');
+		assert.equal((element.getAttribute('class') || '').trim(), 'bar :container(width>=100px)', 'Remove class foo');
 		assert.notOk(hasClass(element, 'foo'), 'Has not class foo');
 		removeClass(element, 'bar');
-		assert.equal(getClassName(element).trim(), ':container(width>=100px)', 'Remove class bar');
+		assert.equal((element.getAttribute('class') || '').trim(), ':container(width>=100px)', 'Remove class bar');
 		assert.notOk(hasClass(element, 'bar'), 'Has not class bar');
 		removeClass(element, ':container(width>=100px)');
-		assert.equal(getClassName(element).trim(), '', 'Remove container query class');
+		assert.equal((element.getAttribute('class') || '').trim(), '', 'Remove container query class');
 		assert.notOk(hasClass(element, ':container(width>=100px)'), 'Has not container query class');
 
 	});

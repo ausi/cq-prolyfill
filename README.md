@@ -17,8 +17,8 @@ With this prolyfill you can use container queries in your CSS in the following f
 .element:container(min-width: 100px) {
 	/* Styles for .element if its container is at least 100px wide */
 }
-.element:container(100px < height < 200px) {
-	/* Styles for .element if its container is between 100px and 200px high */
+.element[data-cq~="min-width:100px"] {
+	/* Alternative syntax, same as the container query above */
 }
 .element:container(text-align = right) {
 	/* Styles for .element if its container has a right text-align */

@@ -47,7 +47,7 @@ var api = {
 
 var REGEXP_ESCAPE_REGEXP = /[.?*+^$[\]\\(){}|-]/g;
 var SELECTOR_REGEXP = /\.?:container\((?:[^()]+|\([^()]*\))+\)/gi;
-var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(((?:[^()]+|\\\([^()]*\\\))+)\\\)/gi;
+var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(((?:[^()]+?|\\\([^()]*\\\))+?)\\\)|\[data-cq~=["']((?:\\.|[^"'])+)["']\]/gi;
 var QUERY_REGEXP = /^(?:(.+?)([<>]=?|=))??(?:(min|max)-)?([a-z-]+?)(?:-(hue|saturation|lightness|alpha))?(?:([<>]=?|=|:)(.+))?$/;
 var ESCAPE_REGEXP = /[.:()<>=%,]/g;
 var SPACE_REGEXP = / /g;
@@ -570,7 +570,7 @@ function parseRule(rule) {
 	}
 	splitSelectors(rule.selectorText).forEach(function(selector) {
 		selector = escapeSelectors(selector);
-		selector.replace(SELECTOR_ESCAPED_REGEXP, function(match, query, offset) {
+		selector.replace(SELECTOR_ESCAPED_REGEXP, function(match, query, queryUnescaped, offset) {
 			var precedingSelector =
 				(
 					selector.substr(0, offset)
@@ -582,10 +582,11 @@ function parseRule(rule) {
 			if (!precedingSelector.substr(-1).trim()) {
 				precedingSelector += '*';
 			}
-			var query = parseQuery(unescape(query));
+			var query = parseQuery(queryUnescaped || unescape(query));
 			if (query) {
 				query._selector = precedingSelector;
-				query._className = unescape(match.substr(1));
+				query._className = queryUnescaped ? undefined : unescape(match.substr(1));
+				query._attribute = queryUnescaped;
 				queries[precedingSelector + match] = query;
 			}
 		});
@@ -786,7 +787,7 @@ function updateClassesRead(treeNodes, dontMarkAsDone) {
 			for (j = 0; j < node._queries.length; j++) {
 				query = node._queries[j];
 				var queryMatches = evaluateQuery(node._element.parentNode, query);
-				if (queryMatches !== hasClass(node._element, query._className)) {
+				if (queryMatches !== hasQuery(node._element, query)) {
 					node._changes.push([queryMatches, query]);
 				}
 			}
@@ -809,7 +810,7 @@ function updateClassesWrite(treeNodes) {
 	for (var i = 0; i < treeNodes.length; i++) {
 		node = treeNodes[i];
 		for (j = 0; j < node._changes.length; j++) {
-			(node._changes[j][0] ? addClass : removeClass)(node._element, node._changes[j][1]._className);
+			(node._changes[j][0] ? addQuery : removeQuery)(node._element, node._changes[j][1]);
 		}
 		node._changes = [];
 		updateClassesWrite(node._children);
@@ -1363,7 +1364,7 @@ function filterRulesByElementAndProp(rules, element, prop) {
 	if (element.id) {
 		foundRules = foundRules.concat(rules['#' + element.id] || []);
 	}
-	getClassName(element).split(/\s+/).forEach(function(className) {
+	(element.getAttribute('class') || '').split(/\s+/).forEach(function(className) {
 		foundRules = foundRules.concat(rules['.' + className] || []);
 	});
 	foundRules = foundRules
@@ -1531,19 +1532,41 @@ function createCacheMap() {
 }
 
 /**
- * @param  {Element} element
- * @return {string}
+ * @param  {Element}                                  element
+ * @param  {{_className: string, _attribute: string}} query
+ * @return {boolean}
  */
-function getClassName(element) {
-	return element.getAttribute('class') || '';
+function hasQuery(element, query) {
+	if (query._className) {
+		return hasClass(element, query._className);
+	}
+	return hasAttributeValue(element, 'data-cq', query._attribute);
 }
 
 /**
- * @param {Element} element
- * @param {string}  className
+ * @param {Element}                                  element
+ * @param {{_className: string, _attribute: string}} query
  */
-function setClassName(element, className) {
-	element.setAttribute('class', className);
+function addQuery(element, query) {
+	if (query._className) {
+		addClass(element, query._className);
+	}
+	else {
+		addAttributeValue(element, 'data-cq', query._attribute);
+	}
+}
+
+/**
+ * @param {Element}                                  element
+ * @param {{_className: string, _attribute: string}} query
+ */
+function removeQuery(element, query) {
+	if (query._className) {
+		removeClass(element, query._className);
+	}
+	else {
+		removeAttributeValue(element, 'data-cq', query._attribute);
+	}
 }
 
 /**
@@ -1554,11 +1577,7 @@ function hasClass(element, className) {
 	if (element.classList) {
 		return element.classList.contains(className);
 	}
-	return !!getClassName(element).match(new RegExp(
-		'(?:^|\\s+)'
-		+ className.replace(REGEXP_ESCAPE_REGEXP, '\\$&')
-		+ '($|\\s+)'
-	));
+	return hasAttributeValue(element, 'class', className);
 }
 
 /**
@@ -1570,7 +1589,7 @@ function addClass(element, className) {
 		element.classList.add(className);
 	}
 	else if (!hasClass(element, className)) {
-		setClassName(element, getClassName(element) + ' ' + className)
+		addAttributeValue(element, 'class', className);
 	}
 }
 
@@ -1583,15 +1602,49 @@ function removeClass(element, className) {
 		element.classList.remove(className);
 	}
 	else {
-		setClassName(element, getClassName(element).replace(
-			new RegExp(
-				'(?:^|\\s+)'
-				+ className.replace(REGEXP_ESCAPE_REGEXP, '\\$&')
-				+ '($|\\s+)'
-			),
-			'$1'
-		));
+		removeAttributeValue(element, 'class', className);
 	}
+}
+
+/**
+ * @param  {Element} element
+ * @param  {string}  attr
+ * @param  {string}  value
+ * @return {boolean}
+ */
+function hasAttributeValue(element, attr, value) {
+	return !!(element.getAttribute(attr) || '').match(new RegExp(
+		'(?:^|\\s+)'
+		+ value.replace(REGEXP_ESCAPE_REGEXP, '\\$&')
+		+ '($|\\s+)'
+	));
+}
+
+/**
+ * @param {Element} element
+ * @param {string}  attr
+ * @param {string}  value
+ */
+function addAttributeValue(element, attr, value) {
+	if (!hasAttributeValue(element, attr, value)) {
+		element.setAttribute(attr, (element.getAttribute(attr) || '') + ' ' + value);
+	}
+}
+
+/**
+ * @param {Element} element
+ * @param {string}  attr
+ * @param {string}  value
+ */
+function removeAttributeValue(element, attr, value) {
+	element.setAttribute(attr, (element.getAttribute(attr) || '').replace(
+		new RegExp(
+			'(?:^|\\s+)'
+			+ value.replace(REGEXP_ESCAPE_REGEXP, '\\$&')
+			+ '($|\\s+)'
+		),
+		'$1'
+	));
 }
 
 /**

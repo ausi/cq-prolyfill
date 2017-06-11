@@ -27,7 +27,7 @@ QUnit.test('Simple width and height Query', function(assert) {
 		+ '.maxW:container( " WIDTH <= 200px") { font-family: max-width-200 }'
 		+ '.maxW:container( " MAX-WIDTH : 100px") { font-family: max-width-100 }'
 		+ '.maxH:container( height <= 200px ) { font-family: max-height-200 }'
-		+ '.maxH:container( max-height: 100px ) { font-family: max-height-100 }';
+		+ '.maxH[data-cq~="max-height:100px"] { font-family: max-height-100 }';
 	fixture.appendChild(style);
 
 	var element = document.createElement('div');
