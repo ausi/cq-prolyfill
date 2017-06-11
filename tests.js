@@ -259,7 +259,7 @@ QUnit.test('parseRules', function(assert) {
 		+ '.double-comparison:container(200px > width > 100px) { display: block }'
 		+ '.filter:container(color-lightness < 10%) { display: block }'
 		+ '.max-filter:container(max-background-color-lightness: 10%) { display: block }'
-		+ '.color:container(background-color: rgba(255, 0, 0)) { display: block }'
+		+ '.color:container(background-color: rgb(255, 0, 0)) { display: block }'
 		+ ':nth-of-type(2n+1):container(width > 100px) { display: block }'
 		+ '.pseudo-before:container(width > 100px):before { display: block }'
 		+ '.pseudo-after:container(width > 100px)::after { display: block }'
@@ -332,14 +332,14 @@ QUnit.test('parseRules', function(assert) {
 		assert.deepEqual(queries[Object.keys(queries)[6]]._valueType, 'n', 'Value type');
 		assert.equal(queries[Object.keys(queries)[6]]._className, ':container(max-background-color-lightness:10%)', 'Class name');
 
-		//.color:container(background-color: rgba(255, 0, 0))
-		assert.equal(Object.keys(queries)[7], '.color.\\:container\\(background-color\\:rgba\\(255\\,0\\,0\\)\\)', 'Correct key');
+		//.color:container(background-color: rgb(255, 0, 0))
+		assert.equal(Object.keys(queries)[7], '.color.\\:container\\(background-color\\:rgb\\(255\\,0\\,0\\)\\)', 'Correct key');
 		assert.equal(queries[Object.keys(queries)[7]]._selector, '.color', 'Preceding selector');
 		assert.equal(queries[Object.keys(queries)[7]]._prop, 'background-color', 'Property');
 		assert.deepEqual(queries[Object.keys(queries)[7]]._types, ['='], 'Mode');
-		assert.deepEqual(queries[Object.keys(queries)[7]]._values, ['0,100,50,1'], 'Value');
+		assert.deepEqual(queries[Object.keys(queries)[7]]._values, ['0,100,50,255'], 'Value');
 		assert.deepEqual(queries[Object.keys(queries)[7]]._valueType, 'c', 'Value type');
-		assert.equal(queries[Object.keys(queries)[7]]._className, ':container(background-color:rgba(255,0,0))', 'Class name');
+		assert.equal(queries[Object.keys(queries)[7]]._className, ':container(background-color:rgb(255,0,0))', 'Class name');
 
 		assert.equal(Object.keys(queries)[8], ':nth-of-type(2n+1).\\:container\\(width\\>100px\\)', 'Correct key');
 		assert.equal(queries[Object.keys(queries)[8]]._selector, ':nth-of-type(2n+1)', 'Preceding selector');
@@ -559,7 +559,7 @@ QUnit.test('evaluateQuery', function(assert) {
 		['opacity', '=', 'n', 0.500, 1],
 		['opacity', '>', 'n', 0.49, 0.5],
 		['font-size', '=', 'l', '7.50pt', '10em'],
-		['background-color', '=', 'c', '0,100,50,1', '0,100,49,1'],
+		['background-color', '=', 'c', '0,100,50,255', '0,100,49,255'],
 	];
 	data.forEach(function(item) {
 		assert.strictEqual(evaluateQuery(element, {_prop: item[0], _types: [item[1]], _values: [item[3]], _valueType: item[2]}), true, item[0] + ' ' + item[1] + ' ' + item[3]);
@@ -572,8 +572,8 @@ QUnit.test('evaluateQuery', function(assert) {
 	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'saturation', _types: ['<'], _values: [parseFloat('90%')], _valueType: 'n'}), false, 'Red Saturation not < 90%');
 	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'lightness', _types: ['>'], _values: [parseFloat('10%')], _valueType: 'n'}), true, 'Red Lightness > 10%');
 	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'lightness', _types: ['<'], _values: [parseFloat('10%')], _valueType: 'n'}), false, 'Red Lightness not < 10%');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'alpha', _types: ['='], _values: [parseFloat('1')], _valueType: 'n'}), true, 'Red Alpha = 1');
-	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'alpha', _types: ['<'], _values: [parseFloat('0.99')], _valueType: 'n'}), false, 'Red Alpha not < 0.99');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'alpha', _types: ['='], _values: [parseFloat('255')], _valueType: 'n'}), true, 'Red Alpha = 255');
+	assert.strictEqual(evaluateQuery(element, {_prop: 'background-color', _filter: 'alpha', _types: ['<'], _values: [parseFloat('254')], _valueType: 'n'}), false, 'Red Alpha not < 254');
 
 	assert.strictEqual(evaluateQuery(element, {_prop: 'display', _types: ['<'], _values: ['10px'], _valueType: 'l'}), false, 'Invalid block < 10px');
 	assert.strictEqual(evaluateQuery(element, {_prop: 'display', _types: ['>'], _values: ['10px'], _valueType: 'l'}), false, 'Invalid block > 10px');
@@ -793,12 +793,26 @@ QUnit.test('getOriginalStyle', function(assert) {
 
 /*global parseColor*/
 QUnit.test('parseColor', function(assert) {
-	assert.deepEqual(parseColor('rgb(255, 0, 0)'), [0, 100, 50, 1], 'Rgb');
-	assert.deepEqual(parseColor('rgba(255, 0, 0, 0.5)'), [0, 100, 50, 0.5], 'Rgba');
+
+	assert.deepEqual(parseColor('rgb(255, 0, 0)'), [0, 100, 50, 255], 'Rgb');
+	assert.deepEqual(parseColor('rgba(255, 0, 0, 0.6)'), [0, 100, 50, 153], 'Rgba');
 	assert.deepEqual(parseColor('transparent'), [0, 0, 0, 0], 'Transparent');
 	assert.deepEqual(parseColor('rgba(0, 0, 0, 0)'), [0, 0, 0, 0], 'Transparent rgba');
 	assert.deepEqual(parseColor('rgba(255, 0, 0, 0)'), [0, 0, 0, 0], 'Transparent rgba red');
 	assert.deepEqual(parseColor(undefined), [0, 0, 0, 0], 'Undefined');
+
+	// Test if parseColor() rounds the same way as the browser does.
+	// For comparisons to work, the values need to be exactly the same.
+	for (var alpha = 0; alpha <= 1000; alpha++) {
+		var color = 'rgba(0, 0, 0, ' + (alpha / 1000) + ')';
+		fixture.style.cssText = 'color:' + color;
+		if (parseColor(color)[3] !== parseColor(fixture.style.color)[3] || alpha % 250 === 0) {
+			assert.deepEqual(parseColor(color), parseColor(fixture.style.color), color + '/' + fixture.style.color);
+		}
+	}
+
+	fixture.style.cssText = '';
+
 });
 
 /*global rgbaToHsla*/
@@ -807,7 +821,7 @@ QUnit.test('rgbaToHsla', function(assert) {
 	assert.deepEqual(rgbaToHsla([255, 0, 0, 1]), [0, 100, 50, 1], 'Red');
 	assert.deepEqual(rgbaToHsla([0, 255, 0, 1]), [120, 100, 50, 1], 'Green');
 	assert.deepEqual(rgbaToHsla([0, 0, 255, 1]), [240, 100, 50, 1], 'Blue');
-	assert.deepEqual(rgbaToHsla([204, 255, 204, 0.5]), [120, 100, 90, 0.5], 'Light semitransparent green');
+	assert.deepEqual(rgbaToHsla([204, 255, 204, 128]), [120, 100, 90, 128], 'Light semitransparent green');
 });
 
 /*global filterRulesByElementAndProp, buildStyleCache, styleCache: true*/
