@@ -1358,7 +1358,7 @@ var elementMatchesSelectorMethod = (function(element) {
 		|| element.msMatchesSelector
 		|| element.oMatchesSelector
 		|| element.webkitMatchesSelector;
-})(document.createElement('div'));
+})(createElement('div'));
 
 /**
  * @param  {Element} element
