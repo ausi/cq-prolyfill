@@ -30,7 +30,7 @@ If you don’t want to use a preprocessor you can use attribute selectors instea
 
 ## Syntax
 
-A container query begins with `:container(` and ends with `)`. It contains a single query against a CSS property and can be suffixed by an [optional filter](#color-filters). The syntax of the query follows the [Media Queries Level 4](https://www.w3.org/TR/2017/WD-mediaqueries-4-20170519/#mq-features) syntax for media features including the range form. The container query is attached to the element you want to style. So instead of writing `.parent:media(min-with: 100px) .child` like in other element query scripts, you append the query to the child itself `.child:container(width > 100px)`.
+A container query begins with `:container(` and ends with `)`. It contains a single query against a CSS property and can be suffixed by an [optional filter](#colors). The syntax of the query follows the [Media Queries Level 4](https://www.w3.org/TR/2017/WD-mediaqueries-4-20170519/#mq-features) syntax for media features including the range form. The container query is attached to the element you want to style. So instead of writing `.parent:media(min-with: 100px) .child` like in other element query scripts, you append the query to the child itself `.child:container(width > 100px)`.
 
 The alternative attribute selector syntax begins with `[data-cq~="` and ends with `"]`. It does not allow space characters in the query part, so `[data-cq~="width > 100px"]` is invalid while `[data-cq~="width>100px"]` works fine.
 
