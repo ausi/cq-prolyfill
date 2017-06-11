@@ -1017,8 +1017,36 @@ function getContainer(element, prop) {
 	}
 
 	else {
-		var parentContainer = getContainer(element.parentNode, prop);
+
 		var parentNode = element.parentNode;
+
+		// Skip to next positioned ancestor for absolute positioned elements
+		if (getComputedStyle(element).position === 'absolute') {
+			while (
+				parentNode.parentNode
+				&& parentNode.parentNode.nodeType === 1
+				&& ['relative', 'absolute'].indexOf(getComputedStyle(parentNode).position) === -1
+			) {
+				parentNode = parentNode.parentNode;
+			}
+		}
+
+		// Skip to next ancestor with a transform applied for fixed positioned elements
+		if (getComputedStyle(element).position === 'fixed') {
+			while (
+				parentNode.parentNode
+				&& parentNode.parentNode.nodeType === 1
+				&& [undefined, 'none'].indexOf(
+					getComputedStyle(parentNode).transform
+					|| getComputedStyle(parentNode).MsTransform
+					|| getComputedStyle(parentNode).WebkitTransform
+				) !== -1
+			) {
+				parentNode = parentNode.parentNode;
+			}
+		}
+
+		var parentContainer = getContainer(parentNode, prop);
 		while (getComputedStyle(parentNode).display === 'inline') {
 			parentNode = parentNode.parentNode;
 		}

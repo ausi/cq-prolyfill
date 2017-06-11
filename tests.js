@@ -588,8 +588,14 @@ QUnit.test('evaluateQuery', function(assert) {
 
 });
 
-/*global getContainer, containerCache: true, createCacheMap*/
+/*global getContainer, styleCache: true, containerCache: true, createCacheMap*/
 QUnit.test('getContainer', function(assert) {
+
+	styleCache = {
+		width: {},
+		height: {},
+	};
+	containerCache = createCacheMap();
 
 	var element = document.createElement('div');
 	element.innerHTML = '<span><div style="float: left"><a>';
@@ -613,6 +619,27 @@ QUnit.test('getContainer', function(assert) {
 	containerCache = createCacheMap(); // Clear cache
 	assert.strictEqual(getContainer(link, 'height'), span, '<span> display block percentage height');
 	assert.ok(containerCache.has(link));
+
+	element.style.position = 'relative';
+	link.style.position = 'absolute';
+	containerCache = createCacheMap(); // Clear cache
+	assert.strictEqual(getContainer(link, 'width'), element, '<div> positioned ancestor');
+
+	span.style.position = 'absolute';
+	containerCache = createCacheMap(); // Clear cache
+	assert.strictEqual(getContainer(link, 'width'), element, '<div> positioned ancestor with non-intrinsic size');
+
+	span.style.width = '100px';
+	containerCache = createCacheMap(); // Clear cache
+	assert.strictEqual(getContainer(link, 'width'), span, '<span> positioned ancestor with fixed size');
+
+	link.style.position = 'fixed';
+	containerCache = createCacheMap(); // Clear cache
+	assert.strictEqual(getContainer(link, 'width'), document.documentElement, '<html> fixed ancestor');
+
+	element.style.cssText = '-webkit-transform: translateX(0); -ms-transform: translateX(0); transform: translateX(0);';
+	containerCache = createCacheMap(); // Clear cache
+	assert.strictEqual(getContainer(link, 'width'), element, '<div> ancestor with transform applied');
 
 	document.body.removeChild(element);
 
