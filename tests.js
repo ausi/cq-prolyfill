@@ -544,7 +544,6 @@ QUnit.test('evaluateQuery', function(assert) {
 		['>=', 100, 101],
 		['<=', 100, 99],
 		['=', 100, 50],
-		['!=', 50, 100],
 	];
 	data.forEach(function(item) {
 		assert.strictEqual(evaluateQuery(element, {_prop: 'width', _types: [item[0]], _values: [item[1] + 'px'], _valueType: 'l'}), true, 'Width 100 ' + item[0] + ' ' + item[1]);
@@ -556,7 +555,6 @@ QUnit.test('evaluateQuery', function(assert) {
 	data = [
 		['width', '=', 'l', '10em', '9.9em'],
 		['display', '=', 's', 'block', 'inline'],
-		['display', '!=', 's', 'inline', 'block'],
 		['visibility', '=', 's', 'visible', 'hidden'],
 		['opacity', '=', 'n', 0.500, 1],
 		['opacity', '>', 'n', 0.49, 0.5],

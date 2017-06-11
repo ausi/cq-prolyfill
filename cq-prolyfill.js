@@ -49,7 +49,7 @@ var REGEXP_ESCAPE_REGEXP = /[.?*+^$[\]\\(){}|-]/g;
 var SELECTOR_REGEXP = /\.?:container\((?:[^()]+|\([^()]*\))+\)/gi;
 var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(((?:[^()]+|\\\([^()]*\\\))+)\\\)/gi;
 var QUERY_REGEXP = /^(?:(.+?)([<>]=?|=))??(?:(min|max)-)?([a-z-]+?)(?:-(hue|saturation|lightness|alpha))?(?:([<>]=?|=|:)(.+))?$/;
-var ESCAPE_REGEXP = /[.:()<>!=%,]/g;
+var ESCAPE_REGEXP = /[.:()<>=%,]/g;
 var SPACE_REGEXP = / /g;
 var LENGTH_REGEXP = /^(-?(?:\d*\.)?\d+)(em|ex|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)$/i;
 var NUMBER_REGEXP = /^-?(?:\d*\.)?\d+$/i;
@@ -963,7 +963,6 @@ function evaluateQuery(parent, query) {
 			|| (query._types[i] === '>' && cValue > qValues[i])
 			|| (query._types[i] === '<' && cValue < qValues[i])
 			|| (query._types[i] === '=' && cValue === qValues[i])
-			|| (query._types[i] === '!=' && cValue !== qValues[i])
 		)) {
 			return false;
 		}
