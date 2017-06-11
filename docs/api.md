@@ -1,6 +1,6 @@
 # JavaScript API
 
-The script triggers itself on load, on DOM ready and if the browser window resizes. If you want to trigger it manually you can call `reprocess` (step 1), `reparse` (step 2) or `reevaluate` (step 3) on the `window.cqApi` object. Most of the time `reevaluate` should do the job if you didn’t add, remove or change stylesheets. E.g.
+The script triggers itself on load, on DOM ready, when the browser window resizes and if new elements are added to the DOM. If you want to trigger it manually you can call `reprocess` (step 1), `reparse` (step 2) or `reevaluate` (step 3) on the `window.cqApi` object. Most of the time `reevaluate` should do the job if you didn’t add, remove or change stylesheets. E.g.
 
 ```js
 document.querySelector('.element').addEventListener('click', function() {
