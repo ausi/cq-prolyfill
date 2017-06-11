@@ -986,8 +986,8 @@ QUnit.test('createCacheMap', function(assert) {
 
 });
 
-/*global addClass, removeClass, getClassName*/
-QUnit.test('addClass, removeClass', function(assert) {
+/*global addClass, removeClass, hasClass, getClassName*/
+QUnit.test('addClass, removeClass, hasClass', function(assert) {
 
 	var element = document.createElement('div');
 	element.innerHTML = '<svg><g>';
@@ -997,21 +997,27 @@ QUnit.test('addClass, removeClass', function(assert) {
 
 		addClass(element, 'foo');
 		assert.equal(getClassName(element).trim(), 'foo', 'Add class foo');
+		assert.ok(hasClass(element, 'foo'), 'Has class foo');
 		addClass(element, 'bar');
 		assert.equal(getClassName(element).trim(), 'foo bar', 'Add class bar');
+		assert.ok(hasClass(element, 'foo') && hasClass(element, 'bar'), 'Has class foo and bar');
 		addClass(element, 'bar');
 		assert.equal(getClassName(element).trim(), 'foo bar', 'Add class bar again');
 		addClass(element, ':container(width>=100px)');
 		assert.equal(getClassName(element).trim(), 'foo bar :container(width>=100px)', 'Add container query class');
+		assert.ok(hasClass(element, ':container(width>=100px)'), 'Has container query class');
 		addClass(element, ':container(width>=100px)');
 		assert.equal(getClassName(element).trim(), 'foo bar :container(width>=100px)', 'Add container query class again');
 
 		removeClass(element, 'foo');
 		assert.equal(getClassName(element).trim(), 'bar :container(width>=100px)', 'Remove class foo');
+		assert.notOk(hasClass(element, 'foo'), 'Has not class foo');
 		removeClass(element, 'bar');
 		assert.equal(getClassName(element).trim(), ':container(width>=100px)', 'Remove class bar');
+		assert.notOk(hasClass(element, 'bar'), 'Has not class bar');
 		removeClass(element, ':container(width>=100px)');
 		assert.equal(getClassName(element).trim(), '', 'Remove container query class');
+		assert.notOk(hasClass(element, ':container(width>=100px)'), 'Has not container query class');
 
 	});
 
