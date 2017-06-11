@@ -1263,6 +1263,9 @@ function parseColor(color) {
 	if (color[3] === undefined) {
 		color[3] = 1;
 	}
+	else if (!color[3]) {
+		return [0, 0, 0, 0];
+	}
 	return rgbaToHsla(color);
 }
 

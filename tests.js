@@ -796,6 +796,8 @@ QUnit.test('parseColor', function(assert) {
 	assert.deepEqual(parseColor('rgb(255, 0, 0)'), [0, 100, 50, 1], 'Rgb');
 	assert.deepEqual(parseColor('rgba(255, 0, 0, 0.5)'), [0, 100, 50, 0.5], 'Rgba');
 	assert.deepEqual(parseColor('transparent'), [0, 0, 0, 0], 'Transparent');
+	assert.deepEqual(parseColor('rgba(0, 0, 0, 0)'), [0, 0, 0, 0], 'Transparent rgba');
+	assert.deepEqual(parseColor('rgba(255, 0, 0, 0)'), [0, 0, 0, 0], 'Transparent rgba red');
 	assert.deepEqual(parseColor(undefined), [0, 0, 0, 0], 'Undefined');
 });
 
