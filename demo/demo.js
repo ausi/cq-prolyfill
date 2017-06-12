@@ -35,7 +35,7 @@ var wrap = document.querySelector('.wrap');
 			return;
 		}
 		wrap.style.width = (event.clientX || event.touches && event.touches[0] && event.touches[0].clientX || 0) - diff + 'px';
-		window.containerQueries.reevaluate();
+		window.cqApi.reevaluate();
 	}
 
 	function dragStop() {
@@ -69,7 +69,7 @@ var wrap = document.querySelector('.wrap');
 
 	function onChange() {
 		wrap.style.backgroundColor = handle.value;
-		window.containerQueries.reevaluate();
+		window.cqApi.reevaluate();
 	}
 
 })();
@@ -95,7 +95,7 @@ var wrap = document.querySelector('.wrap');
 
 	function onChange() {
 		wrap.style.textAlign = handle.checked ? 'right' : 'left';
-		window.containerQueries.reevaluate();
+		window.cqApi.reevaluate();
 	}
 
 })();
@@ -124,7 +124,7 @@ var wrap = document.querySelector('.wrap');
 
 	function onChange() {
 		wrap.style.fontSize = handle.value + 'px';
-		window.containerQueries.reevaluate();
+		window.cqApi.reevaluate();
 	}
 
 })();
