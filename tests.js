@@ -39,14 +39,14 @@ QUnit[/Opera\/9\.80\s.*Version\/12\.16/.test(navigator.userAgent)
 		assert.equal(getOriginalStyle(element, 'width'), '20%', 'Container Query with crossOrigin');
 	load('cors.css', false, false, function() {
 		assert.ok(getOriginalStyle(element, 'width') === undefined || getOriginalStyle(element, 'width') === '10%', 'Non-CORS Style Stylesheet');
-		assert.equal(getComputedStyle(element).color, 'rgb(255, 0, 0)', 'Non-CORS Style Stylesheet computed style');
+		assert.equal(getComputedStyle(element, 'color'), 'rgb(255, 0, 0)', 'Non-CORS Style Stylesheet computed style');
 	load('cors.css', true, false, function() {
 		assert.ok(getOriginalStyle(element, 'width') === undefined || getOriginalStyle(element, 'width') === '10%', 'Non-CORS Style Stylesheet with crossOrigin');
 		if ('crossOrigin' in document.createElement('link')) {
-			assert.equal(getComputedStyle(element).color, 'rgb(0, 0, 0)', 'Non-CORS Style Stylesheet with crossOrigin computed style (crossOrigin supported)');
+			assert.equal(getComputedStyle(element, 'color'), 'rgb(0, 0, 0)', 'Non-CORS Style Stylesheet with crossOrigin computed style (crossOrigin supported)');
 		}
 		else {
-			assert.equal(getComputedStyle(element).color, 'rgb(255, 0, 0)', 'Non-CORS Style Stylesheet with crossOrigin computed style (crossOrigin not supported)');
+			assert.equal(getComputedStyle(element, 'color'), 'rgb(255, 0, 0)', 'Non-CORS Style Stylesheet with crossOrigin computed style (crossOrigin not supported)');
 		}
 	load('cors-with-cq.css', false, false, function() {
 		assert.strictEqual(getOriginalStyle(element, 'width'), undefined, 'Non-CORS Container Query');
@@ -93,7 +93,7 @@ QUnit.test('DOM Mutations', function(assert) {
 		delete config.skipObserving;
 		startObserving();
 
-		assert.equal(getComputedStyle(element).display, 'block', 'Display block');
+		assert.equal(getComputedStyle(element, 'display'), 'block', 'Display block');
 
 		var style = document.createElement('style');
 		style.type = 'text/css';
@@ -102,7 +102,7 @@ QUnit.test('DOM Mutations', function(assert) {
 
 		requestAnimationFrame(function() { setTimeout(function() {
 
-			assert.equal(getComputedStyle(element).display, 'none', 'Display none');
+			assert.equal(getComputedStyle(element, 'display'), 'none', 'Display none');
 
 			var element2 = document.createElement('div');
 			element2.className = 'mutations-test';
@@ -115,18 +115,18 @@ QUnit.test('DOM Mutations', function(assert) {
 
 			requestAnimationFrame(function() { setTimeout(function() {
 
-				assert.equal(getComputedStyle(element2).display, 'none', 'Display none');
+				assert.equal(getComputedStyle(element2, 'display'), 'none', 'Display none');
 
 				fixture.appendChild(element3);
-				assert.equal(getComputedStyle(element3).display, 'block', 'Display block');
+				assert.equal(getComputedStyle(element3, 'display'), 'block', 'Display block');
 
 				fixture.removeChild(style);
 
 				requestAnimationFrame(function() { setTimeout(function() {
 
-					assert.equal(getComputedStyle(element).display, 'block', 'Display block');
-					assert.equal(getComputedStyle(element2).display, 'block', 'Display block');
-					assert.equal(getComputedStyle(element3).display, 'block', 'Display block');
+					assert.equal(getComputedStyle(element, 'display'), 'block', 'Display block');
+					assert.equal(getComputedStyle(element2, 'display'), 'block', 'Display block');
+					assert.equal(getComputedStyle(element3, 'display'), 'block', 'Display block');
 
 					// Cleanup
 					if (observer) {
@@ -798,15 +798,15 @@ QUnit.test('getComputedStyle', function(assert) {
 	element.style.height = '1in';
 	element.style.cssFloat = 'left';
 	fixture.appendChild(element);
-	assert.equal(getComputedStyle(element).width, '100px', 'Normal style');
-	assert.equal(getComputedStyle(element).height, '96px', 'Converted to pixel');
-	assert.equal(getComputedStyle(element).cssFloat, 'left', 'Float left');
-	assert.equal(getComputedStyle(element).display, 'block', 'Default style');
+	assert.equal(getComputedStyle(element, 'width'), '100px', 'Normal style');
+	assert.equal(getComputedStyle(element, 'height'), '96px', 'Converted to pixel');
+	assert.equal(getComputedStyle(element, 'float'), 'left', 'Float left');
+	assert.equal(getComputedStyle(element, 'cssFloat'), 'left', 'Float left cssFloat');
+	assert.equal(getComputedStyle(element, 'display'), 'block', 'Default style');
 	element.style.cssText = 'display: inline; float: left; font-size: 10px';
-	assert.equal(getComputedStyle(element).display, 'block', 'Correct display value');
-	assert.equal(getComputedStyle(element).getPropertyValue('display'), 'block', 'Correct display value via getPropertyValue');
-	assert.equal(getComputedStyle(element).fontSize, '10px', 'Correct font-size value');
-	assert.equal(getComputedStyle(element).getPropertyValue('font-size'), '10px', 'Correct font-size value via getPropertyValue');
+	assert.equal(getComputedStyle(element, 'display'), 'block', 'Correct display value');
+	assert.equal(getComputedStyle(element, 'fontSize'), '10px', 'Correct font-size value');
+	assert.equal(getComputedStyle(element, 'font-size'), '10px', 'Correct font-size value via getPropertyValue');
 });
 
 /*global getOriginalStyle, buildStyleCache*/

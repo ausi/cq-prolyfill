@@ -908,7 +908,7 @@ function evaluateQuery(parent, query) {
 		cValue = getSize(container, query._prop);
 	}
 	else {
-		cValue = getComputedStyle(container).getPropertyValue(query._prop);
+		cValue = getComputedStyle(container, query._prop);
 	}
 
 	if (query._filter) {
@@ -1000,7 +1000,7 @@ function getContainer(element, prop) {
 
 	else if (prop !== 'width' && prop !== 'height') {
 		// Skip transparent background colors
-		if (prop === 'background-color' && !parseColor(getComputedStyle(element).getPropertyValue(prop))[3]) {
+		if (prop === 'background-color' && !parseColor(getComputedStyle(element, prop))[3]) {
 			cache[prop] = getContainer(element.parentNode, prop);
 		}
 		else {
@@ -1009,7 +1009,7 @@ function getContainer(element, prop) {
 	}
 
 	// Skip inline elements
-	else if (getComputedStyle(element).display === 'inline') {
+	else if (getComputedStyle(element, 'display') === 'inline') {
 		cache[prop] = getContainer(element.parentNode, prop);
 	}
 
@@ -1022,25 +1022,25 @@ function getContainer(element, prop) {
 		var parentNode = element.parentNode;
 
 		// Skip to next positioned ancestor for absolute positioned elements
-		if (getComputedStyle(element).position === 'absolute') {
+		if (getComputedStyle(element, 'position') === 'absolute') {
 			while (
 				parentNode.parentNode
 				&& parentNode.parentNode.nodeType === 1
-				&& ['relative', 'absolute'].indexOf(getComputedStyle(parentNode).position) === -1
+				&& ['relative', 'absolute'].indexOf(getComputedStyle(parentNode, 'position')) === -1
 			) {
 				parentNode = parentNode.parentNode;
 			}
 		}
 
 		// Skip to next ancestor with a transform applied for fixed positioned elements
-		if (getComputedStyle(element).position === 'fixed') {
+		if (getComputedStyle(element, 'position') === 'fixed') {
 			while (
 				parentNode.parentNode
 				&& parentNode.parentNode.nodeType === 1
 				&& [undefined, 'none'].indexOf(
-					getComputedStyle(parentNode).transform
-					|| getComputedStyle(parentNode).MsTransform
-					|| getComputedStyle(parentNode).WebkitTransform
+					getComputedStyle(parentNode, 'transform')
+					|| getComputedStyle(parentNode, 'MsTransform')
+					|| getComputedStyle(parentNode, 'WebkitTransform')
 				) !== -1
 			) {
 				parentNode = parentNode.parentNode;
@@ -1048,7 +1048,7 @@ function getContainer(element, prop) {
 		}
 
 		var parentContainer = getContainer(parentNode, prop);
-		while (getComputedStyle(parentNode).display === 'inline') {
+		while (getComputedStyle(parentNode, 'display') === 'inline') {
 			parentNode = parentNode.parentNode;
 		}
 		if (parentNode === parentContainer && !isIntrinsicSize(element, prop)) {
@@ -1090,23 +1090,23 @@ function isFixedSize(element, prop) {
  */
 function isIntrinsicSize(element, prop) {
 
-	var computedStyle = getComputedStyle(element);
+	var display = getComputedStyle(element, 'display');
 
-	if (computedStyle.display === 'none') {
+	if (display === 'none') {
 		return false;
 	}
 
-	if (computedStyle.display === 'inline') {
+	if (display === 'inline') {
 		return true;
 	}
 
 	// Non-floating non-absolute block elements (only width)
 	if (
 		prop === 'width'
-		&& ['block', 'list-item', 'flex', 'grid'].indexOf(computedStyle.display) !== -1
-		&& computedStyle.cssFloat === 'none'
-		&& computedStyle.position !== 'absolute'
-		&& computedStyle.position !== 'fixed'
+		&& ['block', 'list-item', 'flex', 'grid'].indexOf(display) !== -1
+		&& getComputedStyle(element, 'float') === 'none'
+		&& getComputedStyle(element, 'position') !== 'absolute'
+		&& getComputedStyle(element, 'position') !== 'fixed'
 	) {
 		return false;
 	}
@@ -1141,7 +1141,7 @@ function isIntrinsicSize(element, prop) {
  * @return {number}
  */
 function getSize(element, prop) {
-	var style = getComputedStyle(element);
+	var style = window.getComputedStyle(element);
 	if (prop === 'width') {
 		return element.offsetWidth
 			- parseFloat(style.borderLeftWidth)
@@ -1194,39 +1194,29 @@ function getComputedLength(value, element) {
 	if (unit === 'ex') {
 		value /= 2;
 	}
-	return parseFloat(getComputedStyle(element).fontSize) * value;
+	return parseFloat(getComputedStyle(element, 'fontSize')) * value;
 }
 
 /**
  * @param  {Element} element
  * @return {CSSStyleDeclaration}
  */
-function getComputedStyle(element) {
+function getComputedStyle(element, prop) {
 
 	var style = window.getComputedStyle(element);
 
+	var value = style[prop] || style.getPropertyValue(prop);
+
 	// Fix display inline in some browsers
-	if (style.display === 'inline' && (
+	if (value === 'inline' && prop === 'display' && (
 		style.position === 'absolute'
 		|| style.position === 'fixed'
 		|| style.cssFloat !== 'none'
 	)) {
-		var newStyle = {};
-		for (var prop in style) {
-			if (typeof style[prop] === 'string') {
-				newStyle[prop] = style[prop];
-			}
-		}
-		style = newStyle;
-		style.display = 'block';
-		style.getPropertyValue = function(property) {
-			return this[property.replace(/-+(.)/g, function(match, char) {
-				return char.toUpperCase();
-			})];
-		};
+		return 'block';
 	}
 
-	return style;
+	return value;
 
 }
 
