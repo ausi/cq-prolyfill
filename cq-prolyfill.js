@@ -1039,7 +1039,7 @@ function getContainer(element, prop) {
 				&& parentNode.parentNode.nodeType === 1
 				&& [undefined, 'none'].indexOf(
 					getComputedStyle(parentNode, 'transform')
-					|| getComputedStyle(parentNode, 'MsTransform')
+					|| getComputedStyle(parentNode, 'msTransform')
 					|| getComputedStyle(parentNode, 'WebkitTransform')
 				) !== -1
 			) {
