@@ -388,7 +388,7 @@ function loadExternal(href, callback) {
 		requestCache[href].push(callback);
 		return;
 	}
-	requestCache[href] = [callback]
+	requestCache[href] = [callback];
 	var isDone = false;
 	var done = function(response) {
 		if (!isDone) {
