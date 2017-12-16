@@ -537,21 +537,28 @@ function parseRules() {
 	queries = {};
 	var rules;
 	for (var i = 0; i < styleSheets.length; i++) {
-		if (styleSheets[i].disabled) {
-			continue;
+		parseStyleSheet(styleSheets[i]);
+	}
+}
+
+/**
+ * @param {CSSStyleSheet} styleSheet
+ */
+function parseStyleSheet(styleSheet) {
+	if (styleSheet.disabled) {
+		return;
+	}
+	try {
+		var rules = styleSheet.cssRules;
+		if (!rules || !rules.length) {
+			return;
 		}
-		try {
-			rules = styleSheets[i].cssRules;
-			if (!rules || !rules.length) {
-				continue;
-			}
-		}
-		catch(e) {
-			continue;
-		}
-		for (var j = 0; j < rules.length; j++) {
-			parseRule(rules[j]);
-		}
+	}
+	catch(e) {
+		return;
+	}
+	for (var i = 0; i < rules.length; i++) {
+		parseRule(rules[i]);
 	}
 }
 
@@ -564,6 +571,9 @@ function parseRule(rule) {
 			parseRule(rule.cssRules[i]);
 		}
 		return;
+	}
+	if (rule.styleSheet) {
+		parseStyleSheet(rule.styleSheet);
 	}
 	if (rule.type !== 1) {
 		return;

@@ -426,6 +426,55 @@ QUnit.test('Opacity Query', function(assert) {
 
 });
 
+QUnit.test('CSS Import rule', function(assert) {
+
+	var style = document.createElement('style');
+	style.type = 'text/css';
+	style.innerHTML = '@import url("../test-files/visibility-cq.css");'
+		+ '@font-face { font-family: visible; src: local("Times New Roman"), local("Droid Serif") }';
+	fixture.appendChild(style);
+
+	var element = document.createElement('div');
+	element.innerHTML = '<div class="test">';
+	fixture.appendChild(element);
+	var test = element.firstChild;
+
+	var done = assert.async();
+
+	var start = Date.now();
+	run();
+
+	function run() {
+		try {
+			if (!style.sheet.cssRules[0].styleSheet.cssRules[0]) {
+				throw new Error();
+			}
+		}
+		catch(e) {
+			if (Date.now() - start > 1000) {
+				assert.ok(false, 'Timeout');
+				done();
+			}
+			else {
+				setTimeout(run);
+			}
+			return;
+		}
+		window.cqApi.reprocess(function () {
+
+			var font = function(node) {
+				return window.getComputedStyle(node).fontFamily;
+			};
+
+			assert.equal(font(test), 'visible', 'Style visible');
+
+			done();
+
+		});
+	}
+
+});
+
 QUnit.test('PostCSS skip step 1', function(assert) {
 
 	var style = document.createElement('style');
