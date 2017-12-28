@@ -1,7 +1,7 @@
 MODULES = node_modules
 BIN = $(MODULES)/.bin
 UGLIFY = $(BIN)/uglifyjs
-UGLIFY_OPTS = --compress=unsafe,pure_getters --mangle --mangle-props --mangle-regex="/^_/" --screw-ie8
+UGLIFY_OPTS = --compress=unsafe,pure_getters --mangle --mangle-props regex="/^_/"
 ESLINT = $(BIN)/eslint
 ISTANBUL = $(BIN)/istanbul
 ZOPFLI = $(BIN)/zopfli
@@ -11,7 +11,7 @@ TARGET_GZ = $(SOURCE:%.js=%.min.js.gz)
 TARGET_TMP = $(SOURCE:%.js=%.tmp.min.js)
 TESTS = tests.js
 TESTS_FUNCTIONAL = tests-functional.js
-QUNIT = $(MODULES)/qunitjs/qunit
+QUNIT = $(MODULES)/qunit/qunit
 QUNIT_JS = $(QUNIT)/qunit.js
 QUNIT_CSS = $(QUNIT)/qunit.css
 TEST_HTML_ALL = tests/all.html
@@ -82,6 +82,10 @@ test: $(ESLINT) $(SOURCE) $(TEST_POSTCSS) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HTML
 	kill `cat server.pid` && rm server.pid
 	@ grep ' passed, 0 failed.' tests/slimerjs.log > /dev/null
 	@ rm tests/slimerjs.log
+
+.PHONY: server
+server: $(ESLINT) $(SOURCE) $(TEST_POSTCSS) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HTML_ALL) $(TEST_HTML_COVERAGE) $(TEST_HTML_FUNCTIONAL) $(MODULES)
+	node -e "require('connect')().use(require('serve-static')(__dirname)).listen(8888);require('connect')().use('/cors', require('serve-static')(__dirname, {setHeaders: corsHeaders})).use('/time', function(req, res){corsHeaders(res);res.end((new Date()).getTime()+'')}).listen(8889);function corsHeaders(res) {res.setHeader('Access-Control-Allow-Origin', '*')}"
 
 .PHONY: watch
 watch:

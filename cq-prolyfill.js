@@ -82,7 +82,6 @@ var parsed = false;
 var documentElement = document.documentElement;
 var styleSheets = document.styleSheets;
 var createElement = document.createElement.bind(document);
-var requestAnimationFrame = window.requestAnimationFrame || setTimeout;
 var observer;
 var scheduledCall;
 
@@ -191,18 +190,14 @@ function startObserving() {
 	window.addEventListener('load', scheduleExecution.bind(undefined, 1, undefined, undefined));
 	window.addEventListener('resize', scheduleExecution.bind(undefined, 3, true, undefined));
 
-	var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
-	if (MutationObserver) {
-		observer = new MutationObserver(checkMutations);
-		observer.observe(document.documentElement, {
-			childList: true,
-			subtree: true,
-		});
-	}
-	else {
-		window.addEventListener('DOMNodeInserted', onDomMutate);
-		window.addEventListener('DOMNodeRemoved', onDomMutate);
-	}
+	var MutationObserver = window.MutationObserver
+		|| window.WebKitMutationObserver; // UC Browser
+
+	observer = new MutationObserver(checkMutations);
+	observer.observe(document.documentElement, {
+		childList: true,
+		subtree: true,
+	});
 
 }
 
@@ -259,31 +254,6 @@ function checkMutations(mutations) {
 	else if (addedNodes.length) {
 		scheduleExecution(3, false, addedNodes);
 	}
-
-}
-
-/**
- * Event handler for DOMNodeInserted and DOMNodeRemoved
- *
- * @param  {MutationEvent} event
- */
-function onDomMutate(event) {
-
-	var mutation = {
-		addedNodes: [],
-		removedNodes: [],
-	};
-	mutation[
-		(event.type === 'DOMNodeInserted' ? 'added' : 'removed') + 'Nodes'
-	] = [event.target];
-
-	domMutations.push(mutation);
-
-	// Delay the call to checkMutations()
-	setTimeout(function() {
-		checkMutations(domMutations);
-		domMutations = [];
-	});
 
 }
 
@@ -414,25 +384,7 @@ function loadExternal(href, callback) {
 		xhr.send();
 	}
 	catch(e) {
-		if (window.XDomainRequest) {
-			xhr = new XDomainRequest();
-			xhr.onprogress =
-				/* istanbul ignore next: fix for a rare IE9 bug */
-				function() {};
-			xhr.onload = xhr.onerror = xhr.ontimeout = function() {
-				done(xhr.responseText);
-			};
-			try {
-				xhr.open('GET', href);
-				xhr.send();
-			}
-			catch(e2) {
-				done();
-			}
-		}
-		else {
-			done();
-		}
+		done();
 	}
 }
 
@@ -1049,7 +1001,6 @@ function getContainer(element, prop) {
 				&& parentNode.parentNode.nodeType === 1
 				&& [undefined, 'none'].indexOf(
 					getComputedStyle(parentNode, 'transform')
-					|| getComputedStyle(parentNode, 'msTransform')
 					|| getComputedStyle(parentNode, 'WebkitTransform')
 				) !== -1
 			) {
@@ -1375,7 +1326,7 @@ function filterRulesByElementAndProp(rules, element, prop) {
 			&& (
 				!rule._rule.parentRule
 				|| rule._rule.parentRule.type !== 4 // @media rule
-				|| matchesMedia(rule._rule.parentRule.media.mediaText)
+				|| matchMedia(rule._rule.parentRule.media.mediaText).matches
 			)
 			&& elementMatchesSelector(element, rule._selector);
 	});
@@ -1385,7 +1336,6 @@ var elementMatchesSelectorMethod = (function(element) {
 	return element.matches
 		|| element.mozMatchesSelector
 		|| element.msMatchesSelector
-		|| element.oMatchesSelector
 		|| element.webkitMatchesSelector;
 })(createElement('div'));
 
@@ -1645,17 +1595,6 @@ function removeAttributeValue(element, attr, value) {
 		),
 		'$1'
 	));
-}
-
-/**
- * @param  {string} media
- * @return {boolean}
- */
-function matchesMedia(media) {
-	if (window.matchMedia) {
-		return window.matchMedia(media).matches;
-	}
-	return (window.styleMedia || window.media).matchMedium(media);
 }
 
 /**

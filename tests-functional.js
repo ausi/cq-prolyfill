@@ -451,7 +451,7 @@ QUnit.test('CSS Import rule', function(assert) {
 			}
 		}
 		catch(e) {
-			if (Date.now() - start > 1000) {
+			if (Date.now() - start > 5000) {
 				assert.ok(false, 'Timeout');
 				done();
 			}
@@ -546,16 +546,16 @@ QUnit.test('Performance of many elements on the same level', function(assert) {
 		element.style.cssText = 'width: 100px';
 		element.getBoundingClientRect(); // force reflow
 		/*eslint-disable no-console*/
-		if (window.console && console.timeStamp) {
-			console.timeStamp('No reflow should occur from here');
-			console.profile('No reflow should occur');
-			console.time('Performance of many elements on the same level');
+		if (window.console) {
+			console.timeStamp && console.timeStamp('No reflow should occur from here');
+			console.profile && console.profile('No reflow should occur');
+			console.time && console.time('Performance of many elements on the same level');
 		}
 		reevaluate();
-		if (window.console && console.timeStamp) {
-			console.timeEnd('Performance of many elements on the same level');
-			console.timeStamp('No reflow should occur until here');
-			console.profileEnd('No reflow should occur');
+		if (window.console) {
+			console.timeEnd && console.timeEnd('Performance of many elements on the same level');
+			console.timeStamp && console.timeStamp('No reflow should occur until here');
+			console.profileEnd && console.profileEnd('No reflow should occur');
 		}
 		/*eslint-enable no-console*/
 		assert.equal(font(element.firstChild), 'no-query', 'Width 100px first');
@@ -604,16 +604,16 @@ QUnit.test('Performance of many nested elements', function(assert) {
 		element.style.cssText = 'width: 100px';
 		element.getBoundingClientRect(); // force reflow
 		/*eslint-disable no-console*/
-		if (window.console && console.timeStamp) {
-			console.timeStamp('No reflow should occur from here');
-			console.profile('No reflow should occur');
-			console.time('Performance of many nested elements - no reflow');
+		if (window.console) {
+			console.timeStamp && console.timeStamp('No reflow should occur from here');
+			console.profile && console.profile('No reflow should occur');
+			console.time && console.time('Performance of many nested elements - no reflow');
 		}
 		reevaluate();
-		if (window.console && console.timeStamp) {
-			console.timeEnd('Performance of many nested elements - no reflow');
-			console.timeStamp('No reflow should occur until here');
-			console.profileEnd('No reflow should occur');
+		if (window.console) {
+			console.timeEnd && console.timeEnd('Performance of many nested elements - no reflow');
+			console.timeStamp && console.timeStamp('No reflow should occur until here');
+			console.profileEnd && console.profileEnd('No reflow should occur');
 		}
 		/*eslint-enable no-console*/
 		assert.equal(font(first), 'no-query', 'Width 100px first');
@@ -622,16 +622,16 @@ QUnit.test('Performance of many nested elements', function(assert) {
 		element.style.cssText = 'width: 118px';
 		element.getBoundingClientRect(); // force reflow
 		/*eslint-disable no-console*/
-		if (window.console && console.timeStamp) {
-			console.timeStamp('Not more than 10 reflows should occur from here');
-			console.profile('Not more than 10 reflows should occur');
-			console.time('Performance of many nested elements - not more than 10 reflows');
+		if (window.console) {
+			console.timeStamp && console.timeStamp('Not more than 10 reflows should occur from here');
+			console.profile && console.profile('Not more than 10 reflows should occur');
+			console.time && console.time('Performance of many nested elements - not more than 10 reflows');
 		}
 		reevaluate();
-		if (window.console && console.timeStamp) {
-			console.timeEnd('Performance of many nested elements - not more than 10 reflows');
-			console.timeStamp('Not more than 10 reflows should occur until here');
-			console.profileEnd('Not more than 10 reflows should occur');
+		if (window.console) {
+			console.timeEnd && console.timeEnd('Performance of many nested elements - not more than 10 reflows');
+			console.timeStamp && console.timeStamp('Not more than 10 reflows should occur until here');
+			console.profileEnd && console.profileEnd('Not more than 10 reflows should occur');
 		}
 		/*eslint-enable no-console*/
 		assert.equal(font(first), 'query', 'Width 118px first');

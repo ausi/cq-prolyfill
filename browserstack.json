@@ -3,29 +3,26 @@
 	"test_path": ["tests/coverage.html", "tests/functional.html"],
 	"browsers": [
 		"chrome_latest",
-		"firefox_36",
+		"chrome_49",
+		"firefox_52",
 		"firefox_latest",
-		"safari_7_1",
-		"safari_8",
+		"safari_9_1",
+		"safari_10_1",
 		"safari_latest",
-		"ie_9",
-		"ie_10",
 		"ie_11",
 		"edge_14",
 		"edge_latest",
-		"opera_30",
-		"opera_latest",
-		{
-			"os": "ios",
-			"os_version": "8.3"
-		},
 		{
 			"os": "ios",
 			"os_version": "9.3"
 		},
 		{
-			"os":"winphone",
-			"os_version":"8.1"
+			"os": "ios",
+			"os_version": "10.3"
+		},
+		{
+			"os": "ios",
+			"os_version": "11.0"
 		}
 	]
 }

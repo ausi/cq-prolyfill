@@ -1088,17 +1088,17 @@ QUnit.test('addClass, removeClass, hasClass', function(assert) {
 /*global matchesMedia*/
 QUnit.test('matchesMedia', function(assert) {
 
-	assert.strictEqual(matchesMedia('screen'), true, 'Matches screen');
-	assert.strictEqual(matchesMedia('not screen'), false, 'Doesn’t match not screen');
-	assert.strictEqual(matchesMedia('print'), false, 'Doesn’t match print');
-	assert.strictEqual(matchesMedia('not print'), true, 'Matches not print');
+	assert.strictEqual(matchMedia('screen').matches, true, 'Matches screen');
+	assert.strictEqual(matchMedia('not screen').matches, false, 'Doesn’t match not screen');
+	assert.strictEqual(matchMedia('print').matches, false, 'Doesn’t match print');
+	assert.strictEqual(matchMedia('not print').matches, true, 'Matches not print');
 
 	var windowWidth = window.innerWidth || document.documentElement.clientWidth;
 
-	assert.strictEqual(matchesMedia('(min-width: ' + (windowWidth - 50) + 'px)'), true, 'Matches smaller min-width');
-	assert.strictEqual(matchesMedia('(min-width: ' + (windowWidth + 50) + 'px)'), false, 'Doesn’t match larger min-width');
-	assert.strictEqual(matchesMedia('(max-width: ' + (windowWidth + 50) + 'px)'), true, 'Matches larger max-width');
-	assert.strictEqual(matchesMedia('(max-width: ' + (windowWidth - 50) + 'px)'), false, 'Doesn’t match smaller max-width');
+	assert.strictEqual(matchMedia('(min-width: ' + (windowWidth - 50) + 'px)').matches, true, 'Matches smaller min-width');
+	assert.strictEqual(matchMedia('(min-width: ' + (windowWidth + 50) + 'px)').matches, false, 'Doesn’t match larger min-width');
+	assert.strictEqual(matchMedia('(max-width: ' + (windowWidth + 50) + 'px)').matches, true, 'Matches larger max-width');
+	assert.strictEqual(matchMedia('(max-width: ' + (windowWidth - 50) + 'px)').matches, false, 'Doesn’t match smaller max-width');
 
 });
 

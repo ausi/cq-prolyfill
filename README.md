@@ -33,16 +33,14 @@ For more information take a look at the [usage documentation](docs/usage.md).
 
 ## Browser Support
 
-* Firefox 36+
-* Opera 12.16+
-* Chrome 40+
-* Internet Explorer 9+
-* Edge
-* Safari 7+
-* Yandex 14+
-* iOS 7+
-* Android 4+
-* Windows Phone 8.1+
+* Firefox 52+
+* Opera 48+
+* Chrome 49+
+* Internet Explorer 11
+* Edge 14+
+* Safari 9+
+* iOS 9+
+* Android 4.4+
 
 Thanks to [BrowserStack](https://www.browserstack.com/automate) for sponsoring automated cross browser testing for this project.
 
