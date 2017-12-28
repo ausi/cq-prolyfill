@@ -1,7 +1,7 @@
 MODULES = node_modules
 BIN = $(MODULES)/.bin
 UGLIFY = $(BIN)/uglifyjs
-UGLIFY_OPTS = --compress=unsafe,pure_getters --mangle --mangle-props regex="/^_/"
+UGLIFY_OPTS = --compress=unsafe,unsafe_comps,unsafe_proto,unsafe_regexp,pure_getters,hoist_funs --mangle=toplevel,eval --mangle-props regex="/^_/" --
 ESLINT = $(BIN)/eslint
 ISTANBUL = $(BIN)/istanbul
 ZOPFLI = $(BIN)/zopfli
@@ -33,7 +33,7 @@ $(TARGET_GZ): $(TARGET) $(ZOPFLI)
 	rm -f $@
 	$(ZOPFLI) $<
 
-$(TARGET_TMP): $(SOURCE) $(UGLIFY) $(TESTS) $(TESTS_FUNCTIONAL)
+$(TARGET_TMP): $(SOURCE) $(UGLIFY) $(TESTS) $(TESTS_FUNCTIONAL) Makefile
 	$(UGLIFY) $(UGLIFY_OPTS) $< > $@
 
 $(MODULES): package.json
@@ -91,7 +91,7 @@ server: $(ESLINT) $(SOURCE) $(TEST_POSTCSS) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HT
 watch:
 	while true; do (make || make -t) | grep -v "Nothing to be done"; sleep 1; done
 
-$(TEST_HTML_ALL): $(TESTS) $(TESTS_FUNCTIONAL) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS)
+$(TEST_HTML_ALL): $(TESTS) $(TESTS_FUNCTIONAL) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS) Makefile
 	mkdir -p tests
 	echo '<!doctype html>' > $@
 	echo '<html><head>' >> $@
@@ -112,7 +112,7 @@ $(TEST_HTML_ALL): $(TESTS) $(TESTS_FUNCTIONAL) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS
 	rm -rf tests/test-files
 	cp -r test-files tests/
 
-$(TEST_HTML_COVERAGE): $(TESTS) $(TESTS_FUNCTIONAL) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS) $(ISTANBUL)
+$(TEST_HTML_COVERAGE): $(TESTS) $(TESTS_FUNCTIONAL) $(SOURCE) $(QUNIT_JS) $(QUNIT_CSS) $(ISTANBUL) Makefile
 	mkdir -p tests
 	echo '<!doctype html>' > $@
 	echo '<html><head>' >> $@
@@ -133,7 +133,7 @@ $(TEST_HTML_COVERAGE): $(TESTS) $(TESTS_FUNCTIONAL) $(SOURCE) $(QUNIT_JS) $(QUNI
 	rm -rf tests/test-files
 	cp -r test-files tests/
 
-$(TEST_HTML_FUNCTIONAL): $(TESTS_FUNCTIONAL) $(TARGET_TMP) $(QUNIT_JS) $(QUNIT_CSS)
+$(TEST_HTML_FUNCTIONAL): $(TESTS_FUNCTIONAL) $(TARGET_TMP) $(QUNIT_JS) $(QUNIT_CSS) Makefile
 	mkdir -p tests
 	echo '<!doctype html>' > $@
 	echo '<html><head>' >> $@

@@ -79,7 +79,7 @@ QUnit[/Opera\/9\.80\s.*Version\/12\.16/.test(navigator.userAgent)
 
 });
 
-/*global reprocess, config, startObserving, observer: true, onDomMutate*/
+/*global reprocess, config, startObserving, observer: true*/
 QUnit.test('DOM Mutations', function(assert) {
 
 	var element = document.createElement('div');
@@ -128,23 +128,16 @@ QUnit.test('DOM Mutations', function(assert) {
 					assert.equal(getComputedStyle(element2, 'display'), 'block', 'Display block');
 					assert.equal(getComputedStyle(element3, 'display'), 'block', 'Display block');
 
-					// Cleanup
-					if (observer) {
-						observer.disconnect();
-						observer = undefined;
-					}
-					else {
-						window.removeEventListener('DOMNodeInserted', onDomMutate);
-						window.removeEventListener('DOMNodeRemoved', onDomMutate);
-					}
+					observer.disconnect();
+					observer = undefined;
 					config.skipObserving = true;
 					done();
 
-				}, 100)});
+				}, 200)});
 
-			}, 100)});
+			}, 200)});
 
-		}, 100)});
+		}, 200)});
 
 	});
 

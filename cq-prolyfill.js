@@ -50,7 +50,6 @@ var SELECTOR_REGEXP = /\.?:container\((?:[^()]+|\([^()]*\))+\)/gi;
 var SELECTOR_ESCAPED_REGEXP = /\.\\:container\\\(((?:[^()]+?|\\\([^()]*\\\))+?)\\\)|\[data-cq~=["']((?:\\.|[^"'])+)["']\]/gi;
 var QUERY_REGEXP = /^(?:(.+?)([<>]=?|=))??(?:(min|max)-)?([a-z-]+?)(?:-(hue|saturation|lightness|alpha))?(?:([<>]=?|=|:)(.+))?$/;
 var ESCAPE_REGEXP = /[.:()<>=%,]/g;
-var SPACE_REGEXP = / /g;
 var LENGTH_REGEXP = /^(-?(?:\d*\.)?\d+)(em|ex|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)$/i;
 var NUMBER_REGEXP = /^-?(?:\d*\.)?\d+$/i;
 var COLOR_REGEXP = /^rgba?\s*\([0-9.,\s]*\)$/i;
@@ -71,6 +70,10 @@ var FIXED_UNIT_MAP = {
 	'mm': 96 / 25.4,
 };
 
+var arrayFrom = Array.from || function(arrayLike) {
+	return [].slice.call(arrayLike);
+};
+
 var queries;
 var containerCache;
 var styleCache;
@@ -79,9 +82,6 @@ var requestCache = {};
 var domMutations = [];
 var processed = false;
 var parsed = false;
-var documentElement = document.documentElement;
-var styleSheets = document.styleSheets;
-var createElement = document.createElement.bind(document);
 var observer;
 var scheduledCall;
 
@@ -186,9 +186,15 @@ function startObserving() {
 	// Reprocess now
 	scheduleExecution(1);
 
-	window.addEventListener('DOMContentLoaded', scheduleExecution.bind(undefined, 1, undefined, undefined));
-	window.addEventListener('load', scheduleExecution.bind(undefined, 1, undefined, undefined));
-	window.addEventListener('resize', scheduleExecution.bind(undefined, 3, true, undefined));
+	window.addEventListener('DOMContentLoaded', function() {
+		scheduleExecution(1);
+	});
+	window.addEventListener('load', function() {
+		scheduleExecution(1);
+	});
+	window.addEventListener('resize', function() {
+		scheduleExecution(3, true);
+	});
 
 	var MutationObserver = window.MutationObserver
 		|| window.WebKitMutationObserver; // UC Browser
@@ -268,7 +274,7 @@ function checkMutations(mutations) {
  */
 function preprocess(callback) {
 
-	var sheets = arrayFrom(styleSheets);
+	var sheets = arrayFrom(document.styleSheets);
 
 	// Check removed stylesheets
 	processedSheets.forEach(function(newNode, node) {
@@ -420,10 +426,10 @@ function resolveRelativeUrl(url, base) {
 		absoluteUrl = false;
 	}
 	if (!absoluteUrl) {
-		var baseElement = createElement('base');
+		var baseElement = document.createElement('base');
 		baseElement.href = base;
 		document.head.insertBefore(baseElement, document.head.firstChild);
-		var link = createElement('a');
+		var link = document.createElement('a');
 		link.href = url;
 		absoluteUrl = link.href;
 		// Catch error in iOS 7.0
@@ -459,7 +465,7 @@ function preprocessStyle(node, cssText) {
 			return;
 		}
 	}
-	var style = createElement('style');
+	var style = document.createElement('style');
 	style.textContent = escapedText;
 	style.media = node.media || 'all';
 	node.parentNode.insertBefore(style, node);
@@ -474,8 +480,7 @@ function preprocessStyle(node, cssText) {
 function escapeSelectors(cssText) {
 	return cssText.replace(SELECTOR_REGEXP, function(selector) {
 		return '.' + selector.substr(selector[0] === '.' ? 1 : 0)
-			.replace(SPACE_REGEXP, '')
-			.replace(/"/g, '')
+			.replace(/[" ]/g, '')
 			.replace(ESCAPE_REGEXP, '\\$&')
 			.toLowerCase();
 	});
@@ -488,8 +493,8 @@ function escapeSelectors(cssText) {
 function parseRules() {
 	queries = {};
 	var rules;
-	for (var i = 0; i < styleSheets.length; i++) {
-		parseStyleSheet(styleSheets[i]);
+	for (var i = 0; i < document.styleSheets.length; i++) {
+		parseStyleSheet(document.styleSheets[i]);
 	}
 }
 
@@ -631,12 +636,12 @@ function buildStyleCache() {
 		height: {},
 	};
 	var rules;
-	for (var i = 0; i < styleSheets.length; i++) {
-		if (styleSheets[i].disabled) {
+	for (var i = 0; i < document.styleSheets.length; i++) {
+		if (document.styleSheets[i].disabled) {
 			continue;
 		}
 		try {
-			rules = styleSheets[i].cssRules;
+			rules = document.styleSheets[i].cssRules;
 			if (!rules || !rules.length) {
 				continue;
 			}
@@ -816,7 +821,7 @@ function buildElementsTree(contexts) {
 
 	elements.forEach(function(element) {
 
-		if (element === documentElement) {
+		if (element === document.documentElement) {
 			return;
 		}
 
@@ -956,7 +961,7 @@ function getContainer(element, prop) {
 		containerCache.set(element, cache);
 	}
 
-	if (element === documentElement) {
+	if (element === document.documentElement) {
 		cache[prop] = element;
 	}
 
@@ -1104,17 +1109,13 @@ function isIntrinsicSize(element, prop) {
 function getSize(element, prop) {
 	var style = window.getComputedStyle(element);
 	if (prop === 'width') {
-		return element.offsetWidth
-			- parseFloat(style.borderLeftWidth)
+		return element.clientWidth
 			- parseFloat(style.paddingLeft)
-			- parseFloat(style.borderRightWidth)
 			- parseFloat(style.paddingRight);
 	}
 	else {
-		return element.offsetHeight
-			- parseFloat(style.borderTopWidth)
+		return element.clientHeight
 			- parseFloat(style.paddingTop)
-			- parseFloat(style.borderBottomWidth)
 			- parseFloat(style.paddingBottom);
 	}
 }
@@ -1150,7 +1151,7 @@ function getComputedLength(value, element) {
 	}
 	// em units
 	if (unit === 'rem') {
-		element = documentElement;
+		element = document.documentElement;
 	}
 	if (unit === 'ex') {
 		value /= 2;
@@ -1232,7 +1233,7 @@ function getOriginalStyle(element, prop) {
 /**
  * @type {CSSStyleDeclaration}
  */
-var parseColorStyle = createElement('div').style;
+var parseColorStyle = document.createElement('div').style;
 
 /**
  * Parse CSS color and return as HSLA array
@@ -1337,7 +1338,7 @@ var elementMatchesSelectorMethod = (function(element) {
 		|| element.mozMatchesSelector
 		|| element.msMatchesSelector
 		|| element.webkitMatchesSelector;
-})(createElement('div'));
+})(document.createElement('div'));
 
 /**
  * @param  {Element} element
@@ -1349,8 +1350,9 @@ function elementMatchesSelector(element, selector) {
 		return !!elementMatchesSelectorMethod.call(element, selector);
 	}
 	catch(e) {
-		return false;
+		// Do nothing
 	}
+	return false;
 }
 
 /**
@@ -1358,12 +1360,8 @@ function elementMatchesSelector(element, selector) {
  * @return {Array.<{_specificity: number}>}
  */
 function sortRulesBySpecificity(rules) {
-	return rules.map(function(rule, i) {
-		return [rule, i];
-	}).sort(function(a, b) {
-		return (b[0]._specificity - a[0]._specificity) || b[1] - a[1];
-	}).map(function(rule) {
-		return rule[0];
+	return rules.slice().sort(function(a, b) {
+		return (b._specificity - a._specificity) || rules.indexOf(b) - rules.indexOf(a);
 	});
 }
 
@@ -1373,50 +1371,44 @@ function sortRulesBySpecificity(rules) {
  */
 function getSpecificity(selector) {
 
-	var idScore = 0;
-	var classScore = 0;
-	var typeScore = 0;
+	var score = 0;
 
 	selector
 		.replace(SELECTOR_ESCAPED_REGEXP, function() {
-			classScore++;
+			score += 256;
 			return '';
 		})
 		.replace(SELECTOR_REGEXP, function() {
-			classScore++;
+			score += 256;
 			return '';
 		})
 		.replace(ATTR_REGEXP, function() {
-			classScore++;
+			score += 256;
 			return '';
 		})
 		.replace(PSEUDO_NOT_REGEXP, ' ')
 		.replace(ID_REGEXP, function() {
-			idScore++;
+			score += 256 * 256;
 			return '';
 		})
 		.replace(CLASS_REGEXP, function() {
-			classScore++;
+			score += 256;
 			return '';
 		})
 		.replace(PSEUDO_ELEMENT_REGEXP, function() {
-			typeScore++;
+			score++;
 			return '';
 		})
 		.replace(PSEUDO_CLASS_REGEXP, function() {
-			classScore++;
+			score += 256;
 			return '';
 		})
 		.replace(ELEMENT_REGEXP, function() {
-			typeScore++;
+			score++;
 			return '';
 		});
 
-	return (
-		(idScore * 256 * 256)
-		+ (classScore * 256)
-		+ typeScore
-	);
+	return score;
 
 }
 
@@ -1595,23 +1587,6 @@ function removeAttributeValue(element, attr, value) {
 		),
 		'$1'
 	));
-}
-
-/**
- * Array.from or a simple shim for non-supporting browsers
- *
- * @param  {{length: number}} arrayLike
- * @return {array}
- */
-function arrayFrom(arrayLike) {
-	if (Array.from) {
-		return Array.from(arrayLike);
-	}
-	var array = [];
-	for (var i = 0; i < arrayLike.length; i++) {
-		array[i] = arrayLike[i];
-	}
-	return array;
 }
 
 startObserving();
