@@ -544,7 +544,7 @@ QUnit.test('evaluateQuery', function(assert) {
 		width: {},
 		height: {},
 	};
-	containerCache = createCacheMap();
+	containerCache = new Map();
 
 	var element = document.createElement('div');
 	element.style.cssText = 'width: 100px; height: 100px; font-size: 10px; opacity: 0.5; background: red';
@@ -600,14 +600,14 @@ QUnit.test('evaluateQuery', function(assert) {
 
 });
 
-/*global getContainer, styleCache: true, containerCache: true, createCacheMap*/
+/*global getContainer, styleCache: true, containerCache: true*/
 QUnit.test('getContainer', function(assert) {
 
 	styleCache = {
 		width: {},
 		height: {},
 	};
-	containerCache = createCacheMap();
+	containerCache = new Map();
 
 	var element = document.createElement('div');
 	element.innerHTML = '<span><div style="float: left"><a>';
@@ -620,37 +620,37 @@ QUnit.test('getContainer', function(assert) {
 	assert.strictEqual(getContainer(link, 'height'), document.documentElement, 'Document element for height');
 
 	span.style.display = 'block';
-	containerCache = createCacheMap(); // Clear cache
+	containerCache = new Map(); // Clear cache
 	assert.strictEqual(getContainer(link, 'width'), span, '<span> display block for width');
 
 	element.style.height = '100px';
-	containerCache = createCacheMap(); // Clear cache
+	containerCache = new Map(); // Clear cache
 	assert.strictEqual(getContainer(link, 'height'), element, '<div> fixed height');
 
 	span.style.cssText = 'display: block; height: 50%';
-	containerCache = createCacheMap(); // Clear cache
+	containerCache = new Map(); // Clear cache
 	assert.strictEqual(getContainer(link, 'height'), span, '<span> display block percentage height');
 	assert.ok(containerCache.has(link));
 
 	element.style.position = 'relative';
 	link.style.position = 'absolute';
-	containerCache = createCacheMap(); // Clear cache
+	containerCache = new Map(); // Clear cache
 	assert.strictEqual(getContainer(link, 'width'), element, '<div> positioned ancestor');
 
 	span.style.position = 'absolute';
-	containerCache = createCacheMap(); // Clear cache
+	containerCache = new Map(); // Clear cache
 	assert.strictEqual(getContainer(link, 'width'), element, '<div> positioned ancestor with non-intrinsic size');
 
 	span.style.width = '100px';
-	containerCache = createCacheMap(); // Clear cache
+	containerCache = new Map(); // Clear cache
 	assert.strictEqual(getContainer(link, 'width'), span, '<span> positioned ancestor with fixed size');
 
 	link.style.position = 'fixed';
-	containerCache = createCacheMap(); // Clear cache
+	containerCache = new Map(); // Clear cache
 	assert.strictEqual(getContainer(link, 'width'), document.documentElement, '<html> fixed ancestor');
 
 	element.style.cssText = '-webkit-transform: translateX(0); -ms-transform: translateX(0); transform: translateX(0);';
-	containerCache = createCacheMap(); // Clear cache
+	containerCache = new Map(); // Clear cache
 	assert.strictEqual(getContainer(link, 'width'), element, '<div> ancestor with transform applied');
 
 	document.body.removeChild(element);
@@ -986,10 +986,9 @@ QUnit.test('getSpecificity', function(assert) {
 
 });
 
-/*global createCacheMap*/
-QUnit.test('createCacheMap', function(assert) {
+QUnit.test('new Map', function(assert) {
 
-	var map = createCacheMap();
+	var map = new Map();
 	var el1 = document.createElement('div');
 	var el2 = el1.cloneNode(false);
 

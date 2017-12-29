@@ -77,7 +77,7 @@ var arrayFrom = Array.from || function(arrayLike) {
 var queries;
 var containerCache;
 var styleCache;
-var processedSheets = createCacheMap();
+var processedSheets = new Map();
 var requestCache = {};
 var domMutations = [];
 var processed = false;
@@ -195,9 +195,6 @@ function startObserving() {
 	window.addEventListener('resize', function() {
 		scheduleExecution(3, true);
 	});
-
-	var MutationObserver = window.MutationObserver
-		|| window.WebKitMutationObserver; // UC Browser
 
 	observer = new MutationObserver(checkMutations);
 	observer.observe(document.documentElement, {
@@ -722,7 +719,7 @@ function buildStyleCacheFromRules(rules) {
 function updateClasses(clearContainerCache, contexts) {
 
 	if (clearContainerCache || !containerCache) {
-		containerCache = createCacheMap();
+		containerCache = new Map();
 	}
 
 	if (!Object.keys(queries).length) {
@@ -817,7 +814,7 @@ function buildElementsTree(contexts) {
 	});
 
 	var tree = [];
-	var treeCache = createCacheMap();
+	var treeCache = new Map();
 
 	elements.forEach(function(element) {
 
@@ -1410,67 +1407,6 @@ function getSpecificity(selector) {
 
 	return score;
 
-}
-
-/**
- * Create a new Map or a simple shim of it in non-supporting browsers
- *
- * @return {Map}
- */
-function createCacheMap() {
-
-	if (typeof Map === 'function') {
-		return new Map();
-	}
-
-	var keys = [];
-	var values = [];
-
-	function getIndex(key) {
-		return keys.indexOf(key);
-	}
-
-	function get(key) {
-		return values[getIndex(key)];
-	}
-
-	function has(key) {
-		return getIndex(key) !== -1;
-	}
-
-	function set(key, value) {
-		var index = getIndex(key);
-		if (index === -1) {
-			index = keys.push(key) - 1;
-		}
-		values[index] = value;
-	}
-
-	function deleteFunc(key) {
-		var index = getIndex(key);
-		if (index === -1) {
-			return false;
-		}
-		delete keys[index];
-		delete values[index];
-		return true;
-	}
-
-	function forEach(callback) {
-		keys.forEach(function(key, index) {
-			if (key !== undefined) {
-				callback(values[index], key);
-			}
-		});
-	}
-
-	return {
-		set: set,
-		get: get,
-		has: has,
-		delete: deleteFunc,
-		forEach: forEach,
-	};
 }
 
 /**

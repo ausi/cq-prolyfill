@@ -40,7 +40,8 @@ For more information take a look at the [usage documentation](docs/usage.md).
 * Edge 14+
 * Safari 9+
 * iOS 9+
-* Android 4.4+
+* UC Browser 11.4+
+* Samsung Internet 4+
 
 Thanks to [BrowserStack](https://www.browserstack.com/automate) for sponsoring automated cross browser testing for this project.
 
