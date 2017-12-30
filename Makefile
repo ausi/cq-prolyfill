@@ -70,12 +70,12 @@ $(BROWSERSTACK_RUNNER): $(MODULES)
 test: $(ESLINT) $(SOURCE) $(TEST_POSTCSS) $(TEST_RUNNER) $(SLIMERJS) $(TEST_HTML_ALL) $(TEST_HTML_COVERAGE) $(TEST_HTML_FUNCTIONAL) $(MODULES)
 	$(ESLINT) $(SOURCE)
 	node $(TEST_POSTCSS)
-	make server & echo "$$!" > server.pid
+	node -e "require('connect')().use(require('serve-static')(__dirname)).listen(8888);require('connect')().use('/cors', require('serve-static')(__dirname, {setHeaders: corsHeaders})).use('/time', function(req, res){corsHeaders(res);res.end((new Date()).getTime()+'')}).listen(8889);function corsHeaders(res) {res.setHeader('Access-Control-Allow-Origin', '*')}" & echo "$$!" > server.pid
 	$(SLIMERJS) $(TEST_RUNNER) http://localhost:8888/$(TEST_HTML_ALL) 20 | tee tests/slimerjs.log
 	kill `cat server.pid` && rm server.pid
 	@ grep ' passed, 0 failed.' tests/slimerjs.log > /dev/null
 	@ rm tests/slimerjs.log
-	make server & echo "$$!" > server.pid
+	node -e "require('connect')().use(require('serve-static')(__dirname)).listen(8888);require('connect')().use('/cors', require('serve-static')(__dirname, {setHeaders: corsHeaders})).use('/time', function(req, res){corsHeaders(res);res.end((new Date()).getTime()+'')}).listen(8889);function corsHeaders(res) {res.setHeader('Access-Control-Allow-Origin', '*')}" & echo "$$!" > server.pid
 	$(SLIMERJS) $(TEST_RUNNER) http://localhost:8888/$(TEST_HTML_FUNCTIONAL) 20 | tee tests/slimerjs.log
 	kill `cat server.pid` && rm server.pid
 	@ grep ' passed, 0 failed.' tests/slimerjs.log > /dev/null
