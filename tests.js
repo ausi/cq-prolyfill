@@ -95,43 +95,62 @@ QUnit.test('DOM Mutations', function(assert) {
 
 		assert.equal(getComputedStyle(element, 'display'), 'block', 'Display block');
 
-		var style = document.createElement('style');
-		style.type = 'text/css';
-		style.innerHTML = '.mutations-test:container(width > 0) { display: none }';
-		fixture.appendChild(style);
-
 		requestAnimationFrame(function() { setTimeout(function() {
 
-			assert.equal(getComputedStyle(element, 'display'), 'none', 'Display none');
-
-			var element2 = document.createElement('div');
-			element2.className = 'mutations-test';
-			fixture.appendChild(element2);
-
-			var element3 = document.createElement('div');
-			element3.className = 'mutations-test';
-			fixture.appendChild(element3);
-			fixture.removeChild(element3);
+			['resize', 'resize', 'DOMContentLoaded', 'load'].forEach(function(eventName) {
+				var event = document.createEvent('HTMLEvents');
+				event.initEvent(eventName, true, true);
+				window.dispatchEvent(event);
+			});
 
 			requestAnimationFrame(function() { setTimeout(function() {
 
-				assert.equal(getComputedStyle(element2, 'display'), 'none', 'Display none');
-
-				fixture.appendChild(element3);
-				assert.equal(getComputedStyle(element3, 'display'), 'block', 'Display block');
-
-				fixture.removeChild(style);
+				var style = document.createElement('style');
+				style.type = 'text/css';
+				style.innerHTML = '.mutations-test:container(width > 0) { display: none }';
+				fixture.appendChild(style);
 
 				requestAnimationFrame(function() { setTimeout(function() {
 
-					assert.equal(getComputedStyle(element, 'display'), 'block', 'Display block');
-					assert.equal(getComputedStyle(element2, 'display'), 'block', 'Display block');
-					assert.equal(getComputedStyle(element3, 'display'), 'block', 'Display block');
+					assert.equal(getComputedStyle(element, 'display'), 'none', 'Display none');
 
-					observer.disconnect();
-					observer = undefined;
-					config.skipObserving = true;
-					done();
+					var element2 = document.createElement('div');
+					element2.className = 'mutations-test';
+					fixture.appendChild(element2);
+
+					var element2Nested = document.createElement('div');
+					element2Nested.className = 'mutations-test';
+					element2.appendChild(element2Nested);
+
+					var element3 = document.createElement('div');
+					element3.className = 'mutations-test';
+					fixture.appendChild(element3);
+					fixture.removeChild(element3);
+
+					requestAnimationFrame(function() { setTimeout(function() {
+
+						assert.equal(getComputedStyle(element2, 'display'), 'none', 'Display none');
+						assert.equal(getComputedStyle(element2Nested, 'display'), 'block', 'Display block');
+
+						fixture.appendChild(element3);
+						assert.equal(getComputedStyle(element3, 'display'), 'block', 'Display block');
+
+						fixture.removeChild(style);
+
+						requestAnimationFrame(function() { setTimeout(function() {
+
+							assert.equal(getComputedStyle(element, 'display'), 'block', 'Display block');
+							assert.equal(getComputedStyle(element2, 'display'), 'block', 'Display block');
+							assert.equal(getComputedStyle(element3, 'display'), 'block', 'Display block');
+
+							observer.disconnect();
+							observer = undefined;
+							config.skipObserving = true;
+							done();
+
+						}, 200)});
+
+					}, 200)});
 
 				}, 200)});
 
@@ -258,7 +277,9 @@ QUnit.test('parseRules', function(assert) {
 		+ '.pseudo-after:container(width > 100px)::after { display: block }'
 		+ '@media screen { .inside-media-query:container(height < 10em) { display: block } }'
 		+ '.attribute[data-cq~="max-width:100.0px"] { display: block }'
-		+ '.attribute-single[data-cq~=\'color-alpha<=10%\'] { display: block }';
+		+ '.attribute-single[data-cq~=\'color-alpha<=10%\'] { display: block }'
+		+ '.invalid-query:container(=) { display: block }'
+		+ '.invalid-query[data-cq~=\'=\'] { display: block }';
 	fixture.appendChild(style);
 	var done = assert.async();
 	preprocess(function () {
@@ -1072,6 +1093,48 @@ QUnit.test('addClass, removeClass, hasClass', function(assert) {
 		removeClass(element, ':container(width>=100px)');
 		assert.equal((element.getAttribute('class') || '').trim(), '', 'Remove container query class');
 		assert.notOk(hasClass(element, ':container(width>=100px)'), 'Has not container query class');
+
+	});
+
+});
+
+/*global addAttributeValue, removeAttributeValue, hasAttributeValue*/
+QUnit.test('addAttributeValue, removeAttributeValue, hasAttributeValue', function(assert) {
+
+	var element = document.createElement('div');
+
+	['class', 'data-cq'].forEach(function(attr) {
+
+		removeAttributeValue(element, attr, 'foo');
+		assert.notOk(element.getAttribute(attr), 'No attribute');
+
+		element.setAttribute(attr, '');
+		removeAttributeValue(element, attr, 'foo');
+		assert.notOk(element.getAttribute(attr), 'Empty attribute');
+
+		addAttributeValue(element, attr, 'foo');
+		assert.equal((element.getAttribute(attr) || '').trim(), 'foo', 'Add class foo');
+		assert.ok(hasAttributeValue(element, attr, 'foo'), 'Has class foo');
+		addAttributeValue(element, attr, 'bar');
+		assert.equal((element.getAttribute(attr) || '').trim(), 'foo bar', 'Add class bar');
+		assert.ok(hasAttributeValue(element, attr, 'foo') && hasAttributeValue(element, attr, 'bar'), 'Has class foo and bar');
+		addAttributeValue(element, attr, 'bar');
+		assert.equal((element.getAttribute(attr) || '').trim(), 'foo bar', 'Add class bar again');
+		addAttributeValue(element, attr, ':container(width>=100px)');
+		assert.equal((element.getAttribute(attr) || '').trim(), 'foo bar :container(width>=100px)', 'Add container query class');
+		assert.ok(hasAttributeValue(element, attr, ':container(width>=100px)'), 'Has container query class');
+		addAttributeValue(element, attr, ':container(width>=100px)');
+		assert.equal((element.getAttribute(attr) || '').trim(), 'foo bar :container(width>=100px)', 'Add container query class again');
+
+		removeAttributeValue(element, attr, 'foo');
+		assert.equal((element.getAttribute(attr) || '').trim(), 'bar :container(width>=100px)', 'Remove class foo');
+		assert.notOk(hasAttributeValue(element, attr, 'foo'), 'Has not class foo');
+		removeAttributeValue(element, attr, 'bar');
+		assert.equal((element.getAttribute(attr) || '').trim(), ':container(width>=100px)', 'Remove class bar');
+		assert.notOk(hasAttributeValue(element, attr, 'bar'), 'Has not class bar');
+		removeAttributeValue(element, attr, ':container(width>=100px)');
+		assert.equal((element.getAttribute(attr) || '').trim(), '', 'Remove container query class');
+		assert.notOk(hasAttributeValue(element, attr, ':container(width>=100px)'), 'Has not container query class');
 
 	});
 

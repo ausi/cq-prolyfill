@@ -33,6 +33,7 @@
 	}
 }(function(config) {
 
+/* istanbul ignore next: don’t cover default parameter */
 config = config || {};
 
 // Public API
@@ -147,9 +148,7 @@ function scheduleExecution(step, clearContainerCache, contexts) {
 	// Merge parameters for reevaluate
 	if (scheduledCall._step === 3) {
 		scheduledCall._clearContainerCache = scheduledCall._clearContainerCache || clearContainerCache;
-		if (scheduledCall._contexts && contexts) {
-			scheduledCall._contexts = scheduledCall._contexts.concat(contexts);
-		}
+		scheduledCall._contexts = scheduledCall._contexts && contexts && scheduledCall._contexts.concat(contexts);
 	}
 
 }
@@ -165,9 +164,11 @@ function executeScheduledCall() {
 	if (call._step === 1) {
 		reprocess();
 	}
+	/* currently not used
 	else if (call._step === 2) {
 		reparse();
 	}
+	*/
 	else {
 		reevaluate(call._clearContainerCache, undefined, call._contexts);
 	}
@@ -429,14 +430,6 @@ function resolveRelativeUrl(url, base) {
 		var link = document.createElement('a');
 		link.href = url;
 		absoluteUrl = link.href;
-		// Catch error in iOS 7.0
-		try {
-			// Fix for a bug in Opera 12
-			delete baseElement.href;
-		}
-		catch(e) {
-			// Do nothing
-		}
 		document.head.removeChild(baseElement);
 	}
 	return absoluteUrl;

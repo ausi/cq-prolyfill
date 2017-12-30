@@ -3,6 +3,7 @@
 'use strict';
 
 var fixture = document.getElementById('qunit-fixture');
+var TEST_FILES_URL_CORS = 'http://127.0.0.1.nip.io:8889/cors/test-files/';
 
 QUnit.test('Simple width and height Query', function(assert) {
 
@@ -516,6 +517,56 @@ QUnit.test('PostCSS skip step 1', function(assert) {
 	assert.ok(done, 'Reprocess callback synchronous');
 
 	window.cqApi.config.preprocess = true;
+
+});
+
+QUnit.test('PostCSS preprocessed CORS stylesheet', function(assert) {
+
+	var style = document.createElement('style');
+	style.type = 'text/css';
+	style.innerHTML = '@font-face { font-family: visible; src: local("Times New Roman"), local("Droid Serif") }';
+	fixture.appendChild(style);
+
+	var link = document.createElement('link');
+	link.onload = link.onerror = onLoad;
+	link.rel = 'stylesheet';
+	link.href = TEST_FILES_URL_CORS + 'visibility-cq.css';
+	link.crossOrigin = 'anonymous';
+	link.setAttribute('crossorigin', 'anonymous');
+	fixture.appendChild(link);
+
+	var element = document.createElement('div');
+	element.innerHTML = '<div class="test">';
+	fixture.appendChild(element);
+	var test = element.firstChild;
+
+	var reevaluate = window.cqApi.reevaluate;
+
+	window.cqApi.config.preprocess = undefined;
+
+	var done = assert.async();
+
+	function onLoad() {
+
+		window.cqApi.reprocess(function () {
+
+			var font = function(node) {
+				return window.getComputedStyle(node).fontFamily;
+			};
+
+			assert.equal(font(test), 'visible', 'Visibility query');
+
+			element.style.cssText = 'visibility: hidden';
+			reevaluate();
+			assert.notEqual(font(test), 'visible', 'Visibility query');
+
+			window.cqApi.config.preprocess = true;
+
+			done();
+
+		});
+
+	}
 
 });
 
