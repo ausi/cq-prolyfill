@@ -625,21 +625,26 @@ function buildStyleCache() {
 		width: {},
 		height: {},
 	};
-	var rules;
 	for (var i = 0; i < document.styleSheets.length; i++) {
-		if (document.styleSheets[i].disabled) {
-			continue;
+		buildStyleCacheFromSheet(document.styleSheets[i]);
+	}
+}
+
+/**
+ * @param {CSSStyleSheet} sheet
+ */
+function buildStyleCacheFromSheet(sheet) {
+	if (sheet.disabled) {
+		return;
+	}
+	try {
+		var rules = sheet.cssRules;
+		if (rules && rules.length) {
+			buildStyleCacheFromRules(rules);
 		}
-		try {
-			rules = document.styleSheets[i].cssRules;
-			if (!rules || !rules.length) {
-				continue;
-			}
-		}
-		catch(e) {
-			continue;
-		}
-		buildStyleCacheFromRules(rules);
+	}
+	catch(e) {
+		// Do nothing
 	}
 }
 
@@ -698,6 +703,9 @@ function buildStyleCacheFromRules(rules) {
 		}
 		else if (rules[i].cssRules) {
 			buildStyleCacheFromRules(rules[i].cssRules);
+		}
+		else if (rules[i].styleSheet) {
+			buildStyleCacheFromSheet(rules[i].styleSheet);
 		}
 	}
 }

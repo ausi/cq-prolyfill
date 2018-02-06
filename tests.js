@@ -518,6 +518,8 @@ QUnit.test('splitSelectors', function(assert) {
 /*global buildStyleCacheFromRules, styleCache: true*/
 QUnit.test('buildStyleCacheFromRules', function(assert) {
 
+	var done = assert.async();
+
 	// Clean cache
 	styleCache = {
 		width: {},
@@ -525,7 +527,8 @@ QUnit.test('buildStyleCacheFromRules', function(assert) {
 	};
 
 	var style = document.createElement('style');
-	style.textContent = '.width { width: 100% }'
+	style.textContent = '@import url("../test-files/cors.css");'
+		+ '.width { width: 100% }'
 		+ '.height { height: 100% }'
 		+ '.no-relevant-prop { color: red }'
 		+ '.pseudo-element::foo { width: 100% }'
@@ -539,27 +542,54 @@ QUnit.test('buildStyleCacheFromRules', function(assert) {
 		+ '@media screen { .inside-media-query { width: 100% } }';
 
 	document.head.appendChild(style);
-	var rules = style.sheet.cssRules;
 
-	buildStyleCacheFromRules(rules);
+	var start = Date.now();
+	setTimeout(run);
 
-	assert.equal(Object.keys(styleCache.height).length, 1, 'One height rule');
-	assert.equal(styleCache.height['.height'].length, 1, 'One rule for `.height`');
-	assert.equal(styleCache.height['.height'][0]._rule.style.height, '100%', 'Correct rule value');
+	function run() {
 
-	assert.equal(Object.keys(styleCache.width).length, 7, 'Seven width rules');
-	assert.equal(styleCache.width['.width'].length, 1, 'One rule for `.width`');
-	assert.equal(styleCache.width['.not-selector'].length, 1, 'One rule for `.not-selector`');
-	assert.equal(styleCache.width['#id'].length, 1, 'One rule for `#id`');
-	assert.equal(styleCache.width['.class'].length, 1, 'One rule for `.class`');
-	assert.equal(styleCache.width.element.length, 1, 'One rule for `element`');
-	assert.equal(styleCache.width['*'].length, 2, 'Two rules for `*`');
-	assert.equal(styleCache.width['.inside-media-query'].length, 1, 'One rule for `.inside-media-query`');
+		try {
+			if (!style.sheet.cssRules[0].styleSheet.cssRules[0]) {
+				throw new Error();
+			}
+		}
+		catch(e) {
+			if (Date.now() - start > 1000) {
+				assert.ok(false, 'Timeout');
+				done();
+			}
+			else {
+				setTimeout(run);
+			}
+			return;
+		}
 
-	document.head.removeChild(style);
+		var rules = style.sheet.cssRules;
 
-	// Reset cache
-	buildStyleCache();
+		buildStyleCacheFromRules(rules);
+
+		assert.equal(Object.keys(styleCache.height).length, 1, 'One height rule');
+		assert.equal(styleCache.height['.height'].length, 1, 'One rule for `.height`');
+		assert.equal(styleCache.height['.height'][0]._rule.style.height, '100%', 'Correct rule value');
+
+		assert.equal(Object.keys(styleCache.width).length, 8, 'Eight width rules');
+		assert.equal(styleCache.width['.cors-test'].length, 1, 'One rule for `.cors-test`');
+		assert.equal(styleCache.width['.width'].length, 1, 'One rule for `.width`');
+		assert.equal(styleCache.width['.not-selector'].length, 1, 'One rule for `.not-selector`');
+		assert.equal(styleCache.width['#id'].length, 1, 'One rule for `#id`');
+		assert.equal(styleCache.width['.class'].length, 1, 'One rule for `.class`');
+		assert.equal(styleCache.width.element.length, 1, 'One rule for `element`');
+		assert.equal(styleCache.width['*'].length, 2, 'Two rules for `*`');
+		assert.equal(styleCache.width['.inside-media-query'].length, 1, 'One rule for `.inside-media-query`');
+
+		document.head.removeChild(style);
+
+		// Reset cache
+		buildStyleCache();
+
+		done();
+
+	}
 
 });
 
