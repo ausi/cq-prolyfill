@@ -742,6 +742,9 @@ function buildStyleCacheFromRules(rules) {
 		else if (rules[i].cssRules) {
 			buildStyleCacheFromRules(rules[i].cssRules);
 		}
+        else if (rules[i].type === 3 && rules[i].styleSheet.cssRules) {
+            buildStyleCacheFromRules(rules[i].styleSheet.cssRules);
+        }
 	}
 }
 
