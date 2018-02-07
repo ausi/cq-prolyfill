@@ -742,6 +742,15 @@ function buildStyleCacheFromRules(rules) {
 		else if (rules[i].cssRules) {
 			buildStyleCacheFromRules(rules[i].cssRules);
 		}
+        else if (rules[i].type === 3) {
+			try {
+				if (rules[i].styleSheet.cssRules)
+					buildStyleCacheFromRules(rules[i].styleSheet.cssRules);
+			}
+			catch (e) {
+				console.log('Error: Container Queries Prolyfill could not parse stylesheets included with @include because of cross-domain access bug of Firefox');
+			}
+        }
 	}
 }
 
