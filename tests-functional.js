@@ -2,10 +2,11 @@
 (function() {
 'use strict';
 
-var fixture = document.getElementById('qunit-fixture');
 var TEST_FILES_URL_CORS = 'http://127.0.0.1.nip.io:8889/cors/test-files/';
 
 QUnit.test('Simple width and height Query', function(assert) {
+
+	var fixture = document.getElementById('qunit-fixture');
 
 	var style = document.createElement('style');
 	style.type = 'text/css';
@@ -104,6 +105,8 @@ QUnit.test('Simple width and height Query', function(assert) {
 
 QUnit.test('Combined Queries', function(assert) {
 
+	var fixture = document.getElementById('qunit-fixture');
+
 	var style = document.createElement('style');
 	style.type = 'text/css';
 	style.innerHTML = '@font-face { font-family: query; src: local("Times New Roman"), local("Droid Serif") }'
@@ -163,6 +166,8 @@ QUnit.test('Combined Queries', function(assert) {
 
 QUnit.test('Double comparison Query', function(assert) {
 
+	var fixture = document.getElementById('qunit-fixture');
+
 	var style = document.createElement('style');
 	style.type = 'text/css';
 	style.innerHTML = '@font-face { font-family: query; src: local("Times New Roman"), local("Droid Serif") }'
@@ -205,6 +210,8 @@ QUnit.test('Double comparison Query', function(assert) {
 });
 
 QUnit.test('Visibility Query', function(assert) {
+
+	var fixture = document.getElementById('qunit-fixture');
 
 	var style = document.createElement('style');
 	style.type = 'text/css';
@@ -249,6 +256,8 @@ QUnit.test('Visibility Query', function(assert) {
 });
 
 QUnit.test('Background Color Query', function(assert) {
+
+	var fixture = document.getElementById('qunit-fixture');
 
 	var style = document.createElement('style');
 	style.type = 'text/css';
@@ -335,6 +344,8 @@ QUnit[window.CSS && CSS.supports && CSS.supports('--foo', 0)
 	: 'skip'
 ]('CSS variable Query (only for supported browsers)', function(assert) {
 
+	var fixture = document.getElementById('qunit-fixture');
+
 	var style = document.createElement('style');
 	style.type = 'text/css';
 	style.innerHTML = '@font-face { font-family: equal; src: local("Times New Roman"), local("Droid Serif") }'
@@ -378,6 +389,8 @@ QUnit[window.CSS && CSS.supports && CSS.supports('--foo', 0)
 });
 
 QUnit.test('Opacity Query', function(assert) {
+
+	var fixture = document.getElementById('qunit-fixture');
 
 	var style = document.createElement('style');
 	style.type = 'text/css';
@@ -429,6 +442,8 @@ QUnit.test('Opacity Query', function(assert) {
 
 QUnit.test('CSS Import rule', function(assert) {
 
+	var fixture = document.getElementById('qunit-fixture');
+
 	var style = document.createElement('style');
 	style.type = 'text/css';
 	style.innerHTML = '@import url("../test-files/visibility-cq.css");'
@@ -478,6 +493,8 @@ QUnit.test('CSS Import rule', function(assert) {
 
 QUnit.test('PostCSS skip step 1', function(assert) {
 
+	var fixture = document.getElementById('qunit-fixture');
+
 	var style = document.createElement('style');
 	style.type = 'text/css';
 	style.innerHTML = '@font-face { font-family: no-query; src: local("Times New Roman"), local("Droid Serif") }'
@@ -521,6 +538,8 @@ QUnit.test('PostCSS skip step 1', function(assert) {
 });
 
 QUnit.test('PostCSS preprocessed CORS stylesheet', function(assert) {
+
+	var fixture = document.getElementById('qunit-fixture');
 
 	var style = document.createElement('style');
 	style.type = 'text/css';
@@ -571,6 +590,8 @@ QUnit.test('PostCSS preprocessed CORS stylesheet', function(assert) {
 });
 
 QUnit.test('Performance of many elements on the same level', function(assert) {
+
+	var fixture = document.getElementById('qunit-fixture');
 
 	var style = document.createElement('style');
 	style.type = 'text/css';
@@ -624,6 +645,8 @@ QUnit.test('Performance of many elements on the same level', function(assert) {
 });
 
 QUnit.test('Performance of many nested elements', function(assert) {
+
+	var fixture = document.getElementById('qunit-fixture');
 
 	var style = document.createElement('style');
 	style.type = 'text/css';

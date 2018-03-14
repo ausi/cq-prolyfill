@@ -13,7 +13,6 @@ QUnit.module('All', {
 	},
 });
 
-var fixture = document.getElementById('qunit-fixture');
 var TEST_FILES_URL_TIME = 'http://127.0.0.1.nip.io:8889/time';
 var TEST_FILES_URL_CORS = 'http://127.0.0.1.nip.io:8889/cors/test-files/';
 var TEST_FILES_URL_CROSS_ORIGIN = 'http://127.0.0.1.nip.io:8888/test-files/';
@@ -25,6 +24,7 @@ QUnit[/Opera\/9\.80\s.*Version\/12\.16/.test(navigator.userAgent)
 	: 'test'
 ]('CORS', function(assert) {
 
+	var fixture = document.getElementById('qunit-fixture');
 	var done = assert.async();
 
 	var element;
@@ -81,6 +81,8 @@ QUnit[/Opera\/9\.80\s.*Version\/12\.16/.test(navigator.userAgent)
 
 /*global reprocess, config, startObserving, observer: true*/
 QUnit.test('DOM Mutations', function(assert) {
+
+	var fixture = document.getElementById('qunit-fixture');
 
 	var element = document.createElement('div');
 	element.className = 'mutations-test';
@@ -165,6 +167,8 @@ QUnit.test('DOM Mutations', function(assert) {
 /*global preprocess, processedSheets, SELECTOR_ESCAPED_REGEXP, SELECTOR_REGEXP*/
 QUnit.test('preprocess', function(assert) {
 
+	var fixture = document.getElementById('qunit-fixture');
+
 	var style = document.createElement('style');
 	style.type = 'text/css';
 	style.innerHTML = '.first:container( width >= 100.00px ) { display: block }'
@@ -205,6 +209,8 @@ QUnit.test('preprocess', function(assert) {
 
 /*global preprocessSheet*/
 QUnit.test('preprocessSheet', function(assert) {
+
+	var fixture = document.getElementById('qunit-fixture');
 
 	var allDone = assert.async();
 	var doneCount = 0;
@@ -280,7 +286,7 @@ QUnit.test('parseRules', function(assert) {
 		+ '.attribute-single[data-cq~=\'color-alpha<=10%\'] { display: block }'
 		+ '.invalid-query:container(=) { display: block }'
 		+ '.invalid-query[data-cq~=\'=\'] { display: block }';
-	fixture.appendChild(style);
+	document.getElementById('qunit-fixture').appendChild(style);
 	var done = assert.async();
 	preprocess(function () {
 
@@ -569,7 +575,7 @@ QUnit.test('evaluateQuery', function(assert) {
 
 	var element = document.createElement('div');
 	element.style.cssText = 'width: 100px; height: 100px; font-size: 10px; opacity: 0.5; background: red';
-	fixture.appendChild(element);
+	document.getElementById('qunit-fixture').appendChild(element);
 
 	var data = [
 		['>', 99, 100],
@@ -682,7 +688,7 @@ QUnit.test('getContainer', function(assert) {
 QUnit.test('isFixedSize', function(assert) {
 
 	var element = document.createElement('div');
-	fixture.appendChild(element);
+	document.getElementById('qunit-fixture').appendChild(element);
 
 	assert.equal(isFixedSize(element, 'width'), false, 'Standard <div> width');
 	assert.equal(isFixedSize(element, 'height'), false, 'Standard <div> height');
@@ -709,7 +715,7 @@ QUnit.test('isFixedSize', function(assert) {
 QUnit.test('isIntrinsicSize', function(assert) {
 
 	var element = document.createElement('div');
-	fixture.appendChild(element);
+	document.getElementById('qunit-fixture').appendChild(element);
 
 	assert.equal(isIntrinsicSize(element, 'width'), false, 'Standard <div> width');
 	assert.equal(isIntrinsicSize(element, 'height'), true, 'Standard <div> height');
@@ -768,7 +774,7 @@ QUnit.test('getSize', function(assert) {
 	element.style.boxSizing = 'border-box';
 	element.style.padding = '1pc';
 	element.style.border = '10px solid black';
-	fixture.appendChild(element);
+	document.getElementById('qunit-fixture').appendChild(element);
 	assert.equal(getSize(element, 'width'), 48, 'Width');
 	assert.equal(getSize(element, 'height'), 48, 'Height');
 });
@@ -797,7 +803,7 @@ QUnit.test('getComputedLength', function(assert) {
 
 	var dummy = document.createElement('div');
 	dummy.style.fontSize = '10px';
-	fixture.appendChild(dummy);
+	document.getElementById('qunit-fixture').appendChild(dummy);
 
 	data.forEach(function(item) {
 		assert.equal(getComputedLength(item[0], dummy), item[1], item[0] + ' == ' + item[1] + 'px');
@@ -811,7 +817,7 @@ QUnit.test('getComputedStyle', function(assert) {
 	element.style.width = '100px';
 	element.style.height = '1in';
 	element.style.cssFloat = 'left';
-	fixture.appendChild(element);
+	document.getElementById('qunit-fixture').appendChild(element);
 	assert.equal(getComputedStyle(element, 'width'), '100px', 'Normal style');
 	assert.equal(getComputedStyle(element, 'height'), '96px', 'Converted to pixel');
 	assert.equal(getComputedStyle(element, 'float'), 'left', 'Float left');
@@ -825,6 +831,8 @@ QUnit.test('getComputedStyle', function(assert) {
 
 /*global getOriginalStyle, buildStyleCache*/
 QUnit.test('getOriginalStyle', function(assert) {
+
+	var fixture = document.getElementById('qunit-fixture');
 
 	var element = document.createElement('div');
 	element.className = 'myel';
@@ -853,6 +861,8 @@ QUnit.test('getOriginalStyle', function(assert) {
 
 /*global parseColor*/
 QUnit.test('parseColor', function(assert) {
+
+	var fixture = document.getElementById('qunit-fixture');
 
 	assert.deepEqual(parseColor('rgb(255, 0, 0)'), [0, 100, 50, 255], 'Rgb');
 	assert.deepEqual(parseColor('rgba(255, 0, 0, 0.6)'), [0, 100, 50, 153], 'Rgba');
@@ -886,6 +896,8 @@ QUnit.test('rgbaToHsla', function(assert) {
 
 /*global filterRulesByElementAndProp, buildStyleCache, styleCache: true*/
 QUnit.test('filterRulesByElementAndProp', function(assert) {
+
+	var fixture = document.getElementById('qunit-fixture');
 
 	var element = document.createElement('div');
 	element.className = 'myel';
@@ -927,7 +939,7 @@ QUnit.test('elementMatchesSelector', function(assert) {
 
 	var element = document.createElement('div');
 	element.className = ':container(width>=100px)';
-	fixture.appendChild(element);
+	document.getElementById('qunit-fixture').appendChild(element);
 
 	assert.ok(elementMatchesSelector(element, 'div'), 'Simple selector');
 	assert.ok(elementMatchesSelector(element, '.\\:container\\(width\\>\\=100px\\)'), 'Escaped query');
