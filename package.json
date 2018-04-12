@@ -28,7 +28,8 @@
 		"postcss-plugin"
 	],
 	"scripts": {
-		"test": "make test"
+		"test": "make test",
+		"postinstall": "opencollective postinstall"
 	},
 	"main": "cq-prolyfill.js",
 	"browser": "cq-prolyfill.js",
@@ -45,6 +46,7 @@
 		"url": "https://github.com/ausi/cq-prolyfill/issues"
 	},
 	"dependencies": {
+		"opencollective": "^1.0.3",
 		"postcss": "^5.0.2"
 	},
 	"devDependencies": {
@@ -60,5 +62,9 @@
 		"serve-static": "^1.10.0",
 		"slimerjs": "^0.906.2",
 		"uglify-js": "^2.4.24"
+	},
+	"collective": {
+		"type": "opencollective",
+		"url": "https://opencollective.com/cq-prolyfill"
 	}
 }
