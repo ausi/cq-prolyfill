@@ -97,3 +97,17 @@ It’s also possible to query color properties, for this purpose the color filte
 	/* Styles for .element if its containers background-color is nearly transparent */
 }
 ```
+
+## With React
+
+Using a higer-order component [ContainerQueryContainer](https://github.com/VinSpee/react-container-query-container), initialize the prolyfill, and apply it to each component that needs it, optionally supplying a callback that is executed upon reevaluating.
+
+```js
+import ContainerQueryContainer, { initializeContainers } from 'react-container-query-container';
+initializeContainers({ postcss: true });
+
+@ContainerQueryContainer({
+    componentShouldReevaluate: () => console.log('reevaluated.'),
+})
+class DemoComponent extends Component { …
+```
