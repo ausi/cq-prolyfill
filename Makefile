@@ -4,7 +4,7 @@ UGLIFY = $(BIN)/uglifyjs
 UGLIFY_OPTS = --compress=unsafe,pure_getters --mangle --mangle-props --mangle-regex="/^_/" --screw-ie8
 ESLINT = $(BIN)/eslint
 ISTANBUL = $(BIN)/istanbul
-ZOPFLI = $(BIN)/zopfli
+#ZOPFLI = $(BIN)/zopfli
 SOURCE = cq-prolyfill.js
 TARGET = $(SOURCE:%.js=%.min.js)
 TARGET_GZ = $(SOURCE:%.js=%.min.js.gz)
@@ -29,9 +29,9 @@ $(TARGET): $(TARGET_TMP)
 	make test
 	cat $< > $@
 
-$(TARGET_GZ): $(TARGET) $(ZOPFLI)
-	rm -f $@
-	$(ZOPFLI) $<
+# $(TARGET_GZ): $(TARGET) $(ZOPFLI)
+# 	rm -f $@
+# 	$(ZOPFLI) $<
 
 $(TARGET_TMP): $(SOURCE) $(UGLIFY) $(TESTS) $(TESTS_FUNCTIONAL)
 	$(UGLIFY) $(UGLIFY_OPTS) $< > $@
@@ -48,8 +48,8 @@ $(ESLINT): $(MODULES)
 $(ISTANBUL): $(MODULES)
 	touch $@
 
-$(ZOPFLI): $(MODULES)
-	touch $@
+# $(ZOPFLI): $(MODULES)
+# 	touch $@
 
 $(QUNIT_JS): $(MODULES)
 	touch $@

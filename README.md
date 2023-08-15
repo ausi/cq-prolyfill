@@ -60,6 +60,11 @@ Thanks to all sponsors that help to bring this project forward. You can [become 
 * [Webflow](https://webflow.com/)
 * [BrowserStack](https://www.browserstack.com/)
 
+## Building on Mac
+```
+npm config set python /usr/bin/python3
+```
+
 ## License
 
 MIT
